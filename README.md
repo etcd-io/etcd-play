@@ -27,7 +27,7 @@ etcd-play terminal
 etcd-play web
 ```
 
-Web demo will be served at <a href="http://localhost:8000" href="_blank">http://localhost:8000</a>
+Web demo will be served at <a href="http://localhost:8000" href="_blank">http://localhost:8000</a>.
 
 ![local](screenshots/local.png)
 
@@ -46,6 +46,6 @@ AGENT_RPC_ENDPOINTS='10.10.10.1:9027,10.10.10.2:9027,10.10.10.3:9027,10.10.10.4:
 etcd-play web --keep-alive --production --remote --agent-endpoints="$(echo $AGENT_RPC_ENDPOINTS)" 
 ```
 
-Go to <a href="https://play.etcd.io" href="_blank">https://play.etcd.io</a>
+Please visit <a href="http://play.etcd.io" href="_blank">http://play.etcd.io</a>.
 
 ![web](screenshots/web.png)
