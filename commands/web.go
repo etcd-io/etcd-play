@@ -368,7 +368,16 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 			Message     string
 			PlayWebPort string
 		}{
-			"",
+			boldHTMLMsg("Hello World! Welcome to etcd!") + `<br>
+- Click the <font color='blue'>circle(node)</font> for more information.<br>
+- <font color='red'>Kill</font> to stop the node. You can even <font color='red'>kill</font> the <font color='green'>leader</font>!<br>
+- <font color='red'>Restart</font> to recover the node.<br>
+- <font color='blue'>Hash</font> shows how distributed database keeps being consistent.<br>
+- Select <b>any endpoint</b>(etcd1 to etcd5) to PUT, GET, DELETE, and then click <b>Submit</b>.<br>
+<br>
+If you find any issue, please contact us at https://github.com/coreos/etcd/issues.<br>
+Thank you and enjoy!<br>
+`,
 			wport,
 		}
 		globalCache.mu.Lock()
@@ -376,7 +385,7 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		globalCache.mu.Unlock()
 
 		if globalCache.clusterActive() {
-			resp.Message = boldHTMLMsg("Cluster is already running...")
+			resp.Message += boldHTMLMsg("Cluster is already started!")
 			if err := json.NewEncoder(w).Encode(resp); err != nil {
 				return err
 			}
@@ -387,12 +396,12 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		go startCluster(nodeType, globalWebFlags.ClusterSize, globalWebFlags.AgentEndpoints, userID, done, errc)
 		select {
 		case <-done:
-			resp.Message = boldHTMLMsg("Start cluster successfully requested!!!")
+			resp.Message += boldHTMLMsg("Start cluster successfully requested!!!")
 			if err := json.NewEncoder(w).Encode(resp); err != nil {
 				return err
 			}
 		case err := <-errc:
-			resp.Message = boldHTMLMsg(fmt.Sprintf("Start cluster failed (%v)", err))
+			resp.Message += boldHTMLMsg(fmt.Sprintf("Start cluster failed (%v)", err))
 			if err := json.NewEncoder(w).Encode(resp); err != nil {
 				return err
 			}
@@ -756,7 +765,7 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 					Message string
 					Result  string
 				}{
-					boldHTMLMsg(fmt.Sprintf("[PUT] error %v (key: %s / value: %s)", err, key, value)),
+					boldHTMLMsg(fmt.Sprintf("[PUT] error %v (key: %q / value: %q)", err, key, value)),
 					"",
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
@@ -781,16 +790,16 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 					Message string
 					Result  string
 				}{
-					boldHTMLMsg(fmt.Sprintf("[GET] error %v (key: %s)", err, key)),
-					fmt.Sprintf("<b>[GET] error %v (key: %s)</b>", err, key),
+					boldHTMLMsg(fmt.Sprintf("[GET] error %v (key: %q)", err, key)),
+					fmt.Sprintf("<b>[GET] error %v (key: %q)</b>", err, key),
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
 					return err
 				}
 			} else {
-				rs := fmt.Sprintf("<b>[GET]</b> %#q (key: %s)", vs, key)
+				rs := fmt.Sprintf("<b>[GET]</b> %#q (key: %q)", vs, key)
 				if len(vs) == 0 {
-					rs = fmt.Sprintf("<b>[GET]</b> not exist (key: %s)", key)
+					rs = fmt.Sprintf("<b>[GET]</b> not exist (key: %q)", key)
 				}
 				resp := struct {
 					Message string
@@ -810,8 +819,8 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 					Message string
 					Result  string
 				}{
-					boldHTMLMsg(fmt.Sprintf("[DELETE] error %v (key: %s)", err, key)),
-					fmt.Sprintf("<b>[DELETE] error %v (key: %s)</b>", err, key),
+					boldHTMLMsg(fmt.Sprintf("[DELETE] error %v (key: %q)", err, key)),
+					fmt.Sprintf("<b>[DELETE] error %v (key: %q)</b>", err, key),
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
 					return err
@@ -822,13 +831,12 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 					Result  string
 				}{
 					boldHTMLMsg("[DELETE] success!"),
-					fmt.Sprintf("<b>[DELETE]</b> successfully deleted %s", key),
+					fmt.Sprintf("<b>[DELETE]</b> successfully deleted %q", key),
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
 					return err
 				}
 			}
-
 		}
 
 	default:

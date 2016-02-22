@@ -1,3 +1,7 @@
+## etcd-play [![Build Status](https://img.shields.io/travis/coreos/etcd-play.svg?style=flat-square)](https://travis-ci.org/coreos/etcd-play) [![Godoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](https://godoc.org/github.com/coreos/etcd-play)
+
+
+<br>
 #### Install
 
 ```

@@ -2,7 +2,6 @@ package proc
 
 import (
 	"fmt"
-	"sort"
 	"sync"
 
 	"github.com/coreos/etcd/tools/functional-tester/etcd-agent/client"
@@ -16,21 +15,17 @@ type NodeWebRemoteClient struct {
 	active bool
 }
 
-func (nd *NodeWebRemoteClient) Write(p []byte) (int, error) {
-	return 0, nil // don't need (write on remote machines)
-}
-
-func (nd *NodeWebRemoteClient) GetGRPCAddr() string {
+func (nd *NodeWebRemoteClient) Endpoint() string {
 	return nd.Flags.ExperimentalgRPCAddr
 }
 
-func (nd *NodeWebRemoteClient) GetListenClientURLs() []string {
-	ls := []string{}
+func (nd *NodeWebRemoteClient) StatusEndpoint() string {
+	es := ""
 	for k := range nd.Flags.ListenClientURLs {
-		ls = append(ls, k)
+		es = k
+		break
 	}
-	sort.Strings(ls)
-	return ls
+	return es // TODO: deprecate this v2 endpoint
 }
 
 func (nd *NodeWebRemoteClient) IsActive() bool {

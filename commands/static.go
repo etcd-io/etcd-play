@@ -1,6 +1,6 @@
 package commands
 
-// updated at 2016-02-21 19:29:07.681087216 -0800 PST
+// updated at 2016-02-22 01:01:17.451154056 -0800 PST
 
 import (
 	"fmt"
@@ -289,7 +289,7 @@ var htmlSourceFileLocal = `<html lang="en">
                     document.getElementById('etcd1_State').innerHTML = "State: <b>" + dataObj.Etcd1_State + "</b>";
                     document.getElementById('etcd1_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd1_NumberOfKeys + "</b>";
                     document.getElementById('etcd1_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd1_Hash + "</b>";
-                    document.getElementById('etcd1_Hash_circle').innerHTML = "(hash: " + dataObj.Etcd1_Hash + ")";
+                    document.getElementById('etcd1_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd1_Hash + ")";
                     if (dataObj.Etcd1_State == "Leader") {
                         document.getElementById('etcd1_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd1_State == "Follower") {
@@ -305,7 +305,7 @@ var htmlSourceFileLocal = `<html lang="en">
                     document.getElementById('etcd2_State').innerHTML = "State: <b>" + dataObj.Etcd2_State + "</b>";
                     document.getElementById('etcd2_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd2_NumberOfKeys + "</b>";
                     document.getElementById('etcd2_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd2_Hash + "</b>";
-                    document.getElementById('etcd2_Hash_circle').innerHTML = "(hash: " + dataObj.Etcd2_Hash + ")";
+                    document.getElementById('etcd2_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd2_Hash + ")";
                     if (dataObj.Etcd2_State == "Leader") {
                         document.getElementById('etcd2_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd2_State == "Follower") {
@@ -321,7 +321,7 @@ var htmlSourceFileLocal = `<html lang="en">
                     document.getElementById('etcd3_State').innerHTML = "State: <b>" + dataObj.Etcd3_State + "</b>";
                     document.getElementById('etcd3_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd3_NumberOfKeys + "</b>";
                     document.getElementById('etcd3_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd3_Hash + "</b>";
-                    document.getElementById('etcd3_Hash_circle').innerHTML = "(hash: " + dataObj.Etcd3_Hash + ")";
+                    document.getElementById('etcd3_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd3_Hash + ")";
                     if (dataObj.Etcd3_State == "Leader") {
                         document.getElementById('etcd3_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd3_State == "Follower") {
@@ -337,7 +337,7 @@ var htmlSourceFileLocal = `<html lang="en">
                     document.getElementById('etcd4_State').innerHTML = "State: <b>" + dataObj.Etcd4_State + "</b>";
                     document.getElementById('etcd4_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd4_NumberOfKeys + "</b>";
                     document.getElementById('etcd4_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd4_Hash + "</b>";
-                    document.getElementById('etcd4_Hash_circle').innerHTML = "(hash: " + dataObj.Etcd4_Hash + ")";
+                    document.getElementById('etcd4_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd4_Hash + ")";
                     if (dataObj.Etcd4_State == "Leader") {
                         document.getElementById('etcd4_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd4_State == "Follower") {
@@ -353,7 +353,7 @@ var htmlSourceFileLocal = `<html lang="en">
                     document.getElementById('etcd5_State').innerHTML = "State: <b>" + dataObj.Etcd5_State + "</b>";
                     document.getElementById('etcd5_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd5_NumberOfKeys + "</b>";
                     document.getElementById('etcd5_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd5_Hash + "</b>";
-                    document.getElementById('etcd5_Hash_circle').innerHTML = "(hash: " + dataObj.Etcd5_Hash + ")";
+                    document.getElementById('etcd5_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd5_Hash + ")";
                     if (dataObj.Etcd5_State == "Leader") {
                         document.getElementById('etcd5_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd5_State == "Follower") {
@@ -384,7 +384,7 @@ var htmlSourceFileLocal = `<html lang="en">
                     if (window["WebSocket"]) {
                         wsConn = new WebSocket(wsURL);
                         wsConn.onopen = function() {
-                            appendLog("now WebSocket is connected to " + wsURL);
+                            appendLog("Successfully connected to " + wsURL);
                         }
                         wsConn.onclose = function(ev) {
                             appendLog($("<div><b>connection closed</b></div>"));
@@ -772,8 +772,10 @@ var htmlSourceFileLocal = `<html lang="en">
     }
     
     #log_box {
-        font-family: "Lucida Console", Courier, monospace;
-        font-size: 11px;
+        /*font-family: "Lucida Console", Courier, monospace;*/
+        /*font-size: 11px;*/
+        font-family: "Inconsolata", Courier, monospace;
+        font-size: 13px;
         font-style: normal;
         font-variant: normal;
     }
@@ -803,8 +805,6 @@ var htmlSourceFileLocal = `<html lang="en">
     <div class="container-fluid">
         <div class="row">
             <div class="main">
-                <br>
-                <br>
                 <!--                 <div id="etcd1_Contents" style="display: none;">
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-danger btn-sm" id="kill_1">Kill</button>
@@ -824,7 +824,7 @@ var htmlSourceFileLocal = `<html lang="en">
                                 <div class="wrapper">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-danger" id="kill_1">Kill</button>
-                                        <button type="button" class="btn btn-success" id="restart_1">Restart</button>
+                                        <button type="button" class="btn btn-danger-outline" id="restart_1">Restart</button>
                                     </div>
                                 </div>
                                 <br>
@@ -851,7 +851,7 @@ var htmlSourceFileLocal = `<html lang="en">
                                 <div class="wrapper">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-danger" id="kill_2">Kill</button>
-                                        <button type="button" class="btn btn-success" id="restart_2">Restart</button>
+                                        <button type="button" class="btn btn-danger-outline" id="restart_2">Restart</button>
                                     </div>
                                 </div>
                                 <br>
@@ -878,7 +878,7 @@ var htmlSourceFileLocal = `<html lang="en">
                                 <div class="wrapper">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-danger" id="kill_3">Kill</button>
-                                        <button type="button" class="btn btn-success" id="restart_3">Restart</button>
+                                        <button type="button" class="btn btn-danger-outline" id="restart_3">Restart</button>
                                     </div>
                                 </div>
                                 <br>
@@ -905,7 +905,7 @@ var htmlSourceFileLocal = `<html lang="en">
                                 <div class="wrapper">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-danger" id="kill_4">Kill</button>
-                                        <button type="button" class="btn btn-success" id="restart_4">Restart</button>
+                                        <button type="button" class="btn btn-danger-outline" id="restart_4">Restart</button>
                                     </div>
                                 </div>
                                 <br>
@@ -932,7 +932,7 @@ var htmlSourceFileLocal = `<html lang="en">
                                 <div class="wrapper">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-danger" id="kill_5">Kill</button>
-                                        <button type="button" class="btn btn-success" id="restart_5">Restart</button>
+                                        <button type="button" class="btn btn-danger-outline" id="restart_5">Restart</button>
                                     </div>
                                 </div>
                                 <br>
@@ -969,35 +969,35 @@ var htmlSourceFileLocal = `<html lang="en">
                                 <g id="etcd1_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd1_Contents" title="etcd1">
                                     <!-- <g id="etcd1_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="popover" title="etcd1"> -->
                                     <text x="255" y="50">etcd1</text>
-                                    <text x="250" y="67" font-size="10" id="etcd1_Hash_circle">(hash: 0)</text>
+                                    <text x="250" y="67" font-size="10" id="etcd1_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="270" cy="100" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd2_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd2_Contents" title="etcd2">
                                     <text x="395" y="160">etcd2</text>
-                                    <text x="400" y="177" font-size="10" id="etcd2_Hash_circle">(hash: 0)</text>
+                                    <text x="400" y="177" font-size="10" id="etcd2_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="370" cy="180" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd3_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd3_Contents" title="etcd3">
                                     <text x="360" y="320">etcd3</text>
-                                    <text x="342" y="337" font-size="10" id="etcd3_Hash_circle">(hash: 0)</text>
+                                    <text x="342" y="337" font-size="10" id="etcd3_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="335" cy="295" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd4_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd4_Contents" title="etcd4">
                                     <text x="130" y="320">etcd4</text>
-                                    <text x="120" y="337" font-size="10" id="etcd4_Hash_circle">(hash: 0)</text>
+                                    <text x="120" y="337" font-size="10" id="etcd4_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="200" cy="295" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd5_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd5_Contents" title="etcd5">
                                     <text x="95" y="173">etcd5</text>
-                                    <text x="87" y="150" font-size="10" id="etcd5_Hash_circle">(hash: 0)</text>
+                                    <text x="87" y="150" font-size="10" id="etcd5_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="165" cy="180" r="25"></circle>
                                     </a>
@@ -1279,7 +1279,7 @@ var htmlSourceFileRemote = `<html lang="en">
                 dataType: "json",
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
-                    
+
                     document.getElementById('online').innerHTML = "(Online: " + dataObj.Online + ")";
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
@@ -1287,7 +1287,7 @@ var htmlSourceFileRemote = `<html lang="en">
                     document.getElementById('etcd1_State').innerHTML = "State: <b>" + dataObj.Etcd1_State + "</b>";
                     document.getElementById('etcd1_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd1_NumberOfKeys + "</b>";
                     document.getElementById('etcd1_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd1_Hash + "</b>";
-                    document.getElementById('etcd1_Hash_circle').innerHTML = "(hash: " + dataObj.Etcd1_Hash + ")";
+                    document.getElementById('etcd1_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd1_Hash + ")";
                     if (dataObj.Etcd1_State == "Leader") {
                         document.getElementById('etcd1_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd1_State == "Follower") {
@@ -1303,7 +1303,7 @@ var htmlSourceFileRemote = `<html lang="en">
                     document.getElementById('etcd2_State').innerHTML = "State: <b>" + dataObj.Etcd2_State + "</b>";
                     document.getElementById('etcd2_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd2_NumberOfKeys + "</b>";
                     document.getElementById('etcd2_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd2_Hash + "</b>";
-                    document.getElementById('etcd2_Hash_circle').innerHTML = "(hash: " + dataObj.Etcd2_Hash + ")";
+                    document.getElementById('etcd2_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd2_Hash + ")";
                     if (dataObj.Etcd2_State == "Leader") {
                         document.getElementById('etcd2_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd2_State == "Follower") {
@@ -1319,7 +1319,7 @@ var htmlSourceFileRemote = `<html lang="en">
                     document.getElementById('etcd3_State').innerHTML = "State: <b>" + dataObj.Etcd3_State + "</b>";
                     document.getElementById('etcd3_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd3_NumberOfKeys + "</b>";
                     document.getElementById('etcd3_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd3_Hash + "</b>";
-                    document.getElementById('etcd3_Hash_circle').innerHTML = "(hash: " + dataObj.Etcd3_Hash + ")";
+                    document.getElementById('etcd3_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd3_Hash + ")";
                     if (dataObj.Etcd3_State == "Leader") {
                         document.getElementById('etcd3_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd3_State == "Follower") {
@@ -1335,7 +1335,7 @@ var htmlSourceFileRemote = `<html lang="en">
                     document.getElementById('etcd4_State').innerHTML = "State: <b>" + dataObj.Etcd4_State + "</b>";
                     document.getElementById('etcd4_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd4_NumberOfKeys + "</b>";
                     document.getElementById('etcd4_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd4_Hash + "</b>";
-                    document.getElementById('etcd4_Hash_circle').innerHTML = "(hash: " + dataObj.Etcd4_Hash + ")";
+                    document.getElementById('etcd4_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd4_Hash + ")";
                     if (dataObj.Etcd4_State == "Leader") {
                         document.getElementById('etcd4_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd4_State == "Follower") {
@@ -1351,7 +1351,7 @@ var htmlSourceFileRemote = `<html lang="en">
                     document.getElementById('etcd5_State').innerHTML = "State: <b>" + dataObj.Etcd5_State + "</b>";
                     document.getElementById('etcd5_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd5_NumberOfKeys + "</b>";
                     document.getElementById('etcd5_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd5_Hash + "</b>";
-                    document.getElementById('etcd5_Hash_circle').innerHTML = "(hash: " + dataObj.Etcd5_Hash + ")";
+                    document.getElementById('etcd5_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd5_Hash + ")";
                     if (dataObj.Etcd5_State == "Leader") {
                         document.getElementById('etcd5_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd5_State == "Follower") {
@@ -1366,8 +1366,6 @@ var htmlSourceFileRemote = `<html lang="en">
         }
 
         var wsConn;
-        // $('#start_cluster').click(function(e) {
-        //     e.preventDefault();
         $.ajax({
             type: "GET",
             url: "/start_cluster",
@@ -1382,7 +1380,7 @@ var htmlSourceFileRemote = `<html lang="en">
                 if (window["WebSocket"]) {
                     wsConn = new WebSocket(wsURL);
                     wsConn.onopen = function() {
-                        appendLog("now WebSocket is connected to " + wsURL);
+                        appendLog("Successfully connected to " + wsURL);
                     }
                     wsConn.onclose = function(ev) {
                         appendLog($("<div><b>connection closed</b></div>"));
@@ -1398,17 +1396,12 @@ var htmlSourceFileRemote = `<html lang="en">
                 }
             }
         });
-        // });
-        // $('#start_cluster').click(function(e) {
         runWithTimeout(receiveStreams, 100, 1);
         runWithTimeout(receiveStreams, 500, 1);
         runWithTimeout(receiveStreams, 1500, 100);
         setInterval(receiveStreams, 3000);
-        // });
-        // $('#start_cluster').click(function(e) {
         runWithTimeout(receiveStreams, 1000, 10);
         setInterval(receiveServerStatus, 2000);
-        // });
 
         $("#key_input")
             .on("click", function(event, ui) {
@@ -1569,8 +1562,10 @@ var htmlSourceFileRemote = `<html lang="en">
     }
     
     #log_box {
-        font-family: "Lucida Console", Courier, monospace;
-        font-size: 11px;
+        /*font-family: "Lucida Console", Courier, monospace;*/
+        /*font-size: 11px;*/
+        font-family: "Inconsolata", Courier, monospace;
+        font-size: 13px;
         font-style: normal;
         font-variant: normal;
     }
@@ -1600,8 +1595,6 @@ var htmlSourceFileRemote = `<html lang="en">
     <div class="container-fluid">
         <div class="row">
             <div class="main">
-                <br>
-                <br>
                 <!--                 <div id="etcd1_Contents" style="display: none;">
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-danger btn-sm" id="kill_1">Kill</button>
@@ -1621,7 +1614,7 @@ var htmlSourceFileRemote = `<html lang="en">
                                 <div class="wrapper">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-danger" id="kill_1">Kill</button>
-                                        <button type="button" class="btn btn-success" id="restart_1">Restart</button>
+                                        <button type="button" class="btn btn-danger-outline" id="restart_1">Restart</button>
                                     </div>
                                 </div>
                                 <br>
@@ -1648,7 +1641,7 @@ var htmlSourceFileRemote = `<html lang="en">
                                 <div class="wrapper">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-danger" id="kill_2">Kill</button>
-                                        <button type="button" class="btn btn-success" id="restart_2">Restart</button>
+                                        <button type="button" class="btn btn-danger-outline" id="restart_2">Restart</button>
                                     </div>
                                 </div>
                                 <br>
@@ -1675,7 +1668,7 @@ var htmlSourceFileRemote = `<html lang="en">
                                 <div class="wrapper">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-danger" id="kill_3">Kill</button>
-                                        <button type="button" class="btn btn-success" id="restart_3">Restart</button>
+                                        <button type="button" class="btn btn-danger-outline" id="restart_3">Restart</button>
                                     </div>
                                 </div>
                                 <br>
@@ -1702,7 +1695,7 @@ var htmlSourceFileRemote = `<html lang="en">
                                 <div class="wrapper">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-danger" id="kill_4">Kill</button>
-                                        <button type="button" class="btn btn-success" id="restart_4">Restart</button>
+                                        <button type="button" class="btn btn-danger-outline" id="restart_4">Restart</button>
                                     </div>
                                 </div>
                                 <br>
@@ -1729,7 +1722,7 @@ var htmlSourceFileRemote = `<html lang="en">
                                 <div class="wrapper">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-danger" id="kill_5">Kill</button>
-                                        <button type="button" class="btn btn-success" id="restart_5">Restart</button>
+                                        <button type="button" class="btn btn-danger-outline" id="restart_5">Restart</button>
                                     </div>
                                 </div>
                                 <br>
@@ -1766,35 +1759,35 @@ var htmlSourceFileRemote = `<html lang="en">
                                 <g id="etcd1_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd1_Contents" title="etcd1">
                                     <!-- <g id="etcd1_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="popover" title="etcd1"> -->
                                     <text x="255" y="50">etcd1</text>
-                                    <text x="250" y="67" font-size="10" id="etcd1_Hash_circle">(hash: 0)</text>
+                                    <text x="250" y="67" font-size="10" id="etcd1_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="270" cy="100" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd2_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd2_Contents" title="etcd2">
                                     <text x="395" y="160">etcd2</text>
-                                    <text x="400" y="177" font-size="10" id="etcd2_Hash_circle">(hash: 0)</text>
+                                    <text x="400" y="177" font-size="10" id="etcd2_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="370" cy="180" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd3_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd3_Contents" title="etcd3">
                                     <text x="360" y="320">etcd3</text>
-                                    <text x="342" y="337" font-size="10" id="etcd3_Hash_circle">(hash: 0)</text>
+                                    <text x="342" y="337" font-size="10" id="etcd3_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="335" cy="295" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd4_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd4_Contents" title="etcd4">
                                     <text x="130" y="320">etcd4</text>
-                                    <text x="120" y="337" font-size="10" id="etcd4_Hash_circle">(hash: 0)</text>
+                                    <text x="120" y="337" font-size="10" id="etcd4_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="200" cy="295" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd5_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd5_Contents" title="etcd5">
                                     <text x="95" y="173">etcd5</text>
-                                    <text x="87" y="150" font-size="10" id="etcd5_Hash_circle">(hash: 0)</text>
+                                    <text x="87" y="150" font-size="10" id="etcd5_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="165" cy="180" r="25"></circle>
                                     </a>

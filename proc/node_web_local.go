@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"sort"
 	"sync"
 	"syscall"
 )
@@ -50,17 +49,17 @@ func (nd *NodeWebLocal) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func (nd *NodeWebLocal) GetGRPCAddr() string {
+func (nd *NodeWebLocal) Endpoint() string {
 	return nd.Flags.ExperimentalgRPCAddr
 }
 
-func (nd *NodeWebLocal) GetListenClientURLs() []string {
-	es := []string{}
+func (nd *NodeWebLocal) StatusEndpoint() string {
+	es := ""
 	for k := range nd.Flags.ListenClientURLs {
-		es = append(es, k)
+		es = k
+		break
 	}
-	sort.Strings(es)
-	return es
+	return es // TODO: deprecate this v2 endpoint
 }
 
 func (nd *NodeWebLocal) IsActive() bool {

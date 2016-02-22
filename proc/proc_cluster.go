@@ -42,14 +42,11 @@ var (
 
 // Node contains node operations.
 type Node interface {
-	// Write writes Node process's logs.
-	Write(p []byte) (int, error)
+	// Endpoint returns the gRPC endpoint.
+	Endpoint() string
 
-	// GetGRPCAddr returns the gRPC endpoint.
-	GetGRPCAddr() string
-
-	// GetListenClientURLs returns the v2 client endpoints.
-	GetListenClientURLs() []string
+	// StatusEndpoint returns the v2 status endpoint.
+	StatusEndpoint() string
 
 	// IsActive returns true if the Node is running(active).
 	IsActive() bool
@@ -392,10 +389,10 @@ func (c *defaultCluster) Endpoints() ([]string, map[string]string) {
 	var endpoints []string
 	nameToGRPCEndpoint := make(map[string]string)
 	for n, nd := range c.nameToNode {
-		if nd.GetGRPCAddr() != "" && nd.IsActive() {
-			endpoints = append(endpoints, nd.GetGRPCAddr())
+		if nd.Endpoint() != "" && nd.IsActive() {
+			endpoints = append(endpoints, nd.Endpoint())
 		}
-		nameToGRPCEndpoint[n] = nd.GetGRPCAddr()
+		nameToGRPCEndpoint[n] = nd.Endpoint()
 	}
 	sort.Strings(endpoints)
 	return endpoints, nameToGRPCEndpoint
@@ -555,9 +552,7 @@ func (c *defaultCluster) Status() (map[string]ServerStatus, error) {
 	_, nameToEndpoint := c.Endpoints()
 	nameToV2Endpoint := make(map[string]string)
 	for name, nd := range c.nameToNode {
-		for _, ep := range nd.GetListenClientURLs() {
-			nameToV2Endpoint[name] = ep
-		}
+		nameToV2Endpoint[name] = nd.StatusEndpoint()
 	}
 
 	sc, errc := make(chan ServerStatus), make(chan error)
@@ -614,11 +609,11 @@ func (c *defaultCluster) Put(name, key, value string, streamIDs ...string) error
 	kvc := clientv3.NewKV(cli)
 	st := time.Now()
 
-	c.Write(name, fmt.Sprintf("[Put] Started! (endpoints: %q)", endpoints), streamIDs...)
+	c.Write(name, fmt.Sprintf("[PUT] Started! (endpoints: %q)", endpoints), streamIDs...)
 	if _, err := kvc.Put(context.Background(), key, value); err != nil {
 		return err
 	}
-	c.Write(name, fmt.Sprintf("[Put] %q : %q / Took %v (endpoints: %q)", key, value, time.Since(st), endpoints), streamIDs...)
+	c.Write(name, fmt.Sprintf("[PUT] %q : %q / Took %v (endpoints: %q)", key, value, time.Since(st), endpoints), streamIDs...)
 
 	return nil
 }
@@ -649,7 +644,7 @@ func (c *defaultCluster) Get(name, key string, streamIDs ...string) ([]string, e
 	kvc := clientv3.NewKV(cli)
 	st := time.Now()
 
-	c.Write(name, fmt.Sprintf("[Get] Started! (endpoints: %q)", endpoints), streamIDs...)
+	c.Write(name, fmt.Sprintf("[GET] Started! (endpoints: %q)", endpoints), streamIDs...)
 	resp, err := kvc.Get(context.Background(), key)
 	if err != nil {
 		return nil, err
@@ -658,13 +653,13 @@ func (c *defaultCluster) Get(name, key string, streamIDs ...string) ([]string, e
 	if len(resp.Kvs) > 0 {
 		for _, ev := range resp.Kvs {
 			vs = append(vs, string(ev.Value))
-			c.Write(name, fmt.Sprintf("[Get] %q : %q", ev.Key, ev.Value), streamIDs...)
+			c.Write(name, fmt.Sprintf("[GET] %q : %q", ev.Key, ev.Value), streamIDs...)
 		}
 	} else {
-		c.Write(name, fmt.Sprintf("[Get] %q does not exist!", key), streamIDs...)
+		c.Write(name, fmt.Sprintf("[GET] %q does not exist!", key), streamIDs...)
 	}
 
-	c.Write(name, fmt.Sprintf("[Get] Done! Took %v (endpoints: %q)", time.Since(st), endpoints), streamIDs...)
+	c.Write(name, fmt.Sprintf("[GET] Done! Took %v (endpoints: %q)", time.Since(st), endpoints), streamIDs...)
 	sort.Strings(vs)
 	return vs, nil
 }
@@ -695,11 +690,11 @@ func (c *defaultCluster) Delete(name, key string, streamIDs ...string) error {
 	kvc := clientv3.NewKV(cli)
 	st := time.Now()
 
-	c.Write(name, fmt.Sprintf("[Delete] Started! (endpoints: %q)", endpoints), streamIDs...)
+	c.Write(name, fmt.Sprintf("[DELETE] Started! (endpoints: %q)", endpoints), streamIDs...)
 	if _, err := kvc.Delete(context.Background(), key); err != nil {
 		return err
 	}
-	c.Write(name, fmt.Sprintf("[Delete] Done! Took %v (endpoints: %q)", time.Since(st), endpoints), streamIDs...)
+	c.Write(name, fmt.Sprintf("[DELETE] Done! Took %v (endpoints: %q)", time.Since(st), endpoints), streamIDs...)
 
 	return nil
 }
@@ -742,7 +737,7 @@ func (c *defaultCluster) stress(name string, stressN int, donec chan struct{}, e
 				errChan <- err
 				return
 			}
-			c.Write(name, fmt.Sprintf("[Stress PUT %2d] %s : %s", i, key, val))
+			c.Write(name, fmt.Sprintf("[STRESS PUT %2d] %q : %q", i, key, val))
 			done <- struct{}{}
 		}(i)
 	}
@@ -759,7 +754,7 @@ func (c *defaultCluster) stress(name string, stressN int, donec chan struct{}, e
 	tt := time.Since(st)
 	pt := tt / time.Duration(stressN)
 
-	c.Write(name, fmt.Sprintf("[Stress] Done! Took %v for %d requests(%v per each), %d client(s) (endpoints: %s)", tt, stressN, pt, clientsN, endpoints), streamIDs...)
+	c.Write(name, fmt.Sprintf("[STRESS] Done! Took %v for %d requests(%v per each), %d client(s) (endpoints: %s)", tt, stressN, pt, clientsN, endpoints), streamIDs...)
 	donec <- struct{}{}
 	return
 }
@@ -804,7 +799,7 @@ func (c *defaultCluster) WatchPut(name string, watchersN int, streamIDs ...strin
 	}
 
 	defer func() {
-		c.Write(name, fmt.Sprintf("[WatchAndPut] Closing all watchers! (endpoints: %q)", endpoints), streamIDs...)
+		c.Write(name, fmt.Sprintf("[WatchPut] Closing all watchers! (endpoints: %q)", endpoints), streamIDs...)
 		for i := range wcs {
 			wcs[i].Close()
 		}
@@ -817,7 +812,7 @@ func (c *defaultCluster) WatchPut(name string, watchersN int, streamIDs ...strin
 		respChs[i] = wcs[rand.Intn(clientsN)].Watch(ctx, "foo", 0)
 	}
 
-	c.Write(name, "[Put] Triggers watch...", streamIDs...)
+	c.Write(name, "[PUT] Triggers watch...", streamIDs...)
 	kvc := clientv3.NewKV(cli)
 	if _, err := kvc.Put(context.Background(), "foo", "bar"); err != nil {
 		return err
@@ -838,7 +833,7 @@ func (c *defaultCluster) WatchPut(name string, watchersN int, streamIDs ...strin
 				}
 				c.Write(name, fmt.Sprintf("[Watch revision] %d\n", wresp.Header.Revision), streamIDs...)
 				for _, ev := range wresp.Events {
-					c.Write(name, fmt.Sprintf("[%s] %s : %s\n", ev.Type, ev.Kv.Key, ev.Kv.Value), streamIDs...)
+					c.Write(name, fmt.Sprintf("[%s] %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value), streamIDs...)
 				}
 			case <-time.After(3 * time.Second):
 				c.Write(name, "watch timed out")
