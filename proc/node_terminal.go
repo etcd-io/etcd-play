@@ -88,6 +88,12 @@ func (nd *NodeTerminal) Start() error {
 			fmt.Fprintf(nd, "Start %s: panic (%v)\n", nd.Flags.Name, err)
 		}
 	}()
+	nd.pmu.Lock()
+	active := nd.active
+	nd.pmu.Unlock()
+	if active {
+		return fmt.Errorf("%s is already running", nd.Flags.Name)
+	}
 
 	shell := os.Getenv("SHELL")
 	if len(shell) == 0 {
@@ -136,19 +142,17 @@ func (nd *NodeTerminal) Start() error {
 }
 
 func (nd *NodeTerminal) Restart() error {
+	nd.pmu.Lock()
+	active := nd.active
+	nd.pmu.Unlock()
+	if active {
+		return fmt.Errorf("%s is already running", nd.Flags.Name)
+	}
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Fprintf(nd, "Restart %s: panic (%v)\n", nd.Flags.Name, err)
 		}
 	}()
-
-	nd.pmu.Lock()
-	active := nd.active
-	nd.pmu.Unlock()
-
-	if active {
-		return fmt.Errorf("%s is already running", nd.Flags.Name)
-	}
 
 	shell := os.Getenv("SHELL")
 	if len(shell) == 0 {
@@ -195,11 +199,9 @@ func (nd *NodeTerminal) Terminate() error {
 			fmt.Fprintf(nd, "Terminate %s: panic (%v)\n", nd.Flags.Name, err)
 		}
 	}()
-
 	nd.pmu.Lock()
 	active := nd.active
 	nd.pmu.Unlock()
-
 	if !active {
 		return fmt.Errorf("%s is already terminated", nd.Flags.Name)
 	}
@@ -225,11 +227,9 @@ func (nd *NodeTerminal) Clean() error {
 			fmt.Fprintf(nd, "Clean %s: panic (%v)\n", nd.Flags.Name, err)
 		}
 	}()
-
 	nd.pmu.Lock()
 	active := nd.active
 	nd.pmu.Unlock()
-
 	if active {
 		return fmt.Errorf("%s is already running", nd.Flags.Name)
 	}

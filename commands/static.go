@@ -1,6 +1,6 @@
 package commands
 
-// updated at 2016-02-20 23:18:31.747748081 -0800 PST
+// updated at 2016-02-21 19:29:07.681087216 -0800 PST
 
 import (
 	"fmt"
@@ -281,6 +281,8 @@ var htmlSourceFileLocal = `<html lang="en">
                 dataType: "json",
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
+
+                    document.getElementById('online').innerHTML = "(Online: " + dataObj.Online + ")";
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";
@@ -784,16 +786,19 @@ var htmlSourceFileLocal = `<html lang="en">
 </head>
 
 <body>
-    <nav class="navbar navbar-dark navbar-fixed-top bg-inverse">
-        <button type="button" class="navbar-toggler hidden-sm-up" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="https://github.com/coreos/etcd">etcd</a>
-        <a class="navbar-brand nav-link" href="/">Play</a>
-        <a class="navbar-brand nav-link" href="https://github.com/coreos/etcd/issues/new" target="_blank">Report Bug</a>
+    <nav class="navbar navbar-dark bg-primary navbar-fixed-top">
+        <a class="navbar-brand" href="https://github.com/coreos/etcd" target="_blank">Play etcd</a>
+        <ul class="nav navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="https://github.com/coreos/etcd/issues/new">Report bug</a>
+            </li>
+            <li class="nav-item pull-xs-right">
+                <div class="nav-link" id="online">(Online: 0)</div>
+            </li>
+        </ul>
     </nav>
     <div class="container-fluid">
         <div class="row">
@@ -1274,6 +1279,8 @@ var htmlSourceFileRemote = `<html lang="en">
                 dataType: "json",
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
+                    
+                    document.getElementById('online').innerHTML = "(Online: " + dataObj.Online + ")";
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";
@@ -1549,10 +1556,6 @@ var htmlSourceFileRemote = `<html lang="en">
         text-align: center;
     }
     
-    .bg-inverse {
-        background-color: rgb(0, 153, 255);
-    }
-    
     .ui-menu-item {
         width: 100%;
         height: 100%;
@@ -1580,16 +1583,19 @@ var htmlSourceFileRemote = `<html lang="en">
 </head>
 
 <body>
-    <nav class="navbar navbar-dark navbar-fixed-top bg-inverse">
-        <button type="button" class="navbar-toggler hidden-sm-up" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="https://github.com/coreos/etcd">etcd</a>
-        <a class="navbar-brand nav-link" href="/">Play</a>
-        <a class="navbar-brand nav-link" href="https://github.com/coreos/etcd/issues/new" target="_blank">Report Bug</a>
+    <nav class="navbar navbar-dark bg-primary navbar-fixed-top">
+        <a class="navbar-brand" href="https://github.com/coreos/etcd" target="_blank">Play etcd</a>
+        <ul class="nav navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="https://github.com/coreos/etcd/issues/new">Report bug</a>
+            </li>
+            <li class="nav-item pull-xs-right">
+                <div class="nav-link" id="online">(Online: 0)</div>
+            </li>
+        </ul>
     </nav>
     <div class="container-fluid">
         <div class="row">

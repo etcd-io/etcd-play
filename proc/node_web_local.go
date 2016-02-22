@@ -76,6 +76,12 @@ func (nd *NodeWebLocal) Start() error {
 			nd.sharedStream <- fmt.Sprintf("Start %s: panic (%v)\n", nd.Flags.Name, err)
 		}
 	}()
+	nd.pmu.Lock()
+	active := nd.active
+	nd.pmu.Unlock()
+	if active {
+		return fmt.Errorf("%s is already running", nd.Flags.Name)
+	}
 
 	shell := os.Getenv("SHELL")
 	if len(shell) == 0 {
@@ -121,11 +127,9 @@ func (nd *NodeWebLocal) Restart() error {
 			nd.sharedStream <- fmt.Sprintf("Restart %s: panic (%v)\n", nd.Flags.Name, err)
 		}
 	}()
-
 	nd.pmu.Lock()
 	active := nd.active
 	nd.pmu.Unlock()
-
 	if active {
 		return fmt.Errorf("%s is already running", nd.Flags.Name)
 	}
@@ -175,11 +179,9 @@ func (nd *NodeWebLocal) Terminate() error {
 			nd.sharedStream <- fmt.Sprintf("Terminate %s: panic (%v)\n", nd.Flags.Name, err)
 		}
 	}()
-
 	nd.pmu.Lock()
 	active := nd.active
 	nd.pmu.Unlock()
-
 	if !active {
 		return fmt.Errorf("%s is already terminated", nd.Flags.Name)
 	}
@@ -205,11 +207,9 @@ func (nd *NodeWebLocal) Clean() error {
 			nd.sharedStream <- fmt.Sprintf("Clean %s: panic (%v)\n", nd.Flags.Name, err)
 		}
 	}()
-
 	nd.pmu.Lock()
 	active := nd.active
 	nd.pmu.Unlock()
-
 	if active {
 		return fmt.Errorf("%s is already running", nd.Flags.Name)
 	}
