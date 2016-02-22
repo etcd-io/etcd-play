@@ -10,7 +10,7 @@ go get -v -u github.com/coreos/etcd/tools/functional-tester/etcd-agent
 go get -v -u github.com/coreos/etcd-play
 ```
 
-There are multiple ways to play etcd.
+There are multiple ways to play [`etcd`](https://github.com/coreos/etcd).
 
 
 <br>
