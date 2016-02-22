@@ -261,6 +261,8 @@
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
+                    document.getElementById('online').innerHTML = "(Online: " + dataObj.Online + ")";
+
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";
                     document.getElementById('etcd1_State').innerHTML = "State: <b>" + dataObj.Etcd1_State + "</b>";
@@ -763,16 +765,19 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-dark navbar-fixed-top bg-inverse">
-        <button type="button" class="navbar-toggler hidden-sm-up" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="https://github.com/coreos/etcd">etcd</a>
-        <a class="navbar-brand nav-link" href="/">Play</a>
-        <a class="navbar-brand nav-link" href="https://github.com/coreos/etcd/issues/new" target="_blank">Report Bug</a>
+    <nav class="navbar navbar-dark bg-primary navbar-fixed-top">
+        <a class="navbar-brand" href="https://github.com/coreos/etcd" target="_blank">Play etcd</a>
+        <ul class="nav navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="https://github.com/coreos/etcd/issues/new">Report bug</a>
+            </li>
+            <li class="nav-item pull-xs-right">
+                <div class="nav-link" id="online">(Online: 0)</div>
+            </li>
+        </ul>
     </nav>
     <div class="container-fluid">
         <div class="row">

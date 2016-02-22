@@ -249,6 +249,7 @@ func (c *defaultCluster) Write(name, msg string, streamIDs ...string) error {
 	switch vt := nd.(type) {
 	case *NodeTerminal:
 		fmt.Fprintln(vt, msg)
+
 	case *NodeWebLocal:
 		if len(streamIDs) == 0 {
 			vt.sharedStream <- msg
@@ -257,6 +258,7 @@ func (c *defaultCluster) Write(name, msg string, streamIDs ...string) error {
 				c.Stream(streamID) <- msg
 			}
 		}
+
 	case *NodeWebRemoteClient:
 		if len(streamIDs) > 0 {
 			for _, streamID := range streamIDs {

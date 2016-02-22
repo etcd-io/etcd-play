@@ -1,6 +1,7 @@
 package proc
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 
@@ -16,7 +17,7 @@ type NodeWebRemoteClient struct {
 }
 
 func (nd *NodeWebRemoteClient) Write(p []byte) (int, error) {
-	return 0, nil
+	return 0, nil // don't need (write on remote machines)
 }
 
 func (nd *NodeWebRemoteClient) GetGRPCAddr() string {
@@ -40,6 +41,13 @@ func (nd *NodeWebRemoteClient) IsActive() bool {
 }
 
 func (nd *NodeWebRemoteClient) Start() error {
+	nd.mu.Lock()
+	active := nd.active
+	nd.mu.Unlock()
+	if active {
+		return fmt.Errorf("%s is already active", nd.Flags.Name)
+	}
+
 	flagSlice, err := nd.Flags.StringSlice()
 	if err != nil {
 		return err
@@ -54,6 +62,13 @@ func (nd *NodeWebRemoteClient) Start() error {
 }
 
 func (nd *NodeWebRemoteClient) Restart() error {
+	nd.mu.Lock()
+	active := nd.active
+	nd.mu.Unlock()
+	if active {
+		return fmt.Errorf("%s is already active", nd.Flags.Name)
+	}
+
 	if _, err := nd.Agent.Restart(); err != nil {
 		return err
 	}
@@ -64,15 +79,12 @@ func (nd *NodeWebRemoteClient) Restart() error {
 }
 
 func (nd *NodeWebRemoteClient) Terminate() error {
-	// TODO: not working?
-	//
-	// nd.mu.Lock()
-	// active := nd.active
-	// nd.mu.Unlock()
-	// if !active {
-	// 	return fmt.Errorf("%s is already terminated", nd.Flags.Name)
-	// }
-
+	nd.mu.Lock()
+	active := nd.active
+	nd.mu.Unlock()
+	if !active {
+		return fmt.Errorf("%s is already terminated", nd.Flags.Name)
+	}
 	if err := nd.Agent.Stop(); err != nil {
 		return err
 	}

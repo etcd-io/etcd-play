@@ -526,6 +526,8 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		}
 
 		resp := struct {
+			Online int
+
 			Etcd1_Name         string
 			Etcd1_ID           string
 			Etcd1_Endpoint     string
@@ -561,6 +563,8 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 			Etcd5_NumberOfKeys int
 			Etcd5_Hash         int
 		}{
+			len(globalCache.users),
+
 			"etcd1",
 			etcd1_ID,
 			etcd1_Endpoint,
