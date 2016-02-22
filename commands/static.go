@@ -1,6 +1,6 @@
 package commands
 
-// updated at 2016-02-22 01:01:17.451154056 -0800 PST
+// updated at 2016-02-22 09:54:14.400570087 -0800 PST
 
 import (
 	"fmt"
@@ -127,7 +127,8 @@ var htmlSourceFileLocal = `<html lang="en">
 
         $('#put_label').click(function(e) {
             document.getElementById('value_input').style = "min-width: 370px;";
-            document.getElementById('result').style = "display: none;"
+            // document.getElementById('result').style = "display: none;"
+            document.getElementById('result').style = ""
         });
         $('#get_label').click(function(e) {
             document.getElementById('value_input').style = "min-width: 370px; display: none;";
@@ -282,7 +283,7 @@ var htmlSourceFileLocal = `<html lang="en">
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('online').innerHTML = "(Online: " + dataObj.Online + ")";
+                    document.getElementById('online').innerHTML = "(active user: " + dataObj.Online + ")";
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";
@@ -770,7 +771,16 @@ var htmlSourceFileLocal = `<html lang="en">
         font-family: 'Inconsolata', Courier;
         font-size: 17px;
     }
-    
+
+    #result {
+        /*font-family: "Lucida Console", Courier, monospace;*/
+        /*font-size: 11px;*/
+        font-family: "Inconsolata", Courier, monospace;
+        font-size: 13px;
+        font-style: normal;
+        font-variant: normal;
+    }
+
     #log_box {
         /*font-family: "Lucida Console", Courier, monospace;*/
         /*font-size: 11px;*/
@@ -779,7 +789,7 @@ var htmlSourceFileLocal = `<html lang="en">
         font-style: normal;
         font-variant: normal;
     }
-    
+
     ul.ui-autocomplete.ui-menu {
         z-index: 1000;
     }
@@ -798,7 +808,7 @@ var htmlSourceFileLocal = `<html lang="en">
                 <a class="nav-link" href="https://github.com/coreos/etcd/issues/new">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
-                <div class="nav-link" id="online">(Online: 0)</div>
+                <div class="nav-link" id="online">(active user: 0)</div>
             </li>
         </ul>
     </nav>
@@ -1125,7 +1135,8 @@ var htmlSourceFileRemote = `<html lang="en">
 
         $('#put_label').click(function(e) {
             document.getElementById('value_input').style = "min-width: 370px;";
-            document.getElementById('result').style = "display: none;"
+            // document.getElementById('result').style = "display: none;"
+            document.getElementById('result').style = ""
         });
         $('#get_label').click(function(e) {
             document.getElementById('value_input').style = "min-width: 370px; display: none;";
@@ -1280,7 +1291,7 @@ var htmlSourceFileRemote = `<html lang="en">
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('online').innerHTML = "(Online: " + dataObj.Online + ")";
+                    document.getElementById('online').innerHTML = "(active user: " + dataObj.Online + ")";
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";
@@ -1560,7 +1571,16 @@ var htmlSourceFileRemote = `<html lang="en">
         font-family: 'Inconsolata', Courier;
         font-size: 17px;
     }
-    
+
+    #result {
+        /*font-family: "Lucida Console", Courier, monospace;*/
+        /*font-size: 11px;*/
+        font-family: "Inconsolata", Courier, monospace;
+        font-size: 13px;
+        font-style: normal;
+        font-variant: normal;
+    }
+
     #log_box {
         /*font-family: "Lucida Console", Courier, monospace;*/
         /*font-size: 11px;*/
@@ -1588,7 +1608,7 @@ var htmlSourceFileRemote = `<html lang="en">
                 <a class="nav-link" href="https://github.com/coreos/etcd/issues/new">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
-                <div class="nav-link" id="online">(Online: 0)</div>
+                <div class="nav-link" id="online">(active user: 0)</div>
             </li>
         </ul>
     </nav>

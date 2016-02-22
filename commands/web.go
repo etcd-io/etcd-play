@@ -736,11 +736,10 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 			globalCache.users[userID].keyHistory = append(globalCache.users[userID].keyHistory, key)
 		}
 		history := globalCache.users[userID].keyHistory
-		if len(history) > 7 { // FIFO of at most 5 command histories
-			temp := make([]string, 7)
-			copy(temp, history[:1])
-			copy(temp[1:], history[2:])
-			history = temp
+		if len(history) > 7 { // FIFO of at most 7 command histories
+			copied := make([]string, 7)
+			copy(copied, history[1:])
+			history = copied
 		}
 		globalCache.users[userID].keyHistory = history
 		globalCache.mu.Unlock()
@@ -766,18 +765,26 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 					Result  string
 				}{
 					boldHTMLMsg(fmt.Sprintf("[PUT] error %v (key: %q / value: %q)", err, key, value)),
-					"",
+					fmt.Sprintf("<b>[PUT] error %v (key: %q)</b>", err, key),
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
 					return err
 				}
 			} else {
+				keyT, valT := key, value
+				if len(keyT) > 3 {
+					keyT = keyT[:3] + "..."
+				}
+				if len(valT) > 3 {
+					valT = valT[:3] + "..."
+				}
+				rs := fmt.Sprintf("success! %q : %q (at %s PST)", keyT, valT, nowPST().String()[:19])
 				resp := struct {
 					Message string
 					Result  string
 				}{
 					boldHTMLMsg("[PUT] success!"),
-					"",
+					"<b>[PUT]</b> " + rs,
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
 					return err
