@@ -197,7 +197,7 @@
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('online').innerHTML = "(active user: " + dataObj.Online + ")";
+                    document.getElementById('online').innerHTML = "(active user: " + dataObj.ActiveUsers + ")";
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";

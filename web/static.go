@@ -1,6 +1,20 @@
-package commands
+// Copyright 2016 CoreOS, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-// updated at 2016-02-22 09:54:14.400570087 -0800 PST
+package web
+
+// updated at 2016-02-23 12:48:52.084513838 -0800 PST
 
 import (
 	"fmt"
@@ -283,7 +297,7 @@ var htmlSourceFileLocal = `<html lang="en">
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('online').innerHTML = "(active user: " + dataObj.Online + ")";
+                    document.getElementById('online').innerHTML = "(active user: " + dataObj.ActiveUsers + ")";
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";
@@ -1291,7 +1305,7 @@ var htmlSourceFileRemote = `<html lang="en">
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('online').innerHTML = "(active user: " + dataObj.Online + ")";
+                    document.getElementById('online').innerHTML = "(active user: " + dataObj.ActiveUsers + ")";
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";

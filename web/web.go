@@ -1,52 +1,42 @@
-package commands
+// Copyright 2016 CoreOS, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package web
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/coreos/etcd-play/proc"
-	"github.com/gorilla/websocket"
-	"github.com/gyuho/psn/ss"
+	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
 
 type (
 	key int
 
-	userData struct {
-		upgrader *websocket.Upgrader
-
-		startTime time.Time // time it clicked 'Play etcd'
-
-		// rate limit
-		lastRequestTime time.Time
-		requestCount    int
-
-		online bool
-
-		selectedNodeName  string
-		selectedOperation string
-
-		lastKey   string
-		lastValue string
-
-		keyHistory []string
-	}
-
-	sharedData struct {
-		mu      sync.Mutex
-		cluster proc.Cluster
-		users   map[string]*userData
-	}
-
-	WebFlags struct {
-		EtcdBinary  string
-		ClusterSize int
+	Flags struct {
+		EtcdBinary     string
+		ClusterSize    int
+		DisableLiveLog bool
 
 		LinuxAutoPort            bool
 		LinuxIntervalPortRefresh time.Duration
@@ -69,119 +59,8 @@ const (
 )
 
 var (
-	globalPorts                = ss.NewPorts()
-	globalCache    *sharedData = nil
-	globalWebFlags             = WebFlags{}
+	globalFlags = Flags{}
 )
-
-// webInit must be called at the beginning of 'local' and 'remote' commands.
-func webInit() {
-	if globalWebFlags.LinuxAutoPort {
-		globalPorts.Refresh()
-		go func() {
-			for {
-				select {
-				case <-time.After(globalWebFlags.LinuxIntervalPortRefresh):
-					globalPorts.Refresh()
-				}
-			}
-		}()
-	}
-
-	data := sharedData{
-		cluster: nil,
-		users:   make(map[string]*userData),
-	}
-	globalCache = &data
-
-	globalCache.mu.Lock()
-	if globalCache.users == nil {
-		globalCache.users = make(map[string]*userData)
-	}
-	globalCache.mu.Unlock()
-
-	// clean up users that started more than 2 hours ago
-	go func() {
-		copied := make(map[string]time.Time)
-		for {
-			globalCache.mu.Lock()
-			for k, v := range globalCache.users {
-				copied[k] = v.startTime
-			}
-			globalCache.mu.Unlock()
-
-			now := time.Now()
-			usersToDelete := make(map[string]struct{})
-			for k, v := range copied {
-				sub := now.Sub(v)
-				if sub > 2*time.Hour {
-					usersToDelete[k] = struct{}{}
-				}
-			}
-
-			globalCache.mu.Lock()
-			for user := range usersToDelete {
-				_, ok := globalCache.users[user]
-				if ok {
-					delete(globalCache.users, user)
-				}
-			}
-			globalCache.mu.Unlock()
-
-			copied = make(map[string]time.Time)
-			time.Sleep(2 * time.Hour)
-		}
-	}()
-
-	// clean up users that just left the browser
-	go func() {
-		for {
-			globalCache.mu.Lock()
-			for k, v := range globalCache.users {
-				if !v.online {
-					delete(globalCache.users, k)
-				}
-			}
-			globalCache.mu.Unlock()
-			time.Sleep(10 * time.Minute)
-		}
-	}()
-}
-
-// checkCluster returns the cluster if the cluster is active.
-func (s *sharedData) clusterActive() bool {
-	s.mu.Lock()
-	clu := s.cluster
-	s.mu.Unlock()
-	return clu != nil
-}
-
-func (s *sharedData) okToRequest(userID string) bool {
-	s.mu.Lock()
-	v, ok := s.users[userID]
-	s.mu.Unlock()
-	if !ok {
-		return false
-	}
-	// allow maximum 5 requests per 2-second
-	lastRequest := v.lastRequestTime
-	if lastRequest.IsZero() {
-		v.lastRequestTime = time.Now()
-		v.requestCount = 1
-		return true
-	}
-	v.requestCount++
-	if v.requestCount < 5 {
-		return true
-	}
-	sub := time.Now().Sub(lastRequest)
-	if sub > 2*time.Second { // initialize
-		v.lastRequestTime = time.Now()
-		v.requestCount = 1
-		return true
-	}
-	return false // count > 5 && sub < 2-sec
-}
 
 type ContextHandler interface {
 	ServeHTTPContext(context.Context, http.ResponseWriter, *http.Request) error
@@ -213,30 +92,142 @@ func (ca *ContextAdapter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func withCache(h ContextHandler) ContextHandler {
-	return ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
-		userID := getUserID(req)
-		ctx = context.WithValue(ctx, userKey, &userID)
+var (
+	Command = &cobra.Command{
+		Use:   "web",
+		Short: "web plays etcd in web browser.",
+		Run:   CommandFunc,
+	}
+)
 
-		globalCache.mu.Lock()
-		if _, ok := globalCache.users[userID]; !ok {
-			globalCache.users[userID] = &userData{
-				upgrader:  &websocket.Upgrader{},
-				startTime: time.Now(),
-				online:    true,
-				keyHistory: []string{
-					`TYPE_YOUR_KEY`,
-					`foo`,
-					`sample_key`,
-				},
-			}
+func init() {
+	Command.PersistentFlags().StringVarP(&globalFlags.EtcdBinary, "etcd-binary", "b", filepath.Join(os.Getenv("GOPATH"), "bin/etcd"), "path of executable etcd binary")
+	Command.PersistentFlags().IntVar(&globalFlags.ClusterSize, "cluster-size", 5, "size of cluster to create")
+	Command.PersistentFlags().BoolVar(&globalFlags.DisableLiveLog, "disable-live-log", false, "'true' to disable streaming etcd logs")
+
+	Command.PersistentFlags().BoolVar(&globalFlags.LinuxAutoPort, "linux-auto-port", strings.Contains(runtime.GOOS, "linux"), "(only linux supported) 'true' to automate port findings")
+	Command.PersistentFlags().DurationVar(&globalFlags.LinuxIntervalPortRefresh, "linux-port-refresh", 10*time.Second, "(only linux supported) interval to refresh free ports")
+
+	Command.PersistentFlags().BoolVar(&globalFlags.KeepAlive, "keep-alive", false, "'true' to run demo without auto-termination (this overwrites cluster-timeout)")
+	Command.PersistentFlags().DurationVar(&globalFlags.ClusterTimeout, "cluster-timeout", 5*time.Minute, "after timeout, etcd shuts down the cluster")
+
+	Command.PersistentFlags().IntVar(&globalFlags.StressNumber, "stress-number", 10, "size of stress requests")
+
+	Command.PersistentFlags().StringVarP(&globalFlags.PlayWebPort, "port", "p", ":8000", "port to serve the play web interface")
+	Command.PersistentFlags().BoolVar(&globalFlags.Production, "production", false, "'true' when deploying as a web server in production")
+
+	Command.PersistentFlags().BoolVar(&globalFlags.IsRemote, "remote", false, "'true' when agents are deployed remotely")
+	Command.PersistentFlags().StringSliceVar(&globalFlags.AgentEndpoints, "agent-endpoints", []string{"localhost:9027"}, "list of remote agent endpoints")
+}
+
+func CommandFunc(cmd *cobra.Command, args []string) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Fprintln(os.Stdout, "[web]", err)
+			os.Exit(0)
 		}
-		globalCache.mu.Unlock()
+	}()
 
-		// (X) this will deadlock
-		// defer globalCache.mu.Unlock()
-		return h.ServeHTTPContext(ctx, w, req)
+	if globalFlags.IsRemote {
+		if globalFlags.ClusterSize != len(globalFlags.AgentEndpoints) {
+			fmt.Fprintf(os.Stdout, "[etcd-play error] cluster-size and agent-endpoints must be the same size (%d != %d)\n", globalFlags.ClusterSize, len(globalFlags.AgentEndpoints))
+			os.Exit(0)
+		}
+	}
+
+	initGlobalData()
+
+	rootContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	mainRouter := http.NewServeMux()
+
+	// mainRouter.Handle("/", http.FileServer(http.Dir("./frontend")))
+	staticHandler := staticLocalHandler
+	if globalFlags.IsRemote {
+		staticHandler = staticRemoteHandler
+	}
+	mainRouter.Handle("/", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(staticHandler)),
 	})
+	mainRouter.Handle("/ws", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(wsHandler)),
+	})
+	mainRouter.Handle("/stream", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(streamHandler)),
+	})
+	mainRouter.Handle("/server_status", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(serverStatusHandler)),
+	})
+
+	mainRouter.Handle("/start_cluster", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(startClusterHandler)),
+	})
+
+	mainRouter.Handle("/stress", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(stressHandler)),
+	})
+	mainRouter.Handle("/key_history", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(keyHistoryHandler)),
+	})
+	mainRouter.Handle("/key_value", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(keyValueHandler)),
+	})
+
+	mainRouter.Handle("/kill_1", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(killHandler)),
+	})
+	mainRouter.Handle("/kill_2", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(killHandler)),
+	})
+	mainRouter.Handle("/kill_3", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(killHandler)),
+	})
+	mainRouter.Handle("/kill_4", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(killHandler)),
+	})
+	mainRouter.Handle("/kill_5", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(killHandler)),
+	})
+	mainRouter.Handle("/restart_1", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(restartHandler)),
+	})
+	mainRouter.Handle("/restart_2", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(restartHandler)),
+	})
+	mainRouter.Handle("/restart_3", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(restartHandler)),
+	})
+	mainRouter.Handle("/restart_4", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(restartHandler)),
+	})
+	mainRouter.Handle("/restart_5", &ContextAdapter{
+		ctx:     rootContext,
+		handler: withCache(ContextHandlerFunc(restartHandler)),
+	})
+
+	fmt.Fprintln(os.Stdout, "Serving http://localhost"+globalFlags.PlayWebPort)
+	if err := http.ListenAndServe(globalFlags.PlayWebPort, mainRouter); err != nil {
+		fmt.Fprintln(os.Stdout, "[etcd-play error]", err)
+		os.Exit(0)
+	}
 }
 
 // wsHandler monitors user activities and notifies when a user leaves the web pages.
@@ -250,8 +241,9 @@ func wsHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) er
 
 	c, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
+		// clean up users that just left the browser
 		globalCache.mu.Lock()
-		globalCache.users[userID].online = false
+		delete(globalCache.users, userID)
 		globalCache.mu.Unlock()
 		return err
 	}
@@ -261,13 +253,13 @@ func wsHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) er
 		mt, message, err := c.ReadMessage()
 		if err != nil {
 			globalCache.mu.Lock()
-			globalCache.users[userID].online = false
+			delete(globalCache.users, userID)
 			globalCache.mu.Unlock()
 			return err
 		}
 		if err := c.WriteMessage(mt, message); err != nil {
 			globalCache.mu.Lock()
-			globalCache.users[userID].online = false
+			delete(globalCache.users, userID)
 			globalCache.mu.Unlock()
 			return err
 		}
@@ -354,14 +346,14 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 	userID := *user
 
 	nodeType := proc.WebLocal
-	if globalWebFlags.IsRemote {
+	if globalFlags.IsRemote {
 		nodeType = proc.WebRemote
 	}
 
 	switch req.Method {
 	case "GET":
-		wport := globalWebFlags.PlayWebPort
-		if globalWebFlags.Production {
+		wport := globalFlags.PlayWebPort
+		if globalFlags.Production {
 			wport = ":80"
 		}
 		resp := struct {
@@ -375,14 +367,15 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 - <font color='blue'>Hash</font> shows how distributed database keeps being consistent.<br>
 - Select <b>any endpoint</b>(etcd1 to etcd5) to PUT, GET, DELETE, and then click <b>Submit</b>.<br>
 <br>
+<i>Note: Since we do not ask for users' identities, all request logs are streamed<br>
+based on your IP and user agents. So if you have multiple browsers running this<br>
+same web page, logs could be shown only in one of them.</i><br>
+<br>
 If you find any issue, please contact us at https://github.com/coreos/etcd/issues.<br>
 Thank you and enjoy!<br>
 `,
 			wport,
 		}
-		globalCache.mu.Lock()
-		globalCache.users[userID].online = true
-		globalCache.mu.Unlock()
 
 		if globalCache.clusterActive() {
 			resp.Message += boldHTMLMsg("Cluster is already started!")
@@ -393,7 +386,7 @@ Thank you and enjoy!<br>
 		}
 
 		done, errc := make(chan struct{}), make(chan error)
-		go startCluster(nodeType, globalWebFlags.ClusterSize, globalWebFlags.AgentEndpoints, userID, done, errc)
+		go startCluster(nodeType, globalFlags.ClusterSize, globalFlags.DisableLiveLog, globalFlags.AgentEndpoints, userID, done, errc)
 		select {
 		case <-done:
 			resp.Message += boldHTMLMsg("Start cluster successfully requested!!!")
@@ -414,7 +407,7 @@ Thank you and enjoy!<br>
 	return nil
 }
 
-func startCluster(nodeType proc.NodeType, clusterSize int, agentEndpoints []string, userID string, done chan struct{}, errc chan error) {
+func startCluster(nodeType proc.NodeType, clusterSize int, disableLiveLog bool, agentEndpoints []string, userID string, done chan struct{}, errc chan error) {
 	fs := make([]*proc.Flags, clusterSize)
 	for i := range fs {
 		host := "localhost"
@@ -429,7 +422,7 @@ func startCluster(nodeType proc.NodeType, clusterSize int, agentEndpoints []stri
 		fs[i] = df
 	}
 
-	c, err := proc.NewCluster(nodeType, agentEndpoints, globalWebFlags.EtcdBinary, fs...)
+	c, err := proc.NewCluster(nodeType, disableLiveLog, agentEndpoints, globalFlags.EtcdBinary, fs...)
 	if err != nil {
 		errc <- err
 		return
@@ -441,7 +434,7 @@ func startCluster(nodeType proc.NodeType, clusterSize int, agentEndpoints []stri
 
 	// this does not run with the program exits with os.Exit(0)
 	defer func() {
-		if !globalWebFlags.KeepAlive {
+		if !globalFlags.KeepAlive {
 			c.Shutdown()
 			globalCache.mu.Lock()
 			globalCache.cluster = nil
@@ -454,7 +447,7 @@ func startCluster(nodeType proc.NodeType, clusterSize int, agentEndpoints []stri
 		defer func() {
 			cdone <- struct{}{}
 		}()
-		c.Stream(userID) <- boldHTMLMsg(fmt.Sprintf("Starting %d nodes", globalWebFlags.ClusterSize))
+		c.Stream(userID) <- boldHTMLMsg(fmt.Sprintf("Starting %d nodes", globalFlags.ClusterSize))
 		if err := c.Bootstrap(); err != nil {
 			cerr <- err
 			return
@@ -469,9 +462,9 @@ func startCluster(nodeType proc.NodeType, clusterSize int, agentEndpoints []stri
 	case <-cdone:
 		c.Stream(userID) <- boldHTMLMsg("Cluster exited from an unexpected interruption!")
 
-	case <-time.After(globalWebFlags.ClusterTimeout):
-		if !globalWebFlags.KeepAlive {
-			c.Stream(userID) <- boldHTMLMsg(fmt.Sprintf("Cluster time out (%v)! Please restart the cluster.", globalWebFlags.ClusterTimeout))
+	case <-time.After(globalFlags.ClusterTimeout):
+		if !globalFlags.KeepAlive {
+			c.Stream(userID) <- boldHTMLMsg(fmt.Sprintf("Cluster time out (%v)! Please restart the cluster.", globalFlags.ClusterTimeout))
 		}
 	}
 }
@@ -535,7 +528,7 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		}
 
 		resp := struct {
-			Online int
+			ActiveUsers int
 
 			Etcd1_Name         string
 			Etcd1_ID           string

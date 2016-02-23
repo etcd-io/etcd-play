@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package proc manages etcd processes.
-package proc
+// Package web implements etcd-play web.
+package web

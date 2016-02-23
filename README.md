@@ -46,7 +46,7 @@ etcd-agent  # deploy in machine3
 etcd-agent  # deploy in machine4
 etcd-agent  # deploy in machine5
 
-AGENT_RPC_ENDPOINTS='10.10.10.1:9027,10.10.10.2:9027,10.10.10.3:9027,10.10.10.4:9027,10.10.10.5:9027'
+AGENT_RPC_ENDPOINTS='10.0.0.1:9027,10.0.0.2:9027,10.0.0.3:9027,10.0.0.4:9027,10.0.0.5:9027'
 etcd-play web --keep-alive --production --remote --agent-endpoints="$(echo $AGENT_RPC_ENDPOINTS)" 
 ```
 

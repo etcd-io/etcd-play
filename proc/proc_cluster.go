@@ -1,3 +1,17 @@
+// Copyright 2016 CoreOS, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package proc
 
 import (
@@ -151,7 +165,7 @@ const (
 )
 
 // NewCluster creates Cluster with generated flags.
-func NewCluster(opt NodeType, agentEndpoints []string, programPath string, fs ...*Flags) (Cluster, error) {
+func NewCluster(opt NodeType, disableLiveLog bool, agentEndpoints []string, programPath string, fs ...*Flags) (Cluster, error) {
 	if len(fs) == 0 {
 		return nil, nil
 	}
@@ -204,6 +218,7 @@ func NewCluster(opt NodeType, agentEndpoints []string, programPath string, fs ..
 				pmu:                &c.mu,
 				pmaxProcNameLength: &maxProcNameLength,
 				colorIdx:           colorIdx,
+				disableLiveLog:     disableLiveLog,
 				sharedStream:       bufferedStream, // shared by all nodes
 				ProgramPath:        programPath,
 				Flags:              f,
@@ -213,6 +228,9 @@ func NewCluster(opt NodeType, agentEndpoints []string, programPath string, fs ..
 			}
 
 		case WebRemote:
+			if len(agentEndpoints) == 0 {
+				return nil, fmt.Errorf("no agent endpoints found")
+			}
 			a, err := client.NewAgent(agentEndpoints[i])
 			if err != nil {
 				return nil, err
