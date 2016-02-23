@@ -247,7 +247,11 @@ func wsHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) er
 		globalCache.mu.Unlock()
 		return err
 	}
-	defer c.Close()
+	defer func() {
+		globalCache.mu.Lock()
+		c.Close()
+		globalCache.mu.Unlock()
+	}()
 
 	for {
 		mt, message, err := c.ReadMessage()
