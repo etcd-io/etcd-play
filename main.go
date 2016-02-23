@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/coreos/etcd-play/backend"
 	"github.com/coreos/etcd-play/terminal"
-	"github.com/coreos/etcd-play/web"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +23,7 @@ func init() {
 
 func init() {
 	rootCommand.AddCommand(terminal.Command)
-	rootCommand.AddCommand(web.Command)
+	rootCommand.AddCommand(backend.WebCommand)
 }
 
 func main() {

@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package web implements etcd-play web.
-package web
+// Package backend implements etcd-play web.
+package backend

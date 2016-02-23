@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package web
+package backend
 
 import (
 	"encoding/json"
@@ -93,7 +93,7 @@ func (ca *ContextAdapter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 var (
-	Command = &cobra.Command{
+	WebCommand = &cobra.Command{
 		Use:   "web",
 		Short: "web plays etcd in web browser.",
 		Run:   CommandFunc,
@@ -101,23 +101,23 @@ var (
 )
 
 func init() {
-	Command.PersistentFlags().StringVarP(&globalFlags.EtcdBinary, "etcd-binary", "b", filepath.Join(os.Getenv("GOPATH"), "bin/etcd"), "path of executable etcd binary")
-	Command.PersistentFlags().IntVar(&globalFlags.ClusterSize, "cluster-size", 5, "size of cluster to create")
-	Command.PersistentFlags().BoolVar(&globalFlags.DisableLiveLog, "disable-live-log", false, "'true' to disable streaming etcd logs")
+	WebCommand.PersistentFlags().StringVarP(&globalFlags.EtcdBinary, "etcd-binary", "b", filepath.Join(os.Getenv("GOPATH"), "bin/etcd"), "path of executable etcd binary")
+	WebCommand.PersistentFlags().IntVar(&globalFlags.ClusterSize, "cluster-size", 5, "size of cluster to create")
+	WebCommand.PersistentFlags().BoolVar(&globalFlags.DisableLiveLog, "disable-live-log", false, "'true' to disable streaming etcd logs")
 
-	Command.PersistentFlags().BoolVar(&globalFlags.LinuxAutoPort, "linux-auto-port", strings.Contains(runtime.GOOS, "linux"), "(only linux supported) 'true' to automate port findings")
-	Command.PersistentFlags().DurationVar(&globalFlags.LinuxIntervalPortRefresh, "linux-port-refresh", 10*time.Second, "(only linux supported) interval to refresh free ports")
+	WebCommand.PersistentFlags().BoolVar(&globalFlags.LinuxAutoPort, "linux-auto-port", strings.Contains(runtime.GOOS, "linux"), "(only linux supported) 'true' to automate port findings")
+	WebCommand.PersistentFlags().DurationVar(&globalFlags.LinuxIntervalPortRefresh, "linux-port-refresh", 10*time.Second, "(only linux supported) interval to refresh free ports")
 
-	Command.PersistentFlags().BoolVar(&globalFlags.KeepAlive, "keep-alive", false, "'true' to run demo without auto-termination (this overwrites cluster-timeout)")
-	Command.PersistentFlags().DurationVar(&globalFlags.ClusterTimeout, "cluster-timeout", 5*time.Minute, "after timeout, etcd shuts down the cluster")
+	WebCommand.PersistentFlags().BoolVar(&globalFlags.KeepAlive, "keep-alive", false, "'true' to run demo without auto-termination (this overwrites cluster-timeout)")
+	WebCommand.PersistentFlags().DurationVar(&globalFlags.ClusterTimeout, "cluster-timeout", 5*time.Minute, "after timeout, etcd shuts down the cluster")
 
-	Command.PersistentFlags().IntVar(&globalFlags.StressNumber, "stress-number", 10, "size of stress requests")
+	WebCommand.PersistentFlags().IntVar(&globalFlags.StressNumber, "stress-number", 10, "size of stress requests")
 
-	Command.PersistentFlags().StringVarP(&globalFlags.PlayWebPort, "port", "p", ":8000", "port to serve the play web interface")
-	Command.PersistentFlags().BoolVar(&globalFlags.Production, "production", false, "'true' when deploying as a web server in production")
+	WebCommand.PersistentFlags().StringVarP(&globalFlags.PlayWebPort, "port", "p", ":8000", "port to serve the play web interface")
+	WebCommand.PersistentFlags().BoolVar(&globalFlags.Production, "production", false, "'true' when deploying as a web server in production")
 
-	Command.PersistentFlags().BoolVar(&globalFlags.IsRemote, "remote", false, "'true' when agents are deployed remotely")
-	Command.PersistentFlags().StringSliceVar(&globalFlags.AgentEndpoints, "agent-endpoints", []string{"localhost:9027"}, "list of remote agent endpoints")
+	WebCommand.PersistentFlags().BoolVar(&globalFlags.IsRemote, "remote", false, "'true' when agents are deployed remotely")
+	WebCommand.PersistentFlags().StringSliceVar(&globalFlags.AgentEndpoints, "agent-endpoints", []string{"localhost:9027"}, "list of remote agent endpoints")
 }
 
 func CommandFunc(cmd *cobra.Command, args []string) {

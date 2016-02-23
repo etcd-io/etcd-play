@@ -26,7 +26,7 @@ func main() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package web
+package backend
 
 ` + "// updated at " + nowPST().String() + `
 
@@ -75,7 +75,7 @@ func staticRemoteHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 	buf.WriteString("`\n")
 
 	txt := buf.String()
-	if err := toFile(txt, filepath.Join(os.Getenv("GOPATH"), "src/github.com/coreos/etcd-play/web/static.go")); err != nil {
+	if err := toFile(txt, filepath.Join(os.Getenv("GOPATH"), "src/github.com/coreos/etcd-play/backend/static.go")); err != nil {
 		log.Fatal(err)
 	}
 
