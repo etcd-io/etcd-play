@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package proc manages etcd processes.
-package proc
+// Package terminal implements etcd-play terminal command.
+package terminal

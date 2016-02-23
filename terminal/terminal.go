@@ -1,4 +1,18 @@
-package commands
+// Copyright 2016 CoreOS, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package terminal
 
 import (
 	"fmt"
@@ -9,10 +23,11 @@ import (
 	"time"
 
 	"github.com/coreos/etcd-play/proc"
+	"github.com/gyuho/psn/ss"
 	"github.com/spf13/cobra"
 )
 
-type TerminalFlags struct {
+type Flags struct {
 	EtcdBinary  string
 	ClusterSize int
 
@@ -31,12 +46,13 @@ type TerminalFlags struct {
 }
 
 var (
-	TerminalCommand = &cobra.Command{
+	Command = &cobra.Command{
 		Use:   "terminal",
 		Short: "terminal runs etcd in terminal.",
-		Run:   TerminalCommandFunc,
+		Run:   CommandFunc,
 	}
-	globalTerminalFlags = TerminalFlags{}
+	globalFlags = Flags{}
+	globalPorts = ss.NewPorts()
 )
 
 func init() {
@@ -44,40 +60,40 @@ func init() {
 }
 
 func init() {
-	TerminalCommand.PersistentFlags().StringVarP(&globalTerminalFlags.EtcdBinary, "etcd-binary", "b", filepath.Join(os.Getenv("GOPATH"), "bin/etcd"), "path of executable etcd binary")
-	TerminalCommand.PersistentFlags().IntVarP(&globalTerminalFlags.ClusterSize, "cluster-size", "n", 5, "size of cluster to create")
+	Command.PersistentFlags().StringVarP(&globalFlags.EtcdBinary, "etcd-binary", "b", filepath.Join(os.Getenv("GOPATH"), "bin/etcd"), "path of executable etcd binary")
+	Command.PersistentFlags().IntVarP(&globalFlags.ClusterSize, "cluster-size", "n", 5, "size of cluster to create")
 
-	TerminalCommand.PersistentFlags().BoolVar(&globalTerminalFlags.LinuxAutoPort, "linux-auto-port", strings.Contains(runtime.GOOS, "linux"), "(only linux supported) 'true' to automate port findings")
-	TerminalCommand.PersistentFlags().DurationVar(&globalTerminalFlags.LinuxIntervalPortRefresh, "linux-port-refresh", 10*time.Second, "(only linux supported) interval to refresh free ports")
+	Command.PersistentFlags().BoolVar(&globalFlags.LinuxAutoPort, "linux-auto-port", strings.Contains(runtime.GOOS, "linux"), "(only linux supported) 'true' to automate port findings")
+	Command.PersistentFlags().DurationVar(&globalFlags.LinuxIntervalPortRefresh, "linux-port-refresh", 10*time.Second, "(only linux supported) interval to refresh free ports")
 
-	TerminalCommand.PersistentFlags().BoolVar(&globalTerminalFlags.KeepAlive, "keep-alive", false, "'true' to run demo without auto-termination (this overwrites cluster-timeout)")
-	TerminalCommand.PersistentFlags().DurationVar(&globalTerminalFlags.ClusterTimeout, "cluster-timeout", 5*time.Minute, "after timeout, etcd shuts down the cluster")
-	TerminalCommand.PersistentFlags().DurationVar(&globalTerminalFlags.Pause, "pause", 10*time.Second, "duration to pause between demo operations")
+	Command.PersistentFlags().BoolVar(&globalFlags.KeepAlive, "keep-alive", false, "'true' to run demo without auto-termination (this overwrites cluster-timeout)")
+	Command.PersistentFlags().DurationVar(&globalFlags.ClusterTimeout, "cluster-timeout", 5*time.Minute, "after timeout, etcd shuts down the cluster")
+	Command.PersistentFlags().DurationVar(&globalFlags.Pause, "pause", 10*time.Second, "duration to pause between demo operations")
 
-	TerminalCommand.PersistentFlags().IntVar(&globalTerminalFlags.StressNumber, "stress-number", 10, "size of stress requests")
+	Command.PersistentFlags().IntVar(&globalFlags.StressNumber, "stress-number", 10, "size of stress requests")
 }
 
-func TerminalCommandFunc(cmd *cobra.Command, args []string) {
-	if globalTerminalFlags.LinuxAutoPort {
+func CommandFunc(cmd *cobra.Command, args []string) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Fprintln(os.Stdout, "[terminal]", err)
+			os.Exit(0)
+		}
+	}()
+
+	if globalFlags.LinuxAutoPort {
 		globalPorts.Refresh()
 		go func() {
 			for {
 				select {
-				case <-time.After(globalTerminalFlags.LinuxIntervalPortRefresh):
+				case <-time.After(globalFlags.LinuxIntervalPortRefresh):
 					globalPorts.Refresh()
 				}
 			}
 		}()
 	}
 
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Fprintln(os.Stdout, "[RunTerminal panic]", err)
-			os.Exit(0)
-		}
-	}()
-
-	fs := make([]*proc.Flags, globalTerminalFlags.ClusterSize)
+	fs := make([]*proc.Flags, globalFlags.ClusterSize)
 	for i := range fs {
 		df, err := proc.GenerateFlags(fmt.Sprintf("etcd%d", i+1), "localhost", false, globalPorts)
 		if err != nil {
@@ -87,14 +103,16 @@ func TerminalCommandFunc(cmd *cobra.Command, args []string) {
 		fs[i] = df
 	}
 
-	c, err := proc.NewCluster(proc.Terminal, nil, globalTerminalFlags.EtcdBinary, fs...)
+	disableLiveLog := false
+	agentEndpoints := []string{}
+	c, err := proc.NewCluster(proc.Terminal, disableLiveLog, agentEndpoints, globalFlags.EtcdBinary, fs...)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, "exiting with:", err)
 		return
 	}
 	defer c.Shutdown()
 
-	fmt.Fprintf(os.Stdout, "\n####### Bootstrap %d nodes\n", globalTerminalFlags.ClusterSize)
+	fmt.Fprintf(os.Stdout, "\n####### Bootstrap %d nodes\n", globalFlags.ClusterSize)
 	clusterDone := make(chan struct{})
 	go func() {
 		defer func() {
@@ -108,13 +126,13 @@ func TerminalCommandFunc(cmd *cobra.Command, args []string) {
 
 	operationDone := make(chan struct{})
 	go func() {
-		if !globalTerminalFlags.KeepAlive {
+		if !globalFlags.KeepAlive {
 			defer func() {
 				operationDone <- struct{}{}
 			}()
 		}
 
-		time.Sleep(globalTerminalFlags.Pause)
+		time.Sleep(globalFlags.Pause)
 		fmt.Fprintf(os.Stdout, "\n####### Terminate Leader\n")
 		leaderName, err := c.Leader()
 		if err != nil {
@@ -126,7 +144,7 @@ func TerminalCommandFunc(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		time.Sleep(globalTerminalFlags.Pause)
+		time.Sleep(globalFlags.Pause)
 		fmt.Fprintf(os.Stdout, "\n####### Status\n")
 		vm, err := c.Status()
 		if err != nil {
@@ -142,7 +160,7 @@ func TerminalCommandFunc(cmd *cobra.Command, args []string) {
 		// Stress here to trigger log compaction
 		// (make terminated node fall behind)
 
-		time.Sleep(globalTerminalFlags.Pause)
+		time.Sleep(globalFlags.Pause)
 		fmt.Fprintf(os.Stdout, "\n####### Restart Leader\n")
 		if err := c.Restart(leaderName); err != nil {
 			fmt.Fprintln(os.Stdout, "exiting with:", err)
@@ -150,7 +168,7 @@ func TerminalCommandFunc(cmd *cobra.Command, args []string) {
 		}
 
 		key, val := "sample_key", "sample_value"
-		time.Sleep(globalTerminalFlags.Pause)
+		time.Sleep(globalFlags.Pause)
 		fmt.Fprintf(os.Stdout, "\n####### Put %q\n", key)
 		if err := c.Put(leaderName, key, val); err != nil {
 			fmt.Fprintln(os.Stdout, "exiting with:", err)
@@ -161,7 +179,7 @@ func TerminalCommandFunc(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		time.Sleep(globalTerminalFlags.Pause)
+		time.Sleep(globalFlags.Pause)
 		fmt.Fprintf(os.Stdout, "\n####### Get %q\n", key)
 		if _, err := c.Get(leaderName, key); err != nil {
 			fmt.Fprintln(os.Stdout, "exiting with:", err)
@@ -172,14 +190,14 @@ func TerminalCommandFunc(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		time.Sleep(globalTerminalFlags.Pause)
+		time.Sleep(globalFlags.Pause)
 		fmt.Fprintf(os.Stdout, "\n####### Delete %q\n", key)
 		if err := c.Delete("", key); err != nil {
 			fmt.Fprintln(os.Stdout, "exiting with:", err)
 			return
 		}
 
-		time.Sleep(globalTerminalFlags.Pause)
+		time.Sleep(globalFlags.Pause)
 		fmt.Fprintf(os.Stdout, "\n####### Get %q\n", key)
 		if _, err := c.Get(leaderName, key); err != nil {
 			fmt.Fprintln(os.Stdout, "exiting with:", err)
@@ -190,22 +208,22 @@ func TerminalCommandFunc(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		time.Sleep(globalTerminalFlags.Pause)
+		time.Sleep(globalFlags.Pause)
 		fmt.Fprintf(os.Stdout, "\n####### Stress\n")
-		if err := c.Stress(leaderName, globalTerminalFlags.StressNumber); err != nil {
+		if err := c.Stress(leaderName, globalFlags.StressNumber); err != nil {
 			fmt.Fprintln(os.Stdout, "exiting with:", err)
 			return
 		}
 
-		time.Sleep(globalTerminalFlags.Pause)
+		time.Sleep(globalFlags.Pause)
 		fmt.Fprintf(os.Stdout, "\n####### WatchPut\n")
-		watcherN := globalTerminalFlags.StressNumber
+		watcherN := globalFlags.StressNumber
 		if err := c.WatchPut(leaderName, watcherN); err != nil {
 			fmt.Fprintln(os.Stdout, "exiting with:", err)
 			return
 		}
 
-		time.Sleep(globalTerminalFlags.Pause)
+		time.Sleep(globalFlags.Pause)
 		fmt.Fprintf(os.Stdout, "\n####### Status\n")
 		vm, err = c.Status()
 		if err != nil {
@@ -226,7 +244,7 @@ func TerminalCommandFunc(cmd *cobra.Command, args []string) {
 	case <-operationDone:
 		fmt.Fprintln(os.Stdout, "[RunTerminal END] operation terminated!")
 		return
-	case <-time.After(globalTerminalFlags.ClusterTimeout):
+	case <-time.After(globalFlags.ClusterTimeout):
 		fmt.Fprintln(os.Stdout, "[RunTerminal END] timed out!")
 		return
 	}
