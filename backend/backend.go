@@ -628,7 +628,7 @@ func stressHandler(ctx context.Context, w http.ResponseWriter, req *http.Request
 			return nil
 		}
 		if err := req.ParseForm(); err != nil {
-			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error (%v)", err)))
+			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error: %v", err)))
 			return err
 		}
 		selectedNodeName := ""
@@ -655,7 +655,7 @@ func stressHandler(ctx context.Context, w http.ResponseWriter, req *http.Request
 		globalCache.mu.Unlock()
 
 		if err := cluster.Stress(selectedNodeName, 10); err != nil {
-			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error (%v)", err)))
+			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error: %v", err)))
 			return err
 		}
 		fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("Stress %s request successfully requested", selectedNodeName)))
@@ -871,7 +871,7 @@ func killHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) 
 
 		name := urlToName(req.URL.String())
 		if err := cluster.Terminate(name); err != nil {
-			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error (%v)", err)))
+			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error: %v", err)))
 			return err
 		}
 		fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("Kill %s request successfully requested", name)))
@@ -904,7 +904,7 @@ func restartHandler(ctx context.Context, w http.ResponseWriter, req *http.Reques
 
 		name := urlToName(req.URL.String())
 		if err := cluster.Restart(name); err != nil {
-			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error (%v)", err)))
+			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error: %v", err)))
 			return err
 		}
 		fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("Restart %s request successfully requested", name)))

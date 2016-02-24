@@ -17,6 +17,7 @@ package proc
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/coreos/etcd/tools/functional-tester/etcd-agent/client"
 )
@@ -27,6 +28,9 @@ type NodeWebRemoteClient struct {
 	Agent client.Agent
 
 	active bool
+
+	lastTerminated time.Time
+	lastRestarted  time.Time
 }
 
 func (nd *NodeWebRemoteClient) Endpoint() string {
@@ -73,33 +77,67 @@ func (nd *NodeWebRemoteClient) Start() error {
 func (nd *NodeWebRemoteClient) Restart() error {
 	nd.mu.Lock()
 	active := nd.active
+	lastTerminated := nd.lastTerminated
+	lastRestarted := nd.lastRestarted
 	nd.mu.Unlock()
 	if active {
 		return fmt.Errorf("%s is already active", nd.Flags.Name)
 	}
 
+	// TODO: better way to wait resource release?
+	// (we can scan the /proc to see if ports are bind)
+	//
+	// restart, 2nd restart term should be more than 5 second
+	sub := time.Now().Sub(lastRestarted)
+	if sub < 5*time.Second {
+		return fmt.Errorf("somebody just restarted the same node (only %v ago) - retry in 5-sec!", sub)
+	}
+	// terminate, and immediate restart term should be more than 5 second
+	subt := time.Now().Sub(lastTerminated)
+	if subt < 5*time.Second {
+		return fmt.Errorf("somebody just terminated the node (only %v ago) - retry in 5-sec!", subt)
+	}
 	if _, err := nd.Agent.Restart(); err != nil {
 		return err
 	}
+
 	nd.mu.Lock()
+	nd.lastRestarted = time.Now()
 	nd.active = true
 	nd.mu.Unlock()
+
 	return nil
 }
 
 func (nd *NodeWebRemoteClient) Terminate() error {
 	nd.mu.Lock()
 	active := nd.active
+	lastTerminated := nd.lastTerminated
+	lastRestarted := nd.lastRestarted
 	nd.mu.Unlock()
 	if !active {
 		return fmt.Errorf("%s is already terminated", nd.Flags.Name)
 	}
+
+	// terminate, 2nd terminate term should be more than 5 second
+	sub := time.Now().Sub(lastTerminated)
+	if sub < 5*time.Second {
+		return fmt.Errorf("somebody just terminated the same node (only %v ago) - retry in 5-sec!", sub)
+	}
+	// restart, and immediate terminate term should be more than 5 second
+	subt := time.Now().Sub(lastRestarted)
+	if subt < 5*time.Second {
+		return fmt.Errorf("somebody just restarted the node (only %v ago) - retry in 5-sec!", subt)
+	}
 	if err := nd.Agent.Stop(); err != nil {
 		return err
 	}
+
 	nd.mu.Lock()
+	nd.lastTerminated = time.Now()
 	nd.active = false
 	nd.mu.Unlock()
+
 	return nil
 }
 

@@ -101,14 +101,22 @@ func initGlobalData() {
 					users := []string{}
 					globalCache.mu.Lock()
 					for u := range globalCache.users {
-						bs := []byte(u)
-						bs[3] = 'x' // mask IP addresses
-						bs[4] = 'x'
-						bs[5] = 'x'
-						users = append(users, string(bs))
+						bts := []byte(u)
+						bts[3] = 'x' // mask IP addresses
+						bts[4] = 'x'
+						bts[5] = 'x'
+						bs := string(bts)
+						if len(bs) > 30 {
+							bs = bs[:30]
+						}
+						users = append(users, bs)
 					}
 					globalCache.mu.Unlock()
 					sort.Strings(users)
+					if len(users) > 100 {
+						users = users[:100]
+					}
+					users = append(users, "...")
 					us := strings.Join(users, "<br>")
 
 					globalStatus.mu.Lock()
