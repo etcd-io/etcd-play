@@ -79,7 +79,6 @@ type ContextAdapter struct {
 
 func (ca *ContextAdapter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if err := ca.handler.ServeHTTPContext(ca.ctx, w, req); err != nil {
-
 		// import log "github.com/Sirupsen/logrus"
 		// log.WithFields(log.Fields{
 		// 	"event_type": "error",
@@ -531,7 +530,8 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		globalStatus.mu.Unlock()
 
 		resp := struct {
-			ActiveUsers int
+			ActiveUserNumber int
+			ActiveUserList   string
 
 			Etcd1_Name         string
 			Etcd1_ID           string
@@ -569,6 +569,7 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 			Etcd5_Hash         int
 		}{
 			len(globalCache.users),
+			globalStatus.activeUserList,
 
 			"etcd1",
 			etcd1_ID,

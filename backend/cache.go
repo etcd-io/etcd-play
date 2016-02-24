@@ -16,6 +16,8 @@ package backend
 
 import (
 	"net/http"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -50,8 +52,9 @@ type (
 	}
 
 	status struct {
-		mu           sync.Mutex
-		nameToStatus map[string]proc.ServerStatus
+		mu             sync.Mutex
+		activeUserList string
+		nameToStatus   map[string]proc.ServerStatus
 	}
 )
 
@@ -62,7 +65,8 @@ var (
 		users:   make(map[string]*userData),
 	}
 	globalStatus = &status{
-		nameToStatus: make(map[string]proc.ServerStatus),
+		activeUserList: "",
+		nameToStatus:   make(map[string]proc.ServerStatus),
 	}
 )
 
@@ -94,7 +98,21 @@ func initGlobalData() {
 				globalCache.mu.Unlock()
 
 				if userN > 0 {
+					users := []string{}
+					globalCache.mu.Lock()
+					for u := range globalCache.users {
+						bs := []byte(u)
+						bs[3] = 'x' // mask IP addresses
+						bs[4] = 'x'
+						bs[5] = 'x'
+						users = append(users, string(bs))
+					}
+					globalCache.mu.Unlock()
+					sort.Strings(users)
+					us := strings.Join(users, "<br>")
+
 					globalStatus.mu.Lock()
+					globalStatus.activeUserList = us
 					globalStatus.nameToStatus, _ = globalCache.cluster.Status()
 					globalStatus.mu.Unlock()
 				}

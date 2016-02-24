@@ -47,7 +47,7 @@ etcd-agent  # deploy in machine4
 etcd-agent  # deploy in machine5
 
 AGENT_RPC_ENDPOINTS='10.0.0.1:9027,10.0.0.2:9027,10.0.0.3:9027,10.0.0.4:9027,10.0.0.5:9027'
-etcd-play web --keep-alive --production --remote --agent-endpoints="$(echo $AGENT_RPC_ENDPOINTS)" 
+etcd-play web --keep-alive --linux-auto-port=false --production --remote --agent-endpoints="$(echo $AGENT_RPC_ENDPOINTS)" 
 ```
 
 Please visit <a href="http://play.etcd.io" href="_blank">http://play.etcd.io</a>.
