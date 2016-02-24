@@ -365,18 +365,18 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 			PlayWebPort string
 		}{
 			boldHTMLMsg("Hello World! Welcome to etcd!") + `<br>
-- Click the <font color='blue'>circle(node)</font> for more information.<br>
-- <font color='red'>Kill</font> to stop the node. You can even <font color='red'>kill</font> the <font color='green'>leader</font>!<br>
-- <font color='red'>Restart</font> to recover the node.<br>
-- <font color='blue'>Hash</font> shows how distributed database keeps being consistent.<br>
-- Select <b>any endpoint</b>(etcd1 to etcd5) to PUT, GET, DELETE, and then click <b>Submit</b>.<br>
+- Please click the <font color='blue'>circle(node)</font> for more node information.<br>
+- <font color='red'>Kill</font> to stop the node. <font color='red'>Restart</font> to recover the node.<br>
+- You can even <font color='red'>kill</font> the <font color='green'>leader</font>!<br>
+- <font color='blue'>Hash</font> shows how <b>etcd</b>, <i>as a distributed database</i>, <b>keeps its consistency</b>.<br>
+- Select <b>any endpoint</b><i>(etcd1, etcd2, ...)</i> to PUT, GET, DELETE, and then click <b>Submit</b>.<br>
 <br>
 <i>Note: Since we do not ask for users' identities, all request logs are streamed<br>
 based on your IP and user agents. So if you have multiple browsers running this<br>
 same web page, logs could be shown only in one of them.</i><br>
 <br>
-If you find any issue, please contact us at https://github.com/coreos/etcd/issues.<br>
-Thank you and enjoy!<br>
+If there's any issue, please contact us at https://github.com/coreos/etcd-play/issues.<br>
+Thanks and enjoy!<br>
 `,
 			wport,
 		}

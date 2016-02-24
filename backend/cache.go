@@ -99,41 +99,6 @@ func initGlobalData() {
 	}()
 }
 
-// checkCluster returns the cluster if the cluster is active.
-func (s *cache) clusterActive() bool {
-	s.mu.Lock()
-	clu := s.cluster
-	s.mu.Unlock()
-	return clu != nil
-}
-
-func (s *cache) okToRequest(userID string) bool {
-	s.mu.Lock()
-	v, ok := s.users[userID]
-	s.mu.Unlock()
-	if !ok {
-		return false
-	}
-	// allow maximum 5 requests per 2-second
-	lastRequest := v.lastRequestTime
-	if lastRequest.IsZero() {
-		v.lastRequestTime = time.Now()
-		v.requestCount = 1
-		return true
-	}
-	v.requestCount++
-	if v.requestCount < 5 {
-		return true
-	}
-	sub := time.Now().Sub(lastRequest)
-	if sub > 2*time.Second { // initialize
-		v.lastRequestTime = time.Now()
-		v.requestCount = 1
-		return true
-	}
-	return false // count > 5 && sub < 2-sec
-}
-
 func withCache(h ContextHandler) ContextHandler {
 	return ContextHandlerFunc(func(ctx context.Context, w http.ResponseWriter, req *http.Request) error {
 		userID := getUserID(req)
@@ -142,8 +107,10 @@ func withCache(h ContextHandler) ContextHandler {
 		globalCache.mu.Lock()
 		if _, ok := globalCache.users[userID]; !ok {
 			globalCache.users[userID] = &userData{
-				upgrader:  &websocket.Upgrader{},
-				startTime: time.Now(),
+				upgrader:        &websocket.Upgrader{},
+				startTime:       time.Now(),
+				lastRequestTime: time.Time{},
+				requestCount:    0,
 				keyHistory: []string{
 					`TYPE_YOUR_KEY`,
 					`foo`,
@@ -157,4 +124,36 @@ func withCache(h ContextHandler) ContextHandler {
 		// defer globalCache.mu.Unlock()
 		return h.ServeHTTPContext(ctx, w, req)
 	})
+}
+
+// checkCluster returns the cluster if the cluster is active.
+func (s *cache) clusterActive() bool {
+	s.mu.Lock()
+	clu := s.cluster
+	s.mu.Unlock()
+	return clu != nil
+}
+
+func (s *cache) okToRequest(userID string) bool {
+	// allow maximum 5 requests per second
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.users[userID]
+	if !ok {
+		return false
+	}
+	v.requestCount++
+	if v.requestCount == 1 {
+		v.lastRequestTime = time.Now()
+	}
+	if v.requestCount < 5 {
+		return true
+	}
+	sub := time.Now().Sub(v.lastRequestTime)
+	if sub > time.Second {
+		v.lastRequestTime = time.Now()
+		v.requestCount = 0
+		return true
+	}
+	return false
 }
