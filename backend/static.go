@@ -14,7 +14,7 @@
 
 package backend
 
-// updated at 2016-02-23 22:40:08.515202154 -0800 PST
+// updated at 2016-02-23 22:49:54.642400799 -0800 PST
 
 import (
 	"fmt"
@@ -817,9 +817,7 @@ var htmlSourceFileLocal = `<html lang="en">
                     <h5 class="modal-title">Active Users</h5>
                 </div>
                 <div class="modal-body">
-                    <br>
                     <div id="active_user_list">...</div>
-                    <br>
                 </div>
             </div>
         </div>
@@ -1630,9 +1628,7 @@ var htmlSourceFileRemote = `<html lang="en">
                     <h5 class="modal-title">Active Users</h5>
                 </div>
                 <div class="modal-body">
-                    <br>
                     <div id="active_user_list">...</div>
-                    <br>
                 </div>
             </div>
         </div>
