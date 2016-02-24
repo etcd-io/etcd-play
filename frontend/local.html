@@ -262,7 +262,7 @@
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('online').innerHTML = "(active user: " + dataObj.ActiveUsers + ")";
+                    document.getElementById('active').innerHTML = "(active user: " + dataObj.ActiveUsers + ")";
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";
@@ -784,10 +784,10 @@
                 <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="https://github.com/coreos/etcd/issues/new">Report bug</a>
+                <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
-                <div class="nav-link" id="online">(active user: 0)</div>
+                <div class="nav-link" id="active">(active user: 0)</div>
             </li>
         </ul>
     </nav>
@@ -958,35 +958,35 @@
                                 <g id="etcd1_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd1_Contents" title="etcd1">
                                     <!-- <g id="etcd1_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="popover" title="etcd1"> -->
                                     <text x="255" y="50">etcd1</text>
-                                    <text x="250" y="67" font-size="10" id="etcd1_Hash_circle">(Hash: 0)</text>
+                                    <text x="250" y="67" font-size="11" id="etcd1_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="270" cy="100" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd2_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd2_Contents" title="etcd2">
                                     <text x="395" y="160">etcd2</text>
-                                    <text x="400" y="177" font-size="10" id="etcd2_Hash_circle">(Hash: 0)</text>
+                                    <text x="400" y="177" font-size="11" id="etcd2_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="370" cy="180" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd3_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd3_Contents" title="etcd3">
                                     <text x="360" y="320">etcd3</text>
-                                    <text x="342" y="337" font-size="10" id="etcd3_Hash_circle">(Hash: 0)</text>
+                                    <text x="342" y="337" font-size="11" id="etcd3_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="335" cy="295" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd4_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd4_Contents" title="etcd4">
                                     <text x="130" y="320">etcd4</text>
-                                    <text x="120" y="337" font-size="10" id="etcd4_Hash_circle">(Hash: 0)</text>
+                                    <text x="120" y="337" font-size="11" id="etcd4_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="200" cy="295" r="25"></circle>
                                     </a>
                                 </g>
                                 <g id="etcd5_State_circle" style="fill: #B3E5FC" tabindex="0" data-toggle="modal" data-target="#etcd5_Contents" title="etcd5">
                                     <text x="95" y="173">etcd5</text>
-                                    <text x="87" y="150" font-size="10" id="etcd5_Hash_circle">(Hash: 0)</text>
+                                    <text x="87" y="150" font-size="11" id="etcd5_Hash_circle">(Hash: 0)</text>
                                     <a>
                                         <circle cx="165" cy="180" r="25"></circle>
                                     </a>
