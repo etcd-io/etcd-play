@@ -314,11 +314,9 @@
             }
         });
         runWithTimeout(receiveStreams, 100, 1);
-        runWithTimeout(receiveStreams, 500, 1);
-        runWithTimeout(receiveStreams, 1500, 100);
-        setInterval(receiveStreams, 3000);
-        runWithTimeout(receiveStreams, 1000, 10);
-        setInterval(receiveServerStatus, 2000);
+        setInterval(receiveStreams, 1000);
+        runWithTimeout(receiveStreams, 100, 1);
+        setInterval(receiveServerStatus, 1000);
 
         $("#key_input")
             .on("click", function(event, ui) {
@@ -477,7 +475,7 @@
         font-family: 'Inconsolata', Courier;
         font-size: 17px;
     }
-
+    
     #result {
         /*font-family: "Lucida Console", Courier, monospace;*/
         /*font-size: 11px;*/
@@ -486,7 +484,7 @@
         font-style: normal;
         font-variant: normal;
     }
-
+    
     #log_box {
         /*font-family: "Lucida Console", Courier, monospace;*/
         /*font-size: 11px;*/

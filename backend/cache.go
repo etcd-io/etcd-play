@@ -48,11 +48,22 @@ type (
 		cluster proc.Cluster
 		users   map[string]*userData
 	}
+
+	status struct {
+		mu           sync.Mutex
+		nameToStatus map[string]proc.ServerStatus
+	}
 )
 
 var (
-	globalPorts        = ss.NewPorts()
-	globalCache *cache = nil
+	globalPorts = ss.NewPorts()
+	globalCache = &cache{
+		cluster: nil,
+		users:   make(map[string]*userData),
+	}
+	globalStatus = &status{
+		nameToStatus: make(map[string]proc.ServerStatus),
+	}
 )
 
 // initGlobalData must be called at the beginning of 'web' command.
@@ -69,17 +80,28 @@ func initGlobalData() {
 		}()
 	}
 
-	data := cache{
-		cluster: nil,
-		users:   make(map[string]*userData),
-	}
-	globalCache = &data
-
 	globalCache.mu.Lock()
 	if globalCache.users == nil {
 		globalCache.users = make(map[string]*userData)
 	}
 	globalCache.mu.Unlock()
+
+	go func() {
+		for {
+			if globalCache.clusterActive() {
+				globalCache.mu.Lock()
+				userN := len(globalCache.users)
+				globalCache.mu.Unlock()
+
+				if userN > 0 {
+					globalStatus.mu.Lock()
+					globalStatus.nameToStatus, _ = globalCache.cluster.Status()
+					globalStatus.mu.Unlock()
+				}
+			}
+			time.Sleep(time.Second)
+		}
+	}()
 
 	go func() {
 		for {
