@@ -14,7 +14,7 @@
 
 package backend
 
-// updated at 2016-02-23 21:34:44.823067484 -0800 PST
+// updated at 2016-02-23 22:40:08.515202154 -0800 PST
 
 import (
 	"fmt"
@@ -297,7 +297,8 @@ var htmlSourceFileLocal = `<html lang="en">
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('active').innerHTML = "(active user: " + dataObj.ActiveUsers + ")";
+                    document.getElementById('active_user_number').innerHTML = "(active user: " + dataObj.ActiveUserNumber + ")";
+                    document.getElementById('active_user_list').innerHTML = dataObj.ActiveUserList;
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";
@@ -809,6 +810,20 @@ var htmlSourceFileLocal = `<html lang="en">
 </head>
 
 <body>
+    <div class="modal fade" id="active_user_Contents" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Active Users</h5>
+                </div>
+                <div class="modal-body">
+                    <br>
+                    <div id="active_user_list">...</div>
+                    <br>
+                </div>
+            </div>
+        </div>
+    </div>
     <nav class="navbar navbar-dark bg-primary navbar-fixed-top">
         <a class="navbar-brand" href="https://github.com/coreos/etcd" target="_blank">Play etcd</a>
         <ul class="nav navbar-nav">
@@ -819,7 +834,7 @@ var htmlSourceFileLocal = `<html lang="en">
                 <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
-                <div class="nav-link" id="active">(active user: 0)</div>
+                <div class="nav-link" id="active_user_number" data-toggle="modal" data-target="#active_user_Contents">(active user: 0)</div>
             </li>
         </ul>
     </nav>
@@ -1302,7 +1317,8 @@ var htmlSourceFileRemote = `<html lang="en">
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('active').innerHTML = "(active user: " + dataObj.ActiveUsers + ")";
+                    document.getElementById('active_user_number').innerHTML = "(active user: " + dataObj.ActiveUserNumber + ")";
+                    document.getElementById('active_user_list').innerHTML = dataObj.ActiveUserList;
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";
@@ -1607,6 +1623,20 @@ var htmlSourceFileRemote = `<html lang="en">
 </head>
 
 <body>
+    <div class="modal fade" id="active_user_Contents" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Active Users</h5>
+                </div>
+                <div class="modal-body">
+                    <br>
+                    <div id="active_user_list">...</div>
+                    <br>
+                </div>
+            </div>
+        </div>
+    </div>
     <nav class="navbar navbar-dark bg-primary navbar-fixed-top">
         <a class="navbar-brand" href="https://github.com/coreos/etcd" target="_blank">Play etcd</a>
         <ul class="nav navbar-nav">
@@ -1617,7 +1647,7 @@ var htmlSourceFileRemote = `<html lang="en">
                 <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
-                <div class="nav-link" id="active">(active user: 0)</div>
+                <div class="nav-link" id="active_user_number" data-toggle="modal" data-target="#active_user_Contents">(active user: 0)</div>
             </li>
         </ul>
     </nav>

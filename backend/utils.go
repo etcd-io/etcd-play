@@ -85,7 +85,8 @@ func getUserID(req *http.Request) string {
 	if ip == "" {
 		ip = strings.Split(req.RemoteAddr, ":")[0]
 	}
-	return ip + "_" + hashSha512(req.UserAgent())[:10]
+	ip = strings.Replace(ip, ".", "", -1)
+	return ip + hashSha512(req.UserAgent())[:15]
 }
 
 func urlToName(s string) string {
