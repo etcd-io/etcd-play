@@ -383,14 +383,11 @@
         });
         $('#start_cluster').click(function(e) {
             runWithTimeout(receiveStreams, 100, 1);
-            runWithTimeout(receiveStreams, 500, 1);
-            runWithTimeout(receiveStreams, 1000, 5);
-            runWithTimeout(receiveStreams, 1500, 100);
-            setInterval(receiveStreams, 3000);
+            setInterval(receiveStreams, 1000);
         });
         $('#start_cluster').click(function(e) {
-            runWithTimeout(receiveStreams, 1000, 10);
-            setInterval(receiveServerStatus, 2000);
+            runWithTimeout(receiveStreams, 100, 1);
+            setInterval(receiveServerStatus, 1000);
         });
 
         Highcharts.setOptions({
@@ -750,7 +747,7 @@
         font-family: 'Inconsolata', Courier;
         font-size: 17px;
     }
-
+    
     #result {
         /*font-family: "Lucida Console", Courier, monospace;*/
         /*font-size: 11px;*/
@@ -759,7 +756,7 @@
         font-style: normal;
         font-variant: normal;
     }
-
+    
     #log_box {
         /*font-family: "Lucida Console", Courier, monospace;*/
         /*font-size: 11px;*/
@@ -768,7 +765,7 @@
         font-style: normal;
         font-variant: normal;
     }
-
+    
     ul.ui-autocomplete.ui-menu {
         z-index: 1000;
     }

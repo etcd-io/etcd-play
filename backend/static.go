@@ -14,7 +14,7 @@
 
 package backend
 
-// updated at 2016-02-23 16:09:49.017578138 -0800 PST
+// updated at 2016-02-23 21:34:44.823067484 -0800 PST
 
 import (
 	"fmt"
@@ -418,14 +418,11 @@ var htmlSourceFileLocal = `<html lang="en">
         });
         $('#start_cluster').click(function(e) {
             runWithTimeout(receiveStreams, 100, 1);
-            runWithTimeout(receiveStreams, 500, 1);
-            runWithTimeout(receiveStreams, 1000, 5);
-            runWithTimeout(receiveStreams, 1500, 100);
-            setInterval(receiveStreams, 3000);
+            setInterval(receiveStreams, 1000);
         });
         $('#start_cluster').click(function(e) {
-            runWithTimeout(receiveStreams, 1000, 10);
-            setInterval(receiveServerStatus, 2000);
+            runWithTimeout(receiveStreams, 100, 1);
+            setInterval(receiveServerStatus, 1000);
         });
 
         Highcharts.setOptions({
@@ -785,7 +782,7 @@ var htmlSourceFileLocal = `<html lang="en">
         font-family: 'Inconsolata', Courier;
         font-size: 17px;
     }
-
+    
     #result {
         /*font-family: "Lucida Console", Courier, monospace;*/
         /*font-size: 11px;*/
@@ -794,7 +791,7 @@ var htmlSourceFileLocal = `<html lang="en">
         font-style: normal;
         font-variant: normal;
     }
-
+    
     #log_box {
         /*font-family: "Lucida Console", Courier, monospace;*/
         /*font-size: 11px;*/
@@ -803,7 +800,7 @@ var htmlSourceFileLocal = `<html lang="en">
         font-style: normal;
         font-variant: normal;
     }
-
+    
     ul.ui-autocomplete.ui-menu {
         z-index: 1000;
     }
@@ -1422,11 +1419,9 @@ var htmlSourceFileRemote = `<html lang="en">
             }
         });
         runWithTimeout(receiveStreams, 100, 1);
-        runWithTimeout(receiveStreams, 500, 1);
-        runWithTimeout(receiveStreams, 1500, 100);
-        setInterval(receiveStreams, 3000);
-        runWithTimeout(receiveStreams, 1000, 10);
-        setInterval(receiveServerStatus, 2000);
+        setInterval(receiveStreams, 1000);
+        runWithTimeout(receiveStreams, 100, 1);
+        setInterval(receiveServerStatus, 1000);
 
         $("#key_input")
             .on("click", function(event, ui) {
@@ -1585,7 +1580,7 @@ var htmlSourceFileRemote = `<html lang="en">
         font-family: 'Inconsolata', Courier;
         font-size: 17px;
     }
-
+    
     #result {
         /*font-family: "Lucida Console", Courier, monospace;*/
         /*font-size: 11px;*/
@@ -1594,7 +1589,7 @@ var htmlSourceFileRemote = `<html lang="en">
         font-style: normal;
         font-variant: normal;
     }
-
+    
     #log_box {
         /*font-family: "Lucida Console", Courier, monospace;*/
         /*font-size: 11px;*/

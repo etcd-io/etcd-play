@@ -827,7 +827,7 @@ func (c *defaultCluster) WatchPut(name string, watchersN int, streamIDs ...strin
 	for i := 0; i < watchersN; i++ {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		respChs[i] = wcs[rand.Intn(clientsN)].Watch(ctx, "foo", 0)
+		respChs[i] = wcs[rand.Intn(clientsN)].Watch(ctx, "foo")
 	}
 
 	c.Write(name, "[PUT] Triggers watch...", streamIDs...)
