@@ -8,9 +8,9 @@ Playground for distributed database [`etcd`](https://github.com/coreos/etcd).
 - [play `etcd` in terminal](#play-etcd-in-terminal)
 - [play `etcd` in web browser](#play-etcd-in-web-browser)
 - [explain `Raft` with `etcd`](#explain-raft-with-etcd)
-	- [follower failures](#follower-failures)
-	- [leader failure](#leader-failure)
-	- [all node failures](#all-node-failures)
+	- [Follower failures](#follower-failures)
+	- [Leader failure](#leader-failure)
+	- [All node failures](#all-node-failures)
 
 <br>
 #### Get started
@@ -72,7 +72,7 @@ forward the requests to its leader. And the leader appends those
 requests(commands) to its log and sends `AppendEntries` RPCs to its followers.
 
 <br>
-##### follower failures
+##### Follower failures
 
 What if followers fail? Leader retries RPCs until they succeed. As soon as
 follower recovers, it will catch up with the leader.
@@ -85,16 +85,16 @@ across the cluster, except the two failed ones. Right after recover, the
 followers syncs their data from its leader(all hashes are matching).
 
 <br>
-##### leader failure
+##### Leader failure
 
-What if leader fails? Leader sends periodic heartbeat messages to its followers
+What if leader fails? A leader sends periodic heartbeat messages to its followers
 to maintain its authority. If a follower has not received heartbeats from a
 valid leader within election timeout, it assumes that there is no current
 leader in the cluster, and becomes a candidate to start a new election. Each
-node includes last term and last log index in its `RequestVote` RPC, so that
+node includes last term and last log index in `RequestVote` RPC, so that
 Raft can choose the candidate that is most likely to contain all committed
 entries. When the old leader recovers, it will retry to commit log entries of
-its own. Raft term is used to detect these stale leaders: followers denies RPC
+its own. Raft term is used to detect these stale leaders: followers denies RPCs
 if the sender's term is older, and then sender(or the old leader) reverts back
 to follower state and updates its term.
 
@@ -103,20 +103,21 @@ to follower state and updates its term.
 Leader goes down, but shortly new leader gets elected.
 
 <br>
-##### all node failures
+##### All node failures
 
-`etcd` is highly available as long as quorum of cluster are operational and can
-communicate with each member and clients. 5-node cluster can tolerate the
-failure of any two servers. But data loss is still possible in catastrophic
-events, like all node failures. `etcd` persists enough information on stable
-storage so that members can recover safely from the disk and rejoin the cluster.
-Especially `etcd` stores new log entries onto disk before commitment to prevent
-committed entries from being lost or uncommitted on server restart.
+`etcd` is highly available, as long as quorum of cluster are operational and can
+communicate with each member and clients. 5-node cluster can tolerate failures of
+any two servers. Data loss is still possible in catastrophic events, like all node
+failures. `etcd` persists enough information on stable storage so that members can
+recover safely from the disk and rejoin the cluster. Especially `etcd` stores new
+log entries onto disk before commitment to prevent committed entries from being lost
+or uncommitted on server restart.
 
 <img src="https://storage.googleapis.com/play-etcd/all_node_failures_20160225133000.gif" alt="all_node_failures"/>
 
-This kills all nodes. All red. But you can see they have the same data before
-and after crashes(number of keys and all hashes values are matching).
+All nodes terminated. And `etcd` is recovering the data from stable storage.
+You can see number of keys and hashes values are matching before and after.
+It can handle client requests right after recovery with a new leader.
 
 [↑ top](#etcd-play--)
 <br><br><br><br><hr>
