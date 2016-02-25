@@ -41,7 +41,7 @@ etcd-play web --keep-alive --linux-auto-port=false --production --remote --agent
 
 #### play `etcd` in terminal
 
-<img src="https://storage.googleapis.com/play-etcd/terminal_20160225020001.gif" alt="terminal_20160225020001" style="width: 500px; height: 300px;"/>
+<img src="https://storage.googleapis.com/play-etcd/terminal_20160225021700.gif" alt="terminal_20160225021700"/>
 
 
 [↑ top](#etcd-play--)
