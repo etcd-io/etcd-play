@@ -105,9 +105,11 @@ func initGlobalData() {
 						bts[3] = 'x' // mask IP addresses
 						bts[4] = 'x'
 						bts[5] = 'x'
+						bts[6] = 'x'
+						bts[7] = 'x'
 						bs := string(bts)
-						if len(bs) > 28 {
-							bs = bs[:28] + "..."
+						if len(bs) > 25 {
+							bs = bs[:25] + "..."
 						}
 						users = append(users, bs)
 					}

@@ -93,18 +93,18 @@ func getUserID(req *http.Request) string {
 	}
 	ip = strings.Replace(ip, ".", "", -1)
 	ua := req.UserAgent()
-	return ip + "_" + simpleUA(ua) + "_" + hashSha512(ip + ua)[:15]
+	return ip + simpleUA(ua) + hashSha512(ip + ua)[:15]
 }
 
 // simpleUA simple parses user agent for user ID generation.
 func simpleUA(ua string) string {
 	us := ""
-	raw := strings.ToLower(ua)
+	raw := strings.Replace(strings.ToLower(ua), " ", "", -1)
 
 	// OS
 	if strings.Contains(raw, "linux") {
 		us += "linux"
-	} else if strings.Contains(raw, "macintosh") || strings.Contains(raw, "mac os") {
+	} else if strings.Contains(raw, "macintosh") || strings.Contains(raw, "macos") {
 		us += "mac"
 	} else if strings.Contains(raw, "windows") {
 		us += "window"
@@ -112,11 +112,11 @@ func simpleUA(ua string) string {
 		us += "iphone"
 	} else if strings.Contains(raw, "android") {
 		us += "android"
+	} else if len(raw) > 7 {
+		us += raw[2:7]
 	} else {
-		us += "unknown"
+		us += raw
 	}
-
-	us += "_"
 
 	// browser
 	if strings.Contains(raw, "firefox/") && !strings.Contains(raw, "seammonkey/") {
@@ -127,6 +127,8 @@ func simpleUA(ua string) string {
 		us += "safari"
 	} else if strings.Contains(raw, "chrome/") || strings.Contains(raw, "chromium/") {
 		us += "chrome"
+	} else if len(raw) > 15 {
+		us += raw[9:14]
 	}
 
 	return us
