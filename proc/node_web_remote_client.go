@@ -85,17 +85,17 @@ func (nd *NodeWebRemoteClient) Restart() error {
 	}
 
 	// TODO: better way to wait resource release?
-	// (we can scan the /proc to see if ports are bind)
+	// (we can scan the /proc to see if ports are still bind)
 	//
 	// restart, 2nd restart term should be more than 5 second
 	sub := time.Now().Sub(lastRestarted)
 	if sub < 5*time.Second {
-		return fmt.Errorf("somebody just restarted the same node (only %v ago) - retry in 5-sec!", sub)
+		return fmt.Errorf("Somebody restarted the same node (only %v ago)! Retry in 5-sec!", sub)
 	}
 	// terminate, and immediate restart term should be more than 5 second
 	subt := time.Now().Sub(lastTerminated)
 	if subt < 5*time.Second {
-		return fmt.Errorf("somebody just terminated the node (only %v ago) - retry in 5-sec!", subt)
+		return fmt.Errorf("Somebody terminated the node (only %v ago)! Retry in 5-sec!", subt)
 	}
 	if _, err := nd.Agent.Restart(); err != nil {
 		return err
@@ -122,12 +122,12 @@ func (nd *NodeWebRemoteClient) Terminate() error {
 	// terminate, 2nd terminate term should be more than 5 second
 	sub := time.Now().Sub(lastTerminated)
 	if sub < 5*time.Second {
-		return fmt.Errorf("somebody just terminated the same node (only %v ago) - retry in 5-sec!", sub)
+		return fmt.Errorf("Somebody terminated the same node (only %v ago)! Retry in 5-sec!", sub)
 	}
 	// restart, and immediate terminate term should be more than 5 second
 	subt := time.Now().Sub(lastRestarted)
 	if subt < 5*time.Second {
-		return fmt.Errorf("somebody just restarted the node (only %v ago) - retry in 5-sec!", subt)
+		return fmt.Errorf("Somebody restarted the node (only %v ago)! Retry in 5-sec!", subt)
 	}
 	if err := nd.Agent.Stop(); err != nil {
 		return err

@@ -106,17 +106,17 @@ func initGlobalData() {
 						bts[4] = 'x'
 						bts[5] = 'x'
 						bs := string(bts)
-						if len(bs) > 30 {
-							bs = bs[:30]
+						if len(bs) > 28 {
+							bs = bs[:28] + "..."
 						}
 						users = append(users, bs)
 					}
 					globalCache.mu.Unlock()
 					sort.Strings(users)
-					if len(users) > 100 {
-						users = users[:100]
+					if len(users) > 50 {
+						users = users[:50]
+						users = append(users, "...more")
 					}
-					users = append(users, "...")
 					us := strings.Join(users, "<br>")
 
 					globalStatus.mu.Lock()
