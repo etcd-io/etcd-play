@@ -14,7 +14,7 @@
 
 package backend
 
-// updated at 2016-02-24 20:14:30.119106963 -0800 PST
+// updated at 2016-02-25 15:03:42.634750325 -0800 PST
 
 import (
 	"fmt"
@@ -431,7 +431,7 @@ var htmlSourceFileLocal = `<html lang="en">
                 useUTC: false
             }
         });
-        var chartRefreshRate = 2000;
+        var chartRefreshRate = 1000;
         $('#chart_StorageKeysTotal').highcharts({
             chart: {
                 type: 'spline',
@@ -829,7 +829,7 @@ var htmlSourceFileLocal = `<html lang="en">
                 <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new">Report bug</a>
+                <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new" target="_blank">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
                 <div class="nav-link" id="active_user_number" data-toggle="modal" data-target="#active_user_Contents">(active user: 0)</div>
@@ -1640,7 +1640,7 @@ var htmlSourceFileRemote = `<html lang="en">
                 <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new">Report bug</a>
+                <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new" target="_blank">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
                 <div class="nav-link" id="active_user_number" data-toggle="modal" data-target="#active_user_Contents">(active user: 0)</div>
