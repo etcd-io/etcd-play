@@ -160,15 +160,15 @@ func (nd *NodeWebLocal) Restart() error {
 		return fmt.Errorf("%s is already running", nd.Flags.Name)
 	}
 
-	// restart, 2nd restart term should be more than 3 second
+	// restart, 2nd restart term should be more than 5 second
 	sub := time.Now().Sub(lastRestarted)
-	if sub < 3*time.Second {
-		return fmt.Errorf("somebody just restarted the same node (only %v ago) - retry in 3-sec!", sub)
+	if sub < 5*time.Second {
+		return fmt.Errorf("Somebody restarted the same node (only %v ago)! Retry in 5-sec!", sub)
 	}
-	// terminate, and immediate restart term should be more than 3 second
+	// terminate, and immediate restart term should be more than 5 second
 	subt := time.Now().Sub(lastTerminated)
-	if subt < 3*time.Second {
-		return fmt.Errorf("somebody just terminated the node (only %v ago) - retry in 3-sec!", subt)
+	if subt < 5*time.Second {
+		return fmt.Errorf("Somebody terminated the node (only %v ago)! Retry in 5-sec!", subt)
 	}
 
 	shell := os.Getenv("SHELL")
@@ -227,15 +227,15 @@ func (nd *NodeWebLocal) Terminate() error {
 		return fmt.Errorf("%s is already terminated", nd.Flags.Name)
 	}
 
-	// terminate, 2nd terminate term should be more than 3 second
+	// terminate, 2nd terminate term should be more than 5 second
 	sub := time.Now().Sub(lastTerminated)
-	if sub < 3*time.Second {
-		return fmt.Errorf("somebody just terminated the same node (only %v ago) - retry in 3-sec!", sub)
+	if sub < 5*time.Second {
+		return fmt.Errorf("Somebody terminated the same node (only %v ago)! Retry in 5-sec!", sub)
 	}
-	// restart, and immediate terminate term should be more than 3 second
+	// restart, and immediate terminate term should be more than 5 second
 	subt := time.Now().Sub(lastRestarted)
-	if subt < 3*time.Second {
-		return fmt.Errorf("somebody just restarted the node (only %v ago) - retry in 3-sec!", subt)
+	if subt < 5*time.Second {
+		return fmt.Errorf("Somebody restarted the node (only %v ago)! Retry in 5-sec!", subt)
 	}
 
 	nd.sharedStream <- fmt.Sprintf("Terminate %s\n", nd.Flags.Name)

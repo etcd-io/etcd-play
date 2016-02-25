@@ -61,6 +61,12 @@ func openToOverwrite(fpath string) (*os.File, error) {
 	return f, nil
 }
 
+func urlToName(s string) string {
+	ss := strings.Split(s, "_")
+	suffix := ss[len(ss)-1]
+	return "etcd" + suffix
+}
+
 func boldHTMLMsg(msg string) string {
 	return "<br><b>[etcd-play log] " + msg + "</b><br>"
 }
@@ -86,11 +92,42 @@ func getUserID(req *http.Request) string {
 		ip = strings.Split(req.RemoteAddr, ":")[0]
 	}
 	ip = strings.Replace(ip, ".", "", -1)
-	return ip + hashSha512(req.UserAgent())[:15]
+	ua := req.UserAgent()
+	return ip + "_" + simpleUA(ua) + "_" + hashSha512(ip + ua)[:15]
 }
 
-func urlToName(s string) string {
-	ss := strings.Split(s, "_")
-	suffix := ss[len(ss)-1]
-	return "etcd" + suffix
+// simpleUA simple parses user agent for user ID generation.
+func simpleUA(ua string) string {
+	us := ""
+	raw := strings.ToLower(ua)
+
+	// OS
+	if strings.Contains(raw, "linux") {
+		us += "linux"
+	} else if strings.Contains(raw, "macintosh") || strings.Contains(raw, "mac os") {
+		us += "mac"
+	} else if strings.Contains(raw, "windows") {
+		us += "window"
+	} else if strings.Contains(raw, "iphone") {
+		us += "iphone"
+	} else if strings.Contains(raw, "android") {
+		us += "android"
+	} else {
+		us += "unknown"
+	}
+
+	us += "_"
+
+	// browser
+	if strings.Contains(raw, "firefox/") && !strings.Contains(raw, "seammonkey/") {
+		us += "firefox"
+	} else if strings.Contains(raw, ";msie") {
+		us += "ie"
+	} else if strings.Contains(raw, "safari/") && !strings.Contains(raw, "chrome/") && !strings.Contains(raw, "chromium/") {
+		us += "safari"
+	} else if strings.Contains(raw, "chrome/") || strings.Contains(raw, "chromium/") {
+		us += "chrome"
+	}
+
+	return us
 }
