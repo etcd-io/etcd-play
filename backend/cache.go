@@ -213,7 +213,7 @@ func getWelcomeMsg() string {
 	return boldHTMLMsg("Hello World! Welcome to etcd!") + fmt.Sprintf(`<br>
 - You've joined an <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> cluster <i>with %d other user(s) now</i>.<br>
 - <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> is a distributed reliable key-value store.<br>
-- Using <a href="https://raft.github.io" target="_blank">Raft</a>, <a href="https://github.com/coreos/etcd" target="_blank">etcd</a> gracefully handles network partitions and machine failures, even <font color='red'>leader failures</font>.<br>
+- Using <a href="https://raft.github.io" target="_blank">Raft</a>, <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> gracefully handles network partitions and machine failures, even <font color='red'>leader failures</font>.<br>
 - Tutorials can be found at <a href="https://github.com/coreos/etcd-play" target="_blank"><b>coreos/etcd-play</b></a>.<br>
 - This runs <b>master branch of <a href="https://github.com/coreos/etcd" target="_blank">etcd</a></b>. For any issues or questions, please report at <i><b><a href="https://github.com/coreos/etcd-play/issues" target="_blank">issues</a></b></i>.<br>
 - Please click <font color='#0000A0'>circle(node)</font> for more node information (<font color='green'>green</font> is leader, <font color='blue'>blue</font> is follower).<br>
