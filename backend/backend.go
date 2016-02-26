@@ -43,6 +43,7 @@ type (
 
 		KeepAlive      bool
 		ClusterTimeout time.Duration
+		LimitInterval  time.Duration
 
 		StressNumber int
 
@@ -109,6 +110,7 @@ func init() {
 
 	WebCommand.PersistentFlags().BoolVarP(&globalFlags.KeepAlive, "keep-alive", "k", false, "'true' to run demo without auto-termination (this overwrites cluster-timeout)")
 	WebCommand.PersistentFlags().DurationVar(&globalFlags.ClusterTimeout, "cluster-timeout", 5*time.Minute, "after timeout, etcd shuts down the cluster")
+	WebCommand.PersistentFlags().DurationVar(&globalFlags.LimitInterval, "limit-interval", 7*time.Second, "interval to rate-limit immediate restart, terminate")
 
 	WebCommand.PersistentFlags().IntVar(&globalFlags.StressNumber, "stress-number", 10, "size of stress requests")
 
@@ -378,7 +380,7 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		}
 
 		done, errc := make(chan struct{}), make(chan error)
-		go startCluster(nodeType, globalFlags.ClusterSize, globalFlags.DisableLiveLog, globalFlags.AgentEndpoints, userID, done, errc)
+		go startCluster(nodeType, globalFlags.ClusterSize, globalFlags.DisableLiveLog, globalFlags.LimitInterval, globalFlags.AgentEndpoints, userID, done, errc)
 		select {
 		case <-done:
 			resp.Message += boldHTMLMsg("Start cluster successfully requested!!!")
@@ -399,7 +401,7 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 	return nil
 }
 
-func startCluster(nodeType proc.NodeType, clusterSize int, disableLiveLog bool, agentEndpoints []string, userID string, done chan struct{}, errc chan error) {
+func startCluster(nodeType proc.NodeType, clusterSize int, disableLiveLog bool, limitInterval time.Duration, agentEndpoints []string, userID string, done chan struct{}, errc chan error) {
 	fs := make([]*proc.Flags, clusterSize)
 	for i := range fs {
 		host := "localhost"
@@ -414,7 +416,7 @@ func startCluster(nodeType proc.NodeType, clusterSize int, disableLiveLog bool, 
 		fs[i] = df
 	}
 
-	c, err := proc.NewCluster(nodeType, disableLiveLog, agentEndpoints, globalFlags.EtcdBinary, fs...)
+	c, err := proc.NewCluster(nodeType, disableLiveLog, limitInterval, agentEndpoints, globalFlags.EtcdBinary, fs...)
 	if err != nil {
 		errc <- err
 		return
@@ -853,11 +855,10 @@ func killHandler(ctx context.Context, w http.ResponseWriter, req *http.Request) 
 		}
 
 		globalCache.mu.Lock()
-		cluster := globalCache.cluster
-		globalCache.mu.Unlock()
+		defer globalCache.mu.Unlock()
 
 		name := urlToName(req.URL.String())
-		if err := cluster.Terminate(name); err != nil {
+		if err := globalCache.cluster.Terminate(name); err != nil {
 			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error: %v", err)))
 			return err
 		}
@@ -886,11 +887,10 @@ func restartHandler(ctx context.Context, w http.ResponseWriter, req *http.Reques
 		}
 
 		globalCache.mu.Lock()
-		cluster := globalCache.cluster
-		globalCache.mu.Unlock()
+		defer globalCache.mu.Unlock()
 
 		name := urlToName(req.URL.String())
-		if err := cluster.Restart(name); err != nil {
+		if err := globalCache.cluster.Restart(name); err != nil {
 			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error: %v", err)))
 			return err
 		}

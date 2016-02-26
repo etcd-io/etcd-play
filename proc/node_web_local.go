@@ -43,6 +43,7 @@ type NodeWebLocal struct {
 
 	active bool
 
+	limitInterval  time.Duration
 	lastTerminated time.Time
 	lastRestarted  time.Time
 }
@@ -99,7 +100,7 @@ func (nd *NodeWebLocal) Start() error {
 	active := nd.active
 	nd.pmu.Unlock()
 	if active {
-		return fmt.Errorf("%s is already running", nd.Flags.Name)
+		return fmt.Errorf("%s is already running or requested to restart", nd.Flags.Name)
 	}
 
 	shell := os.Getenv("SHELL")
@@ -157,18 +158,18 @@ func (nd *NodeWebLocal) Restart() error {
 	lastRestarted := nd.lastRestarted
 	nd.pmu.Unlock()
 	if active {
-		return fmt.Errorf("%s is already running", nd.Flags.Name)
+		return fmt.Errorf("%s is already running or requested to restart", nd.Flags.Name)
 	}
 
-	// restart, 2nd restart term should be more than 5 second
+	// restart, 2nd restart term should be more than limit interval
 	sub := time.Now().Sub(lastRestarted)
-	if sub < 5*time.Second {
-		return fmt.Errorf("Somebody restarted the same node (only %v ago)! Retry in 5-sec!", sub)
+	if sub < nd.limitInterval {
+		return fmt.Errorf("Somebody restarted the same node (only %v ago)! Retry in %v!", sub, nd.limitInterval)
 	}
-	// terminate, and immediate restart term should be more than 5 second
+	// terminate, and immediate restart term should be more than limit interval
 	subt := time.Now().Sub(lastTerminated)
-	if subt < 5*time.Second {
-		return fmt.Errorf("Somebody terminated the node (only %v ago)! Retry in 5-sec!", subt)
+	if subt < nd.limitInterval {
+		return fmt.Errorf("Somebody terminated the node (only %v ago)! Retry in %v!", subt, nd.limitInterval)
 	}
 
 	shell := os.Getenv("SHELL")
@@ -224,18 +225,18 @@ func (nd *NodeWebLocal) Terminate() error {
 	lastRestarted := nd.lastRestarted
 	nd.pmu.Unlock()
 	if !active {
-		return fmt.Errorf("%s is already terminated", nd.Flags.Name)
+		return fmt.Errorf("%s is already terminated or requested to terminate", nd.Flags.Name)
 	}
 
-	// terminate, 2nd terminate term should be more than 5 second
+	// terminate, 2nd terminate term should be more than limit interval
 	sub := time.Now().Sub(lastTerminated)
-	if sub < 5*time.Second {
-		return fmt.Errorf("Somebody terminated the same node (only %v ago)! Retry in 5-sec!", sub)
+	if sub < nd.limitInterval {
+		return fmt.Errorf("Somebody terminated the same node (only %v ago)! Retry in %v!", sub, nd.limitInterval)
 	}
-	// restart, and immediate terminate term should be more than 5 second
+	// restart, and immediate terminate term should be more than limit interval
 	subt := time.Now().Sub(lastRestarted)
-	if subt < 5*time.Second {
-		return fmt.Errorf("Somebody restarted the node (only %v ago)! Retry in 5-sec!", subt)
+	if subt < nd.limitInterval {
+		return fmt.Errorf("Somebody restarted the node (only %v ago)! Retry in %v!", subt, nd.limitInterval)
 	}
 
 	nd.sharedStream <- fmt.Sprintf("Terminate %s\n", nd.Flags.Name)
@@ -265,7 +266,7 @@ func (nd *NodeWebLocal) Clean() error {
 	active := nd.active
 	nd.pmu.Unlock()
 	if active {
-		return fmt.Errorf("%s is already running", nd.Flags.Name)
+		return fmt.Errorf("%s is already running or requested to restart", nd.Flags.Name)
 	}
 
 	nd.sharedStream <- fmt.Sprintf("Clean %s (%s)\n", nd.Flags.Name, nd.Flags.DataDir)
