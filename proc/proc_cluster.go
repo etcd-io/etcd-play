@@ -165,7 +165,7 @@ const (
 )
 
 // NewCluster creates Cluster with generated flags.
-func NewCluster(opt NodeType, disableLiveLog bool, agentEndpoints []string, programPath string, fs ...*Flags) (Cluster, error) {
+func NewCluster(opt NodeType, disableLiveLog bool, limitInterval time.Duration, agentEndpoints []string, programPath string, fs ...*Flags) (Cluster, error) {
 	if len(fs) == 0 {
 		return nil, nil
 	}
@@ -225,6 +225,7 @@ func NewCluster(opt NodeType, disableLiveLog bool, agentEndpoints []string, prog
 				cmd:                nil,
 				PID:                0,
 				active:             false,
+				limitInterval:      limitInterval,
 			}
 
 		case WebRemote:
@@ -236,9 +237,10 @@ func NewCluster(opt NodeType, disableLiveLog bool, agentEndpoints []string, prog
 				return nil, err
 			}
 			ni = &NodeWebRemoteClient{
-				Flags:  f,
-				Agent:  a,
-				active: false,
+				Flags:         f,
+				Agent:         a,
+				active:        false,
+				limitInterval: limitInterval,
 			}
 
 		default:

@@ -221,7 +221,7 @@ func getWelcomeMsg() string {
 - <font color='blue'>Hash</font> shows how <b>etcd</b>, <i>as a distributed database</i>, <b>keeps its consistency</b>.<br>
 - Select <b>any endpoint</b><i>(etcd1, etcd2, ...)</i> to PUT, GET, DELETE, and then click <b>Submit</b>.<br>
 <br>
-<i>Note: Request logs are streamed based on your IP and user agents. So if you have<br>
+<i>Note: Request logs are streamed based on your IP and user agent. So if you have<br>
 multiple browsers running this same web page, logs could be shown only in one of them.</i><br>
 `, len(globalCache.users)-1)
 }
