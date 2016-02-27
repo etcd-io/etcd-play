@@ -69,6 +69,9 @@ var (
 		activeUserList: "",
 		nameToStatus:   make(map[string]proc.ServerStatus),
 	}
+
+	uptimeScale = time.Second
+	startTime   = time.Now().Round(uptimeScale)
 )
 
 // initGlobalData must be called at the beginning of 'web' command.

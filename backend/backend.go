@@ -174,6 +174,7 @@ func CommandFunc(cmd *cobra.Command, args []string) {
 		ctx:     rootContext,
 		handler: withCache(ContextHandlerFunc(stressHandler)),
 	})
+
 	mainRouter.Handle("/key_history", &ContextAdapter{
 		ctx:     rootContext,
 		handler: withCache(ContextHandlerFunc(keyHistoryHandler)),
@@ -523,6 +524,7 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		globalStatus.mu.Unlock()
 
 		resp := struct {
+			ServerUptime     string
 			ActiveUserNumber int
 			ActiveUserList   string
 
@@ -561,6 +563,7 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 			Etcd5_NumberOfKeys int
 			Etcd5_Hash         int
 		}{
+			fmt.Sprintf("%v", time.Now().Round(uptimeScale).Sub(startTime)),
 			len(globalCache.users),
 			globalStatus.activeUserList,
 

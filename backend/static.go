@@ -14,7 +14,7 @@
 
 package backend
 
-// updated at 2016-02-26 21:06:37.96540194 -0800 PST
+// updated at 2016-02-27 14:51:23.280442247 -0800 PST
 
 import (
 	"fmt"
@@ -297,7 +297,7 @@ var htmlSourceFileLocal = `<html lang="en">
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('active_user_number').innerHTML = "(active user: " + dataObj.ActiveUserNumber + ")";
+                    document.getElementById('active_user_number').innerHTML = dataObj.ActiveUserNumber + " users here now (deployed " + dataObj.ServerUptime + " ago)";
                     document.getElementById('active_user_list').innerHTML = dataObj.ActiveUserList;
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
@@ -832,7 +832,7 @@ var htmlSourceFileLocal = `<html lang="en">
                 <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new" target="_blank">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
-                <div class="nav-link" id="active_user_number" data-toggle="modal" data-target="#active_user_Contents">(active user: 0)</div>
+                <div class="nav-link" id="active_user_number" data-toggle="modal" data-target="#active_user_Contents">0 users here now (deployed 0s ago)</div>
             </li>
         </ul>
     </nav>
@@ -1315,7 +1315,7 @@ var htmlSourceFileRemote = `<html lang="en">
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('active_user_number').innerHTML = "(active user: " + dataObj.ActiveUserNumber + ")";
+                    document.getElementById('active_user_number').innerHTML = dataObj.ActiveUserNumber + " users here now (deployed " + dataObj.ServerUptime + " ago)";
                     document.getElementById('active_user_list').innerHTML = dataObj.ActiveUserList;
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
@@ -1643,7 +1643,7 @@ var htmlSourceFileRemote = `<html lang="en">
                 <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new" target="_blank">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
-                <div class="nav-link" id="active_user_number" data-toggle="modal" data-target="#active_user_Contents">(active user: 0)</div>
+                <div class="nav-link" id="active_user_number" data-toggle="modal" data-target="#active_user_Contents">0 users here now (deployed 0s ago)</div>
             </li>
         </ul>
     </nav>

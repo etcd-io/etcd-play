@@ -262,7 +262,7 @@
                 success: function(dataObj) {
                     queue_StorageKeysTotal.push(dataObj);
 
-                    document.getElementById('active_user_number').innerHTML = "(active user: " + dataObj.ActiveUserNumber + ")";
+                    document.getElementById('active_user_number').innerHTML = dataObj.ActiveUserNumber + " users here now (deployed " + dataObj.ServerUptime + " ago)";
                     document.getElementById('active_user_list').innerHTML = dataObj.ActiveUserList;
 
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
@@ -797,7 +797,7 @@
                 <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new" target="_blank">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
-                <div class="nav-link" id="active_user_number" data-toggle="modal" data-target="#active_user_Contents">(active user: 0)</div>
+                <div class="nav-link" id="active_user_number" data-toggle="modal" data-target="#active_user_Contents">0 users here now (deployed 0s ago)</div>
             </li>
         </ul>
     </nav>
