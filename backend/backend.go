@@ -373,7 +373,7 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		}
 
 		if globalCache.clusterActive() {
-			resp.Message += boldHTMLMsg("Cluster is already started!")
+			resp.Message += boldHTMLMsg("Cluster is already started! Loading the cluster information...")
 			if err := json.NewEncoder(w).Encode(resp); err != nil {
 				return err
 			}
