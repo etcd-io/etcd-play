@@ -32,8 +32,8 @@ type NodeWebLocal struct {
 	pmaxProcNameLength *int
 	colorIdx           int
 
-	disableLiveLog bool
-	sharedStream   chan string // inherit from Cluster (no need pointer)
+	liveLog      bool
+	sharedStream chan string // inherit from Cluster (no need pointer)
 
 	ProgramPath string
 	Flags       *Flags
@@ -119,7 +119,7 @@ func (nd *NodeWebLocal) Start() error {
 	cmd.Stdin = nil
 	cmd.Stdout = nd
 	cmd.Stderr = nd
-	if nd.disableLiveLog {
+	if !nd.liveLog {
 		cmd.Stdout = ioutil.Discard
 		cmd.Stderr = ioutil.Discard
 	}

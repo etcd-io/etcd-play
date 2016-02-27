@@ -103,9 +103,7 @@ func CommandFunc(cmd *cobra.Command, args []string) {
 		fs[i] = df
 	}
 
-	disableLiveLog := false
-	agentEndpoints := []string{}
-	c, err := proc.NewCluster(proc.Terminal, disableLiveLog, 0, agentEndpoints, globalFlags.EtcdBinary, fs...)
+	c, err := proc.NewCluster(proc.Terminal, globalFlags.EtcdBinary, fs, proc.WithLiveLog())
 	if err != nil {
 		fmt.Fprintln(os.Stdout, "exiting with:", err)
 		return
