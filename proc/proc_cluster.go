@@ -164,14 +164,50 @@ const (
 	WebRemote
 )
 
+type op struct {
+	liveLog        bool
+	limitInterval  time.Duration
+	agentEndpoints []string
+}
+
+func (o *op) apply(opts []OpOption) {
+	for _, opt := range opts {
+		opt(o)
+	}
+}
+
+type OpOption func(*op)
+
+func WithLiveLog() OpOption {
+	return func(o *op) {
+		o.liveLog = true
+	}
+}
+
+func WithLimitInterval(d time.Duration) OpOption {
+	return func(o *op) {
+		o.limitInterval = d
+	}
+}
+
+func WithAgentEndpoints(eps []string) OpOption {
+	return func(o *op) {
+		o.agentEndpoints = eps
+	}
+}
+
 // NewCluster creates Cluster with generated flags.
-func NewCluster(opt NodeType, disableLiveLog bool, limitInterval time.Duration, agentEndpoints []string, programPath string, fs ...*Flags) (Cluster, error) {
+func NewCluster(opt NodeType, programPath string, fs []*Flags, opts ...OpOption) (Cluster, error) {
 	if len(fs) == 0 {
 		return nil, nil
 	}
-	if len(agentEndpoints) > 0 && opt == WebRemote {
-		if len(agentEndpoints) != len(fs) {
-			return nil, fmt.Errorf("agent endpoints must be the same size of flags (%d != %d)", len(agentEndpoints), len(fs))
+
+	o := &op{}
+	o.apply(opts)
+
+	if len(o.agentEndpoints) > 0 && opt == WebRemote {
+		if len(o.agentEndpoints) != len(fs) {
+			return nil, fmt.Errorf("agent endpoints must be the same size of flags (%d != %d)", len(o.agentEndpoints), len(fs))
 		}
 	}
 
@@ -218,21 +254,21 @@ func NewCluster(opt NodeType, disableLiveLog bool, limitInterval time.Duration, 
 				pmu:                &c.mu,
 				pmaxProcNameLength: &maxProcNameLength,
 				colorIdx:           colorIdx,
-				disableLiveLog:     disableLiveLog,
+				liveLog:            o.liveLog,
 				sharedStream:       bufferedStream, // shared by all nodes
 				ProgramPath:        programPath,
 				Flags:              f,
 				cmd:                nil,
 				PID:                0,
 				active:             false,
-				limitInterval:      limitInterval,
+				limitInterval:      o.limitInterval,
 			}
 
 		case WebRemote:
-			if len(agentEndpoints) == 0 {
+			if len(o.agentEndpoints) == 0 {
 				return nil, fmt.Errorf("no agent endpoints found")
 			}
-			a, err := client.NewAgent(agentEndpoints[i])
+			a, err := client.NewAgent(o.agentEndpoints[i])
 			if err != nil {
 				return nil, err
 			}
@@ -240,7 +276,7 @@ func NewCluster(opt NodeType, disableLiveLog bool, limitInterval time.Duration, 
 				Flags:         f,
 				Agent:         a,
 				active:        false,
-				limitInterval: limitInterval,
+				limitInterval: o.limitInterval,
 			}
 
 		default:

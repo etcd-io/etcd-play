@@ -34,9 +34,9 @@ type (
 	key int
 
 	Flags struct {
-		EtcdBinary     string
-		ClusterSize    int
-		DisableLiveLog bool
+		EtcdBinary  string
+		ClusterSize int
+		LiveLog     bool
 
 		LinuxAutoPort            bool
 		LinuxIntervalPortRefresh time.Duration
@@ -103,7 +103,7 @@ var (
 func init() {
 	WebCommand.PersistentFlags().StringVarP(&globalFlags.EtcdBinary, "etcd-binary", "b", filepath.Join(os.Getenv("GOPATH"), "bin/etcd"), "path of executable etcd binary")
 	WebCommand.PersistentFlags().IntVar(&globalFlags.ClusterSize, "cluster-size", 5, "size of cluster to create")
-	WebCommand.PersistentFlags().BoolVarP(&globalFlags.DisableLiveLog, "disable-live-log", "s", false, "'true' to disable streaming etcd logs")
+	WebCommand.PersistentFlags().BoolVar(&globalFlags.LiveLog, "live-log", false, "'true' to enable streaming etcd logs (only support localhost)")
 
 	WebCommand.PersistentFlags().BoolVar(&globalFlags.LinuxAutoPort, "linux-auto-port", strings.Contains(runtime.GOOS, "linux"), "(only linux supported) 'true' to automate port findings")
 	WebCommand.PersistentFlags().DurationVar(&globalFlags.LinuxIntervalPortRefresh, "linux-port-refresh", 10*time.Second, "(only linux supported) interval to refresh free ports")
@@ -380,7 +380,7 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		}
 
 		done, errc := make(chan struct{}), make(chan error)
-		go startCluster(nodeType, globalFlags.ClusterSize, globalFlags.DisableLiveLog, globalFlags.LimitInterval, globalFlags.AgentEndpoints, userID, done, errc)
+		go startCluster(nodeType, globalFlags.ClusterSize, globalFlags.LiveLog, globalFlags.LimitInterval, globalFlags.AgentEndpoints, userID, done, errc)
 		select {
 		case <-done:
 			resp.Message += boldHTMLMsg("Start cluster successfully requested!!!")
@@ -401,7 +401,7 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 	return nil
 }
 
-func startCluster(nodeType proc.NodeType, clusterSize int, disableLiveLog bool, limitInterval time.Duration, agentEndpoints []string, userID string, done chan struct{}, errc chan error) {
+func startCluster(nodeType proc.NodeType, clusterSize int, liveLog bool, limitInterval time.Duration, agentEndpoints []string, userID string, done chan struct{}, errc chan error) {
 	fs := make([]*proc.Flags, clusterSize)
 	for i := range fs {
 		host := "localhost"
@@ -416,7 +416,11 @@ func startCluster(nodeType proc.NodeType, clusterSize int, disableLiveLog bool, 
 		fs[i] = df
 	}
 
-	c, err := proc.NewCluster(nodeType, disableLiveLog, limitInterval, agentEndpoints, globalFlags.EtcdBinary, fs...)
+	opts := []proc.OpOption{proc.WithLimitInterval(limitInterval), proc.WithAgentEndpoints(agentEndpoints)}
+	if liveLog {
+		opts = append(opts, proc.WithLiveLog())
+	}
+	c, err := proc.NewCluster(nodeType, globalFlags.EtcdBinary, fs, opts...)
 	if err != nil {
 		errc <- err
 		return
