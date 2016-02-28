@@ -502,12 +502,12 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 	defer cli.Close()
 
 	// ID, State
-	done, errc := make(chan struct{}), make(chan error)
+	done, errChan := make(chan struct{}), make(chan error)
 	clus := clientv3.NewCluster(cli)
 	go func() {
 		mbs, err := clus.MemberList(context.Background())
 		if err != nil {
-			errc <- err
+			errChan <- err
 			return
 		}
 		for _, mb := range mbs.Members {
@@ -527,7 +527,7 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 	case <-time.After(5 * time.Second):
 		errc <- fmt.Errorf("timed out")
 		return
-	case err := <-errc:
+	case err := <-errChan:
 		errc <- err
 		return
 	case <-done:
@@ -537,7 +537,7 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 	go func() {
 		conn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
 		if err != nil {
-			errc <- err
+			errChan <- err
 			return
 		}
 		kvc := pb.NewKVClient(conn)
@@ -546,7 +546,7 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 		cancel()
 		conn.Close()
 		if err != nil {
-			errc <- err
+			errChan <- err
 			return
 		}
 		stat.Hash = int(resp.Hash)
@@ -556,7 +556,7 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 	case <-time.After(5 * time.Second):
 		errc <- fmt.Errorf("timed out")
 		return
-	case err := <-errc:
+	case err := <-errChan:
 		errc <- err
 		return
 	case <-done:
@@ -566,7 +566,7 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 	go func() {
 		resp, err := http.Get(v2Endpoint + "/metrics")
 		if err != nil {
-			errc <- err
+			errChan <- err
 			return
 		}
 		scanner := bufio.NewScanner(resp.Body)
@@ -595,7 +595,7 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 	case <-time.After(5 * time.Second):
 		errc <- fmt.Errorf("timed out")
 		return
-	case err := <-errc:
+	case err := <-errChan:
 		errc <- err
 		return
 	case <-done:
