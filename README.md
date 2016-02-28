@@ -51,7 +51,7 @@ etcd-play web --keep-alive --linux-auto-port=false --production --remote --agent
 
 #### play `etcd` in web browser
 
-<img src="https://storage.googleapis.com/play-etcd/web_20160225111501.gif" alt="web"/>
+<img src="https://storage.googleapis.com/play-etcd/web_20160227201500.gif" alt="web"/>
 
 [↑ top](#etcd-play--)
 <br><br><br><br><hr>
