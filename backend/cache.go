@@ -106,21 +106,23 @@ func initGlobalData() {
 					globalCache.mu.Lock()
 					for u := range globalCache.users {
 						bts := []byte(u)
-						bts[3] = 'x' // mask IP addresses
+						bts[2] = 'x' // mask IP addresses
+						bts[3] = 'x'
 						bts[4] = 'x'
 						bts[5] = 'x'
 						bts[6] = 'x'
 						bts[7] = 'x'
+						bts[8] = 'x'
 						bs := string(bts)
-						if len(bs) > 25 {
-							bs = bs[:25] + "..."
+						if len(bs) > 23 {
+							bs = bs[:23] + "..."
 						}
 						users = append(users, bs)
 					}
 					globalCache.mu.Unlock()
 					sort.Strings(users)
-					if len(users) > 50 {
-						users = users[:50]
+					if len(users) > 30 {
+						users = users[:30]
 						users = append(users, "...more")
 					}
 					us := strings.Join(users, "<br>")
@@ -167,7 +169,6 @@ func withCache(h ContextHandler) ContextHandler {
 				requestCount:    0,
 				keyHistory: []string{
 					`TYPE_YOUR_KEY`,
-					`foo`,
 					`sample_key`,
 				},
 			}
@@ -217,14 +218,14 @@ func getWelcomeMsg() string {
 - You've joined an <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> cluster <i>with %d other user(s) now</i>.<br>
 - <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> is distributed reliable key-value store for the most critical data of a distributed system.<br>
 - Using <a href="https://raft.github.io" target="_blank">Raft</a>, <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> gracefully handles network partitions and machine failures, even <font color='red'>leader failures</font>.<br>
-- Tutorials can be found at <a href="https://github.com/coreos/etcd-play" target="_blank"><b>coreos/etcd-play</b></a>.<br>
+- Tutorials and source code can be found at <a href="https://github.com/coreos/etcd-play" target="_blank"><b>coreos/etcd-play</b></a>.<br>
 - This runs <b>master branch of <a href="https://github.com/coreos/etcd" target="_blank">etcd</a></b>. For any issues or questions, please report at <i><b><a href="https://github.com/coreos/etcd-play/issues" target="_blank">issues</a></b></i>.<br>
 - Please click <font color='#0000A0'>circle(node)</font> for more node information (<font color='green'>green</font> is leader, <font color='blue'>blue</font> is follower).<br>
 - <font color='red'>Kill</font> to stop node(even the <font color='green'><b>leader</b></font>). <font color='red'>Restart</font> to recover node.<br>
 - <font color='blue'>Hash</font> shows how <b>etcd</b>, <i>as a distributed database</i>, <b>keeps its data consistent</b>.<br>
 - Select <b>any endpoint</b><i>(etcd1, etcd2, ...)</i> to PUT, GET, DELETE, and then click <b>Submit</b>.<br>
 <br>
-<i>Note: Request logs are streamed based on your IP and user agent. So if you have<br>
-multiple browsers running this same web page, logs could be shown only in one of them.</i><br>
+<i>Note: Request logs are streamed based on your IP and user agent. So if you have multiple<br>
+web browsers running at the same time, logs might be shown only in one of them.</i><br>
 `, len(globalCache.users)-1)
 }

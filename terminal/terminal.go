@@ -48,7 +48,7 @@ type Flags struct {
 var (
 	Command = &cobra.Command{
 		Use:   "terminal",
-		Short: "terminal runs etcd in terminal.",
+		Short: "terminal plays etcd in terminal.",
 		Run:   CommandFunc,
 	}
 	globalFlags = Flags{}

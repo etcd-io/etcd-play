@@ -124,7 +124,7 @@ func init() {
 func CommandFunc(cmd *cobra.Command, args []string) {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Fprintln(os.Stdout, "[web]", err)
+			fmt.Fprintln(os.Stdout, "[etcd-play error]", err)
 			os.Exit(0)
 		}
 	}()
@@ -726,7 +726,13 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 		globalCache.users[userID].lastKey = key
 		globalCache.users[userID].lastValue = value
 		if key != "" {
-			globalCache.users[userID].keyHistory = append(globalCache.users[userID].keyHistory, key)
+			hm := make(map[string]struct{})
+			for _, v := range globalCache.users[userID].keyHistory {
+				hm[v] = struct{}{}
+			}
+			if _, ok := hm[key]; !ok {
+				globalCache.users[userID].keyHistory = append(globalCache.users[userID].keyHistory, key)
+			}
 		}
 		history := globalCache.users[userID].keyHistory
 		if len(history) > 7 { // FIFO of at most 7 command histories
