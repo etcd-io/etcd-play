@@ -44,6 +44,7 @@ type (
 		KeepAlive      bool
 		ClusterTimeout time.Duration
 		LimitInterval  time.Duration
+		ReviveInterval time.Duration
 
 		StressNumber int
 
@@ -111,6 +112,7 @@ func init() {
 	WebCommand.PersistentFlags().BoolVarP(&globalFlags.KeepAlive, "keep-alive", "k", false, "'true' to run demo without auto-termination (this overwrites cluster-timeout)")
 	WebCommand.PersistentFlags().DurationVar(&globalFlags.ClusterTimeout, "cluster-timeout", 5*time.Minute, "after timeout, etcd shuts down the cluster")
 	WebCommand.PersistentFlags().DurationVar(&globalFlags.LimitInterval, "limit-interval", 7*time.Second, "interval to rate-limit immediate restart, terminate")
+	WebCommand.PersistentFlags().DurationVar(&globalFlags.ReviveInterval, "revive-interval", 15*time.Minute, "interval to automatically revive all-failed cluster")
 
 	WebCommand.PersistentFlags().IntVar(&globalFlags.StressNumber, "stress-number", 10, "size of stress requests")
 
