@@ -16,6 +16,7 @@ package backend
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -94,6 +95,7 @@ func initGlobalData() {
 	}
 	globalCache.mu.Unlock()
 
+	// keep pulling cluster status
 	go func() {
 		for {
 			if globalCache.clusterActive() {
@@ -137,13 +139,13 @@ func initGlobalData() {
 		}
 	}()
 
+	// clean up users that started more than 1-hour ago
 	go func() {
 		for {
 			now := time.Now()
 			globalCache.mu.Lock()
 			for userID, v := range globalCache.users {
 				sub := now.Sub(v.startTime)
-				// clean up users that started more than 1-hour ago
 				if sub > time.Hour {
 					delete(globalCache.users, userID)
 				}
@@ -151,6 +153,21 @@ func initGlobalData() {
 			globalCache.mu.Unlock()
 
 			time.Sleep(time.Hour)
+		}
+	}()
+
+	// revive cluster in case somebody killed all
+	go func() {
+		for {
+			time.Sleep(globalFlags.ReviveInterval)
+			if !globalCache.clusterActive() {
+				continue
+			}
+			globalCache.mu.Lock()
+			if err := globalCache.cluster.Revive(); err != nil {
+				log.Println(err)
+			}
+			globalCache.mu.Unlock()
 		}
 	}()
 }

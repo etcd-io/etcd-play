@@ -106,6 +106,9 @@ type Cluster interface {
 	// Restart restarts Node process.
 	Restart(name string) error
 
+	// Revive restarts all Nodes only in case they all got terminated at one point.
+	Revive() error
+
 	// Terminate kills the Node process.
 	Terminate(name string) error
 
@@ -365,6 +368,20 @@ func (c *defaultCluster) Restart(name string) error {
 		return fmt.Errorf("%s does not exist", name)
 	}
 	return nd.Restart()
+}
+
+func (c *defaultCluster) Revive() error {
+	for _, nd := range c.nameToNode {
+		if nd.IsActive() {
+			return nil
+		}
+	}
+	for _, nd := range c.nameToNode {
+		if err := nd.Restart(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *defaultCluster) Terminate(name string) error {
