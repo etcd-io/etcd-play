@@ -106,7 +106,8 @@ type Cluster interface {
 	// Restart restarts Node process.
 	Restart(name string) error
 
-	// Revive restarts all Nodes only in case they all got terminated at one point.
+	// Revive restarts all Nodes in case no Node is up for a certain period of
+	// time.
 	Revive() error
 
 	// Terminate kills the Node process.
