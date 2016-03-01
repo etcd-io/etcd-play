@@ -236,7 +236,7 @@ func getWelcomeMsg() string {
 - <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> is distributed reliable key-value store for the most critical data of a distributed system.<br>
 - Using <a href="https://raft.github.io" target="_blank">Raft</a>, <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> gracefully handles network partitions and machine failures, even <font color='red'>leader failures</font>.<br>
 - Tutorials and source code can be found at <a href="https://github.com/coreos/etcd-play" target="_blank"><b>coreos/etcd-play</b></a>.<br>
-- This runs <b>master branch of <a href="https://github.com/coreos/etcd" target="_blank">etcd</a></b>. For any issues or questions, please report at <i><b><a href="https://github.com/coreos/etcd-play/issues" target="_blank">issues</a></b></i>.<br>
+- This runs <b>master branch of <a href="https://github.com/coreos/etcd" target="_blank">etcd</a></b>. For any issues or questions, please report at <i><b><a href="https://github.com/coreos/etcd-play/issues/new" target="_blank">issues</a></b></i>.<br>
 - Please click <font color='#0000A0'>circle(node)</font> for more node information (<font color='green'>green</font> is leader, <font color='blue'>blue</font> is follower).<br>
 - <font color='red'>Kill</font> to stop node(even the <font color='green'><b>leader</b></font>). <font color='red'>Restart</font> to recover node.<br>
 - <font color='blue'>Hash</font> shows how <b>etcd</b>, <i>as a distributed database</i>, <b>keeps its data consistent</b>.<br>
