@@ -182,18 +182,24 @@ func (o *op) apply(opts []OpOption) {
 
 type OpOption func(*op)
 
+// WithLiveLog feeds etcd logs real-time. Only applicable for
+// 'etcd-play web' command in localhost.
 func WithLiveLog() OpOption {
 	return func(o *op) {
 		o.liveLog = true
 	}
 }
 
+// WithLimitInterval puts limit interval between terminate and immediate restart,
+// restart and immediate terminate.
 func WithLimitInterval(d time.Duration) OpOption {
 	return func(o *op) {
 		o.limitInterval = d
 	}
 }
 
+// WithAgentEndpoins specifies etcd-agent endpoints. Only applicable for
+// 'etcd-play web' command when deployed with remote machines.
 func WithAgentEndpoints(eps []string) OpOption {
 	return func(o *op) {
 		o.agentEndpoints = eps
