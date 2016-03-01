@@ -237,13 +237,13 @@ func CommandFunc(cmd *cobra.Command, args []string) {
 
 	select {
 	case <-clusterDone:
-		fmt.Fprintln(os.Stdout, "[RunTerminal END] etcd cluster terminated!")
+		fmt.Fprintln(os.Stdout, "[etcd-play terminal] etcd cluster terminated!")
 		return
 	case <-operationDone:
-		fmt.Fprintln(os.Stdout, "[RunTerminal END] operation terminated!")
+		fmt.Fprintln(os.Stdout, "[etcd-play terminal] operation terminated!")
 		return
 	case <-time.After(globalFlags.ClusterTimeout):
-		fmt.Fprintln(os.Stdout, "[RunTerminal END] timed out!")
+		fmt.Fprintln(os.Stdout, "[etcd-play terminal] timed out!")
 		return
 	}
 }
