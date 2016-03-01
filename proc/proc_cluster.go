@@ -565,7 +565,7 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 			return
 		}
 		kvc := pb.NewKVClient(conn)
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		resp, err := kvc.Hash(ctx, &pb.HashRequest{})
 		cancel()
 		conn.Close()
@@ -690,7 +690,10 @@ func (c *defaultCluster) Put(name, key, value string, streamIDs ...string) error
 	st := time.Now()
 
 	c.Write(name, fmt.Sprintf("[PUT] Started! (endpoints: %q)", endpoints), streamIDs...)
-	if _, err := kvc.Put(context.Background(), key, value); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	_, err = kvc.Put(ctx, key, value)
+	cancel()
+	if err != nil {
 		return err
 	}
 	c.Write(name, fmt.Sprintf("[PUT] %q : %q / Took %v (endpoints: %q)", key, value, time.Since(st), endpoints), streamIDs...)
@@ -725,7 +728,10 @@ func (c *defaultCluster) Get(name, key string, streamIDs ...string) ([]string, e
 	st := time.Now()
 
 	c.Write(name, fmt.Sprintf("[GET] Started! (endpoints: %q)", endpoints), streamIDs...)
-	resp, err := kvc.Get(context.Background(), key)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	resp, err := kvc.Get(ctx, key)
+	cancel()
 	if err != nil {
 		return nil, err
 	}
@@ -771,7 +777,10 @@ func (c *defaultCluster) Delete(name, key string, streamIDs ...string) error {
 	st := time.Now()
 
 	c.Write(name, fmt.Sprintf("[DELETE] Started! (endpoints: %q)", endpoints), streamIDs...)
-	if _, err := kvc.Delete(context.Background(), key); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	_, err = kvc.Delete(ctx, key)
+	cancel()
+	if err != nil {
 		return err
 	}
 	c.Write(name, fmt.Sprintf("[DELETE] Done! Took %v (endpoints: %q)", time.Since(st), endpoints), streamIDs...)
@@ -813,7 +822,10 @@ func (c *defaultCluster) stress(name string, stressN int, donec chan struct{}, e
 		go func(i int) {
 			kvc := kvcs[rand.Intn(clientsN)]
 			key, val := fmt.Sprintf("sample_%d_%s", i, keys[i]), string(vals[i])
-			if _, err := kvc.Put(context.Background(), key, val); err != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			_, err = kvc.Put(ctx, key, val)
+			cancel()
+			if err != nil {
 				errChan <- err
 				return
 			}
@@ -894,7 +906,10 @@ func (c *defaultCluster) WatchPut(name string, watchersN int, streamIDs ...strin
 
 	c.Write(name, "[PUT] Triggers watch...", streamIDs...)
 	kvc := clientv3.NewKV(cli)
-	if _, err := kvc.Put(context.Background(), "foo", "bar"); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	_, err = kvc.Put(ctx, "foo", "bar")
+	cancel()
+	if err != nil {
 		return err
 	}
 

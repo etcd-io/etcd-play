@@ -429,6 +429,10 @@ func startCluster(nodeType proc.NodeType, clusterSize int, liveLog bool, limitIn
 		return
 	}
 
+	if globalCache.clusterActive() {
+		done <- struct{}{}
+		return
+	}
 	globalCache.mu.Lock()
 	globalCache.cluster = c
 	globalCache.mu.Unlock()
