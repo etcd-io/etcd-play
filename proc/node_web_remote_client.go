@@ -49,15 +49,15 @@ func (nd *NodeWebRemoteClient) StatusEndpoint() string {
 
 func (nd *NodeWebRemoteClient) IsActive() bool {
 	nd.mu.Lock()
-	active := nd.active
-	nd.mu.Unlock()
-	return active
+	defer nd.mu.Unlock()
+	return nd.active
 }
 
 func (nd *NodeWebRemoteClient) Start() error {
 	nd.mu.Lock()
+	defer nd.mu.Unlock()
+
 	active := nd.active
-	nd.mu.Unlock()
 	if active {
 		return fmt.Errorf("%s is already running or requested to restart", nd.Flags.Name)
 	}
@@ -69,18 +69,17 @@ func (nd *NodeWebRemoteClient) Start() error {
 	if _, err := nd.Agent.Start(flagSlice...); err != nil {
 		return err
 	}
-	nd.mu.Lock()
 	nd.active = true
-	nd.mu.Unlock()
 	return nil
 }
 
 func (nd *NodeWebRemoteClient) Restart() error {
 	nd.mu.Lock()
+	defer nd.mu.Unlock()
+
 	active := nd.active
 	lastTerminated := nd.lastTerminated
 	lastRestarted := nd.lastRestarted
-	nd.mu.Unlock()
 	if active {
 		return fmt.Errorf("%s is already running or requested to restart", nd.Flags.Name)
 	}
@@ -102,20 +101,18 @@ func (nd *NodeWebRemoteClient) Restart() error {
 		return err
 	}
 
-	nd.mu.Lock()
 	nd.lastRestarted = time.Now()
 	nd.active = true
-	nd.mu.Unlock()
-
 	return nil
 }
 
 func (nd *NodeWebRemoteClient) Terminate() error {
 	nd.mu.Lock()
+	defer nd.mu.Unlock()
+
 	active := nd.active
 	lastTerminated := nd.lastTerminated
 	lastRestarted := nd.lastRestarted
-	nd.mu.Unlock()
 	if !active {
 		return fmt.Errorf("%s is already terminated or requested to terminate", nd.Flags.Name)
 	}
@@ -134,11 +131,8 @@ func (nd *NodeWebRemoteClient) Terminate() error {
 		return err
 	}
 
-	nd.mu.Lock()
 	nd.lastTerminated = time.Now()
 	nd.active = false
-	nd.mu.Unlock()
-
 	return nil
 }
 
