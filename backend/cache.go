@@ -106,6 +106,7 @@ func initGlobalData() {
 				if userN > 0 {
 					users := []string{}
 					globalCache.mu.Lock()
+					cn := 0
 					for u := range globalCache.users {
 						bts := []byte(u)
 						bts[2] = 'x' // mask IP addresses
@@ -120,18 +121,25 @@ func initGlobalData() {
 							bs = bs[:23] + "..."
 						}
 						users = append(users, bs)
+						cn++
+						if cn > 20 {
+							break
+						}
 					}
 					globalCache.mu.Unlock()
 					sort.Strings(users)
-					if len(users) > 30 {
-						users = users[:30]
+					if len(users) > 20 {
 						users = append(users, "...more")
 					}
 					us := strings.Join(users, "<br>")
 
+					st, err := globalCache.cluster.Status()
+					if err != nil {
+						log.Println(err)
+					}
 					globalStatus.mu.Lock()
 					globalStatus.activeUserList = us
-					globalStatus.nameToStatus, _ = globalCache.cluster.Status()
+					globalStatus.nameToStatus = st
 					globalStatus.mu.Unlock()
 				}
 			}

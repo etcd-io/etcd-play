@@ -510,26 +510,63 @@ var emptyStat = ServerStatus{
 	Hash:         0,
 }
 
+var (
+	mu         sync.Mutex
+	cachedConn = map[string]*grpc.ClientConn{}
+)
+
 func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc chan error) {
+	var conn *grpc.ClientConn
+	mu.Lock()
+	if v, ok := cachedConn[grpcEndpoint]; ok {
+		if conn != nil {
+			sn, _ := conn.State()
+			if sn == grpc.TransientFailure || sn == grpc.Shutdown {
+				if conn != nil {
+					conn.Close()
+				}
+				con, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
+				if err != nil {
+					errc <- err
+					return
+				}
+				conn = con
+				cachedConn[grpcEndpoint] = conn
+			} else {
+				conn = v
+			}
+		} else {
+			con, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
+			if err != nil {
+				errc <- err
+				return
+			}
+			conn = con
+			cachedConn[grpcEndpoint] = conn
+		}
+	} else {
+		con, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
+		if err != nil {
+			errc <- err
+			return
+		}
+		conn = con
+		cachedConn[grpcEndpoint] = conn
+	}
+	mu.Unlock()
+
 	stat := emptyStat
 	stat.Name = name
 	stat.Endpoint = grpcEndpoint
 
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{grpcEndpoint},
-		DialTimeout: 5 * time.Second,
-	})
-	if err != nil {
-		errc <- err
-		return
-	}
-	defer cli.Close()
+	done, errChan := make(chan struct{}), make(chan error)
 
 	// ID, State
-	done, errChan := make(chan struct{}), make(chan error)
-	clus := clientv3.NewCluster(cli)
 	go func() {
-		mbs, err := clus.MemberList(context.Background())
+		clus := pb.NewClusterClient(conn)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		mbs, err := clus.MemberList(ctx, &pb.MemberListRequest{})
+		cancel()
 		if err != nil {
 			errChan <- err
 			return
@@ -559,16 +596,10 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 
 	// Hash
 	go func() {
-		conn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
-		if err != nil {
-			errChan <- err
-			return
-		}
 		kvc := pb.NewKVClient(conn)
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		resp, err := kvc.Hash(ctx, &pb.HashRequest{})
 		cancel()
-		conn.Close()
 		if err != nil {
 			errChan <- err
 			return
