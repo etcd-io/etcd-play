@@ -23,6 +23,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/coreos/etcd-play/proc"
@@ -719,11 +720,11 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 		}
 		key := ""
 		if len(req.Form["key_input"]) != 0 {
-			key = req.Form["key_input"][0]
+			key = template.HTMLEscapeString(req.Form["key_input"][0])
 		}
 		value := ""
 		if len(req.Form["value_input"]) != 0 {
-			value = req.Form["value_input"][0]
+			value = template.HTMLEscapeString(req.Form["value_input"][0])
 		}
 
 		globalCache.mu.Lock()
