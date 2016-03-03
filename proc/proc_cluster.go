@@ -510,50 +510,13 @@ var emptyStat = ServerStatus{
 	Hash:         0,
 }
 
-var (
-	mu         sync.Mutex
-	cachedConn = map[string]*grpc.ClientConn{}
-)
-
 func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc chan error) {
-	var conn *grpc.ClientConn
-	mu.Lock()
-	if v, ok := cachedConn[grpcEndpoint]; ok {
-		if conn != nil {
-			sn, _ := conn.State()
-			if sn == grpc.TransientFailure || sn == grpc.Shutdown {
-				if conn != nil {
-					conn.Close()
-				}
-				con, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
-				if err != nil {
-					errc <- err
-					return
-				}
-				conn = con
-				cachedConn[grpcEndpoint] = conn
-			} else {
-				conn = v
-			}
-		} else {
-			con, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
-			if err != nil {
-				errc <- err
-				return
-			}
-			conn = con
-			cachedConn[grpcEndpoint] = conn
-		}
-	} else {
-		con, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
-		if err != nil {
-			errc <- err
-			return
-		}
-		conn = con
-		cachedConn[grpcEndpoint] = conn
+	conn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
+	if err != nil {
+		errc <- err
+		return
 	}
-	mu.Unlock()
+	defer conn.Close()
 
 	stat := emptyStat
 	stat.Name = name
