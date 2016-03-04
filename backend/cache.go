@@ -54,7 +54,7 @@ type (
 	}
 
 	status struct {
-		mu             sync.Mutex
+		mu             sync.RWMutex
 		activeUserList string
 		nameToStatus   map[string]proc.ServerStatus
 	}
