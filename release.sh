@@ -22,8 +22,7 @@ fi
 
 ###################################
 RELEASE_DIR=$GOPATH/src/github.com/coreos/etcd-play/release
-DOCKER_DIR=$GOPATH/src/github.com/coreos/etcd-play/release/image-docker
-mkdir -p $DOCKER_DIR
+mkdir -p $RELEASE_DIR
 
 ###################################
 echo Building etcd binary...
@@ -57,13 +56,4 @@ acbuild --debug write --overwrite $RELEASE_DIR/etcd-play-${VERSION}-linux-amd64.
 
 ###################################
 echo Building docker image...
-cp $RELEASE_DIR/etcd-play $DOCKER_DIR/etcd-play
-
-cat <<DF > ${DOCKER_DIR}/Dockerfile
-FROM scratch
-ADD etcd-play /
-EXPOSE 8000
-ENTRYPOINT ["/etcd-play"]
-DF
-
-docker build -t quay.io/coreos/etcd-play:${VERSION} ${DOCKER_DIR}
+docker build -t quay.io/coreos/etcd-play:${VERSION} $GOPATH/src/github.com/coreos/etcd-play
