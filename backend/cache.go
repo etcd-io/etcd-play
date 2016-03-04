@@ -241,7 +241,7 @@ func (s *cache) okToRequest(userID string) bool {
 func getWelcomeMsg() string {
 	return boldHTMLMsg("Hello World! Welcome to etcd!") + fmt.Sprintf(`<br>
 - You've joined an <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> cluster <i>with %d other user(s) now</i>.<br>
-- This is a <b>real</b> <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> cluster of 5 nodes, deployed in cloud environment <font color="blue"><i>(not a fake or simulator!)</i></font>.<br>
+- This is a <b>real</b> <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> cluster of 5 nodes, deployed in cloud environment <font color="red"><i>(neither fake nor simulation!)</i></font>.<br>
 - <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> is distributed reliable key-value store for the most critical data of a distributed system.<br>
 - Using <a href="https://raft.github.io" target="_blank">Raft</a>, <a href="https://github.com/coreos/etcd" target="_blank"><b>etcd</b></a> gracefully handles network partitions and machine failures, even <font color='red'>leader failures</font>.<br>
 - Tutorials and source code can be found at <a href="https://github.com/coreos/etcd-play" target="_blank"><b>coreos/etcd-play</b></a>.<br>
