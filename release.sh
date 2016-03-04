@@ -1,14 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-<<COMMENT
-export VERSION=v0.1.0
-git tag -s ${VERSION}
-git show tags/$VERSION;
-git remote -v
-git push origin tags/$VERSION
-COMMENT
-
 VERSION=$1
 if [ -z "${VERSION}" ]; then
 	echo "Usage: ${0} VERSION" >> /dev/stderr
@@ -29,18 +21,14 @@ if ! command -v docker >/dev/null; then
 fi
 
 ###################################
-
-BINARY_DIR=$GOPATH/src/github.com/coreos/etcd-play/bin
 RELEASE_DIR=$GOPATH/src/github.com/coreos/etcd-play/release
 DOCKER_DIR=$GOPATH/src/github.com/coreos/etcd-play/release/image-docker
-mkdir -p $BINARY_DIR
-mkdir -p $RELEASE_DIR
 mkdir -p $DOCKER_DIR
 
 ###################################
 echo Building etcd binary...
 go build github.com/coreos/etcd-play
-mv etcd-play $GOPATH/src/github.com/coreos/etcd-play/bin/etcd-play
+mv etcd-play $RELEASE_DIR/etcd-play
 
 ###################################
 echo Building aci image...
@@ -60,7 +48,7 @@ cat <<DF > $TMPHOSTS
 DF
 
 acbuild --debug set-name coreos.com/etcd-play
-acbuild --debug copy --to-dir $BINARY_DIR/etcd-play /
+acbuild --debug copy --to-dir $RELEASE_DIR/etcd-play /
 acbuild --debug label add version "$VERSION"
 acbuild --debug set-exec -- /etcd-play
 acbuild --debug port add web tcp 8000
@@ -69,7 +57,7 @@ acbuild --debug write --overwrite $RELEASE_DIR/etcd-play-${VERSION}-linux-amd64.
 
 ###################################
 echo Building docker image...
-cp $BINARY_DIR/etcd-play $DOCKER_DIR/etcd-play
+cp $RELEASE_DIR/etcd-play $DOCKER_DIR/etcd-play
 
 cat <<DF > ${DOCKER_DIR}/Dockerfile
 FROM scratch
