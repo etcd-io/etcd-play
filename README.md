@@ -33,7 +33,7 @@ etcd-play web --keep-alive --linux-auto-port=false --production --remote \
 
 ## Play with `etcd` in a web browser
 
-<img src="https://storage.googleapis.com/play-etcd/web_20160227201500.gif" alt="web"/>
+<img src="https://storage.googleapis.com/play-etcd/web_20160303.gif" alt="web"/>
 
 ## Explore *Raft* with etcd
 
@@ -47,7 +47,7 @@ What if followers fail?
 
 The leader retries RPCs until they succeed. As soon as a follower recovers, it will catch up with the leader.
 
-<img src="https://storage.googleapis.com/play-etcd/follower_failures_20160225133000.gif" alt="follower_failures"/>
+<img src="https://storage.googleapis.com/play-etcd/follower_failures_20160303.gif" alt="follower_failures"/>
 
 In the animation above, notice the stress on the remaining follower node (*etcd3*) while two other followers (*etcd1* and *etcd2*) are down. Nevertheless, notice that all data is replicated across the cluster, except those two failed ones. Immediately after the nodes recover, the followers sync their data from the leader, looping on this process until all hashes match.
 
@@ -57,7 +57,7 @@ What if a leader fails?
 
 A leader sends periodic heartbeat messages to its followers to maintain its authority. If a follower has not received heartbeats from a valid leader within the election timeout, it assumes that there is no current leader in the cluster, and becomes a candidate to start a new election. Each node includes its last term and last log index in its `RequestVote` RPC, so that Raft can choose the candidate that is most likely to contain all committed entries. When the old leader recovers, it will retry to commit log entries of its own. The Raft *term* is used to detect these stale leaders: Followers deny RPCs if the sender's term is older, and then the sender (often the old leader) reverts back to follower state and updates its term to the latest cluster term.
 
-<img src="https://storage.googleapis.com/play-etcd/leader_failure_20160225133000.gif" alt="leader_failure"/>
+<img src="https://storage.googleapis.com/play-etcd/leader_failure_20160303.gif" alt="leader_failure"/>
 
 The animation above shows the Leader going down, and shortly a new leader is elected.
 
@@ -65,7 +65,7 @@ The animation above shows the Leader going down, and shortly a new leader is ele
 
 `etcd` is highly available as long as a quorum of cluster members are operational and can communicate with each other and with clients. 5-node clusters can tolerate failures of any two members. Data loss is still possible in catastrophic events, like all nodes failing. `etcd` persists enough information on stable storage so that members can recover safely from the disk and rejoin the cluster. In particular, `etcd` stores new log entries onto disk before committing them to the log to prevent committed entries from being lost on an unexpected restart.
 
-<img src="https://storage.googleapis.com/play-etcd/all_node_failures_20160225133000.gif" alt="all_node_failures"/>
+<img src="https://storage.googleapis.com/play-etcd/all_nodes_failures_20160303.gif" alt="all_node_failures"/>
 
 The animation above shows all nodes being terminated with the `Kill` button. `etcd` recovers the data from stable storage. You can see the number of keys and hash values match, before and after. The cluster can handle client requests immediately after recovery with a new leader.
 
