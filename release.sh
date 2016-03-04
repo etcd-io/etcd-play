@@ -61,9 +61,10 @@ cat <<DF > $TMPHOSTS
 DF
 
 acbuild --debug set-name coreos.com/etcd-play
-acbuild --debug copy --to-dir $BINARY_DIR/etcd-play
+acbuild --debug copy --to-dir $BINARY_DIR/etcd-play /
 acbuild --debug label add version "$VERSION"
 acbuild --debug set-exec -- /etcd-play
+acbuild --debug port add web tcp 8000
 acbuild --debug copy "$TMPHOSTS" /etc/hosts
 
 acbuild --debug write --overwrite $RELEASE_DIR/etcd-play-${1}-linux-amd64.aci
