@@ -482,10 +482,17 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 			return nil
 		}
 
-		globalStatus.mu.Lock()
+		globalStatus.mu.RLock()
+		activeUserList := globalStatus.activeUserList
+		copiedNameToStatus := make(map[string]proc.ServerStatus)
+		for k, v := range globalStatus.nameToStatus {
+			copiedNameToStatus[k] = v
+		}
+		globalStatus.mu.RUnlock()
+
 		etcd1_ID, etcd1_Endpoint, etcd1_State := "unknown", "unknown", ""
 		etcd1_NumberOfKeys, etcd1_Hash := 0, 0
-		if v, ok := globalStatus.nameToStatus["etcd1"]; ok {
+		if v, ok := copiedNameToStatus["etcd1"]; ok {
 			etcd1_ID = v.ID
 			etcd1_Endpoint = v.Endpoint
 			etcd1_State = v.State
@@ -494,7 +501,7 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		}
 		etcd2_ID, etcd2_Endpoint, etcd2_State := "unknown", "unknown", ""
 		etcd2_NumberOfKeys, etcd2_Hash := 0, 0
-		if v, ok := globalStatus.nameToStatus["etcd2"]; ok {
+		if v, ok := copiedNameToStatus["etcd2"]; ok {
 			etcd2_ID = v.ID
 			etcd2_Endpoint = v.Endpoint
 			etcd2_State = v.State
@@ -503,7 +510,7 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		}
 		etcd3_ID, etcd3_Endpoint, etcd3_State := "unknown", "unknown", ""
 		etcd3_NumberOfKeys, etcd3_Hash := 0, 0
-		if v, ok := globalStatus.nameToStatus["etcd3"]; ok {
+		if v, ok := copiedNameToStatus["etcd3"]; ok {
 			etcd3_ID = v.ID
 			etcd3_Endpoint = v.Endpoint
 			etcd3_State = v.State
@@ -512,7 +519,7 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		}
 		etcd4_ID, etcd4_Endpoint, etcd4_State := "unknown", "unknown", ""
 		etcd4_NumberOfKeys, etcd4_Hash := 0, 0
-		if v, ok := globalStatus.nameToStatus["etcd4"]; ok {
+		if v, ok := copiedNameToStatus["etcd4"]; ok {
 			etcd4_ID = v.ID
 			etcd4_Endpoint = v.Endpoint
 			etcd4_State = v.State
@@ -521,14 +528,13 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		}
 		etcd5_ID, etcd5_Endpoint, etcd5_State := "unknown", "unknown", ""
 		etcd5_NumberOfKeys, etcd5_Hash := 0, 0
-		if v, ok := globalStatus.nameToStatus["etcd5"]; ok {
+		if v, ok := copiedNameToStatus["etcd5"]; ok {
 			etcd5_ID = v.ID
 			etcd5_Endpoint = v.Endpoint
 			etcd5_State = v.State
 			etcd5_NumberOfKeys = v.NumberOfKeys
 			etcd5_Hash = v.Hash
 		}
-		globalStatus.mu.Unlock()
 
 		resp := struct {
 			ServerUptime     string
@@ -572,7 +578,7 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		}{
 			fmt.Sprintf("%v", time.Now().Round(uptimeScale).Sub(startTime)),
 			len(globalCache.users),
-			globalStatus.activeUserList,
+			activeUserList,
 
 			"etcd1",
 			etcd1_ID,
