@@ -28,20 +28,19 @@ if ! command -v docker >/dev/null; then
     exit 1
 fi
 
+###################################
 
 BINARY_DIR=$GOPATH/src/github.com/coreos/etcd-play/bin
-RELEASE_DIR=$GOPATH/src/github.com/coreos/etcd-play/bin
+RELEASE_DIR=$GOPATH/src/github.com/coreos/etcd-play/release
 DOCKER_DIR=$GOPATH/src/github.com/coreos/etcd-play/release/image-docker
 mkdir -p $BINARY_DIR
 mkdir -p $RELEASE_DIR
 mkdir -p $DOCKER_DIR
 
-
 ###################################
 echo Building etcd binary...
 go build github.com/coreos/etcd-play
 mv etcd-play $GOPATH/src/github.com/coreos/etcd-play/bin/etcd-play
-
 
 ###################################
 echo Building aci image...
@@ -66,9 +65,7 @@ acbuild --debug label add version "$VERSION"
 acbuild --debug set-exec -- /etcd-play
 acbuild --debug port add web tcp 8000
 acbuild --debug copy "$TMPHOSTS" /etc/hosts
-
-acbuild --debug write --overwrite $RELEASE_DIR/etcd-play-${1}-linux-amd64.aci
-
+acbuild --debug write --overwrite $RELEASE_DIR/etcd-play-${VERSION}-linux-amd64.aci
 
 ###################################
 echo Building docker image...
@@ -81,4 +78,4 @@ EXPOSE 8000
 ENTRYPOINT ["/etcd-play"]
 DF
 
-docker build -t quay.io/coreos/etcd-play:${1} ${DOCKER_DIR}
+docker build -t quay.io/coreos/etcd-play:${VERSION} ${DOCKER_DIR}
