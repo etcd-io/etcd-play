@@ -14,7 +14,7 @@
 
 package backend
 
-// updated at 2016-02-29 14:42:50.614804124 -0800 PST
+// updated at 2016-03-03 22:20:24.500023444 -0800 PST
 
 import (
 	"fmt"
@@ -829,6 +829,9 @@ var htmlSourceFileLocal = `<html lang="en">
                 <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="https://github.com/coreos/etcd-play" target="_blank">Code</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new" target="_blank">Report bug</a>
             </li>
             <li class="nav-item pull-xs-right">
@@ -1638,6 +1641,9 @@ var htmlSourceFileRemote = `<html lang="en">
         <ul class="nav navbar-nav">
             <li class="nav-item active">
                 <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="https://github.com/coreos/etcd-play" target="_blank">Code</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="https://github.com/coreos/etcd-play/issues/new" target="_blank">Report bug</a>
