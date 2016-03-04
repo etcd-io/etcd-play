@@ -209,9 +209,8 @@ func withCache(h ContextHandler) ContextHandler {
 // checkCluster returns the cluster if the cluster is active.
 func (s *cache) clusterActive() bool {
 	s.mu.Lock()
-	clu := s.cluster
-	s.mu.Unlock()
-	return clu != nil
+	defer s.mu.Unlock()
+	return s.cluster != nil
 }
 
 func (s *cache) okToRequest(userID string) bool {
