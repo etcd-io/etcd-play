@@ -29,8 +29,6 @@ etcd-play web --keep-alive --linux-auto-port=false --production --remote \
 
 ## Play with `etcd` in a web browser
 
-<img src="https://storage.googleapis.com/play-etcd/web_20160303.gif" alt="web"/>
-
 `etcd` uses the [Raft consensus algorithm][raft-home] to replicate data on distributed machines in order to gracefully handle network partitions, node failures, and even leader failures. The etcd team extensively tests failure scenarios in the [etcd functional test suite][etcd-functests]. Real-time results from this testing are available at the [etcd test dashboard][etcd-dash].
 
 In Raft, followers are passive, only responding to incoming RPCs. Clients can make requests to any node, follower or leader. Followers, in turn, forward requests to their leader. Last, the leader appends those requests (commands) to its log and sends `AppendEntries` RPCs to all of its followers.
