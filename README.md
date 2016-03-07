@@ -41,7 +41,7 @@ The leader retries RPCs until they succeed. As soon as a follower recovers, it w
 
 <img src="https://storage.googleapis.com/play-etcd/follower_failures_20160307.gif" alt="follower_failures"/>
 
-In the animation above, notice the stress on the remaining follower node (*etcd3*) while two other followers (*etcd1* and *etcd2*) are down. Nevertheless, notice that all data is replicated across the cluster, except those two failed ones. Immediately after the nodes recover, the followers sync their data from the leader, looping on this process until all hashes match.
+In the animation above, notice the stress on the remaining nodes while two of followers (*etcd1* and *etcd2*) are down. Nevertheless, notice that all data is replicated across the cluster, except those two failed ones. Immediately after the nodes recover, the followers sync their data from the leader, looping on this process until all hashes match.
 
 ### Leader failure
 
