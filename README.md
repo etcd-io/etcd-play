@@ -12,8 +12,8 @@ go get -v -u github.com/coreos/etcd
 go get -v -u github.com/coreos/etcd/tools/functional-tester/etcd-agent
 go get -v -u github.com/coreos/etcd-play
 
-etcd-play terminal    # run in terminal
-etcd-play web         # run in your web browser (localhost)
+etcd-play web        # run in your web browser (localhost)
+etcd-play terminal   # run in terminal
 
 # Run with remote machines
 etcd-agent  # deploy in machine1
@@ -22,20 +22,14 @@ etcd-agent  # deploy in machine3
 etcd-agent  # deploy in machine4
 etcd-agent  # deploy in machine5
 
-AGENT_RPC_ENDPOINTS='10.0.0.1:9027,10.0.0.2:9027,10.0.0.3:9027,10.0.0.4:9027,10.0.0.5:9027' \
+AGENT_RPC_ENDPOINTS='10.0.0.1:9027,10.0.0.2:9027,10.0.0.3:9027,10.0.0.4:9027,10.0.0.5:9027'
 etcd-play web --keep-alive --linux-auto-port=false --production --remote \
---agent-endpoints="$(echo $AGENT_RPC_ENDPOINTS)"
+	--agent-endpoints="$(echo $AGENT_RPC_ENDPOINTS)"
 ```
-
-## Play with `etcd` in a terminal
-
-<img src="https://storage.googleapis.com/play-etcd/terminal.png" alt="terminal" width="570"/>
 
 ## Play with `etcd` in a web browser
 
 <img src="https://storage.googleapis.com/play-etcd/web_20160303.gif" alt="web"/>
-
-## Explore *Raft* with etcd
 
 `etcd` uses the [Raft consensus algorithm][raft-home] to replicate data on distributed machines in order to gracefully handle network partitions, node failures, and even leader failures. The etcd team extensively tests failure scenarios in the [etcd functional test suite][etcd-functests]. Real-time results from this testing are available at the [etcd test dashboard][etcd-dash].
 
@@ -47,7 +41,7 @@ What if followers fail?
 
 The leader retries RPCs until they succeed. As soon as a follower recovers, it will catch up with the leader.
 
-<img src="https://storage.googleapis.com/play-etcd/follower_failures_20160303.gif" alt="follower_failures"/>
+<img src="https://storage.googleapis.com/play-etcd/follower_failures_20160307.gif" alt="follower_failures"/>
 
 In the animation above, notice the stress on the remaining follower node (*etcd3*) while two other followers (*etcd1* and *etcd2*) are down. Nevertheless, notice that all data is replicated across the cluster, except those two failed ones. Immediately after the nodes recover, the followers sync their data from the leader, looping on this process until all hashes match.
 
@@ -65,10 +59,13 @@ The animation above shows the Leader going down, and shortly a new leader is ele
 
 `etcd` is highly available as long as a quorum of cluster members are operational and can communicate with each other and with clients. 5-node clusters can tolerate failures of any two members. Data loss is still possible in catastrophic events, like all nodes failing. `etcd` persists enough information on stable storage so that members can recover safely from the disk and rejoin the cluster. In particular, `etcd` stores new log entries onto disk before committing them to the log to prevent committed entries from being lost on an unexpected restart.
 
-<img src="https://storage.googleapis.com/play-etcd/all_nodes_failures_20160303.gif" alt="all_node_failures"/>
+<img src="https://storage.googleapis.com/play-etcd/all_nodes_failures_20160307.gif" alt="all_node_failures"/>
 
 The animation above shows all nodes being terminated with the `Kill` button. `etcd` recovers the data from stable storage. You can see the number of keys and hash values match, before and after. The cluster can handle client requests immediately after recovery with a new leader.
 
+## Play with `etcd` in a terminal
+
+<img src="https://storage.googleapis.com/play-etcd/terminal.png" alt="terminal" width="570"/>
 
 [cistat]: https://travis-ci.org/coreos/etcd-play
 [etcd-dash]: http://dash.etcd.io
