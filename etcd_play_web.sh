@@ -36,4 +36,4 @@ sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-po
 mkdir -p $HOME/logs
 sudo docker pull quay.io/coreos/etcd-play:latest
 AGENT_RPC_ENDPOINTS='10.128.0.2:9027,10.128.0.3:9027,10.128.0.4:9027,10.128.0.5:9027,10.128.0.6:9027'
-nohup sudo docker run -p 8000:8000 --net=host quay.io/coreos/etcd-play:latest /go/bin/etcd-play web --port :8000 --keep-alive --linux-auto-port=false --production --remote --agent-endpoints="$(echo $AGENT_RPC_ENDPOINTS)" > $HOME/logs/play.log 2>&1 &
+nohup sudo docker run --net=host -p 8000:8000 quay.io/coreos/etcd-play:latest /go/bin/etcd-play web --port :8000 --keep-alive --linux-auto-port=false --production --remote --agent-endpoints="$(echo $AGENT_RPC_ENDPOINTS)" > $HOME/logs/play.log 2>&1 &
