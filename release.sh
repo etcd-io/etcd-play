@@ -57,7 +57,7 @@ acbuild --debug write --overwrite $RELEASE_DIR/etcd-play-${VERSION}-linux-amd64.
 ###################################
 echo Building docker image...
 <<COMMENT
-export VERSION=v0.0.1
+export VERSION=v0.0.2
 COMMENT
 docker build -t quay.io/coreos/etcd-play:${VERSION} -f $GOPATH/src/github.com/coreos/etcd-play/Dockerfile .
 <<COMMENT
