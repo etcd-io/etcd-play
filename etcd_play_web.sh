@@ -2,8 +2,8 @@
 set -e
 
 <<COMMENT
-curl https://storage.googleapis.com/dister-scripts/dister_stop_all_containers.sh | sh
-curl https://storage.googleapis.com/play-etcd/etcd_play_web_201603100.sh | sh
+curl https://storage.googleapis.com/dister-scripts/stop_all_containers.sh | sh
+curl https://storage.googleapis.com/play-etcd/etcd_play_web_20160311a.sh | sh
 COMMENT
 
 echo "Cleaning page cache..."
@@ -11,18 +11,26 @@ echo "echo 1 > /proc/sys/vm/drop_caches" | sudo sh
 
 sudo docker ps
 
-psRes=$(sudo docker ps -q)
-if [ -n "${psRes}" ]; then
+res=$(sudo docker ps -q)
+if [ -n "${res}" ]; then
 	echo stopping docker containers...
-	sudo docker stop $psRes
+	sudo docker stop $res
 else
 	echo no docker containers to stop...
 fi
 
-psARes=$(sudo docker ps -a -q)
-if [ -n "${psARes}" ]; then
+res=$(sudo docker ps -q)
+if [ -n "${res}" ]; then
+	echo killing docker containers...
+	sudo docker kill $res
+else
+	echo no docker containers to kill...
+fi
+
+res=$(sudo docker ps -a -q)
+if [ -n "${res}" ]; then
 	echo removing docker containers...
-	sudo docker rm --force $psARes
+	sudo docker rm --force $res
 else
 	echo no docker containers to remove...
 fi
