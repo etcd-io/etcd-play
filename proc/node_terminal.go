@@ -23,6 +23,7 @@ import (
 	"os/exec"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -229,6 +230,7 @@ func (nd *NodeTerminal) Terminate() error {
 	if err := syscall.Kill(nd.PID, syscall.SIGTERM); err != nil {
 		return err
 	}
+	time.Sleep(time.Second)
 	if err := syscall.Kill(nd.PID, syscall.SIGKILL); err != nil {
 		return err
 	}

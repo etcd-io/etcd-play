@@ -243,6 +243,7 @@ func (nd *NodeWebLocal) Terminate() error {
 	if err := syscall.Kill(nd.PID, syscall.SIGTERM); err != nil {
 		return err
 	}
+	time.Sleep(time.Second)
 	if err := syscall.Kill(nd.PID, syscall.SIGKILL); err != nil {
 		return err
 	}
