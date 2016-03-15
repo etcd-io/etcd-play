@@ -728,9 +728,15 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 		if len(req.Form["key_input"]) != 0 {
 			key = template.HTMLEscapeString(req.Form["key_input"][0])
 		}
+		if len(key) > 100 { // truncate user-input
+			key = key[:100]
+		}
 		value := ""
 		if len(req.Form["value_input"]) != 0 {
 			value = template.HTMLEscapeString(req.Form["value_input"][0])
+		}
+		if len(value) > 200 { // truncate user-input
+			value = value[:200]
 		}
 
 		globalCache.mu.Lock()
