@@ -128,6 +128,9 @@ func GenerateFlags(name, host string, remote bool, usedPorts *ss.Ports) (*Flags,
 	if !remote {
 		atomic.AddUint32(&globalPortPrefix, 1)
 	}
+	if remote {
+		portPrefix = 23
+	}
 
 	gRPCPort := fmt.Sprintf(":%d78", portPrefix)
 	clientURLPort := fmt.Sprintf(":%d79", portPrefix)
