@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -71,7 +72,18 @@ func (nd *NodeWebLocal) Write(p []byte) (int, error) {
 }
 
 func (nd *NodeWebLocal) Endpoint() string {
-	return nd.Flags.ExperimentalgRPCAddr
+	es := ""
+	for k := range nd.Flags.ListenClientURLs {
+		es = k
+		break
+	}
+	if strings.HasPrefix(es, "http://") {
+		es = strings.Replace(es, "http://", "", -1)
+	}
+	if strings.HasPrefix(es, "https://") {
+		es = strings.Replace(es, "https://", "", -1)
+	}
+	return es
 }
 
 func (nd *NodeWebLocal) StatusEndpoint() string {
@@ -80,7 +92,7 @@ func (nd *NodeWebLocal) StatusEndpoint() string {
 		es = k
 		break
 	}
-	return es // TODO: deprecate this v2 endpoint
+	return es
 }
 
 func (nd *NodeWebLocal) IsActive() bool {

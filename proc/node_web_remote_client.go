@@ -16,6 +16,7 @@ package proc
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -35,7 +36,18 @@ type NodeWebRemoteClient struct {
 }
 
 func (nd *NodeWebRemoteClient) Endpoint() string {
-	return nd.Flags.ExperimentalgRPCAddr
+	es := ""
+	for k := range nd.Flags.ListenClientURLs {
+		es = k
+		break
+	}
+	if strings.HasPrefix(es, "http://") {
+		es = strings.Replace(es, "http://", "", -1)
+	}
+	if strings.HasPrefix(es, "https://") {
+		es = strings.Replace(es, "https://", "", -1)
+	}
+	return es
 }
 
 func (nd *NodeWebRemoteClient) StatusEndpoint() string {
@@ -44,7 +56,7 @@ func (nd *NodeWebRemoteClient) StatusEndpoint() string {
 		es = k
 		break
 	}
-	return es // TODO: deprecate this v2 endpoint
+	return es
 }
 
 func (nd *NodeWebRemoteClient) IsActive() bool {

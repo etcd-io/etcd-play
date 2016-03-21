@@ -35,11 +35,6 @@ type Flags struct {
 	// ExperimentalV3Demo is either 'true' or 'false'.
 	ExperimentalV3Demo bool `flag:"experimental-v3demo"`
 
-	// ExperimentalgRPCAddr is used as an endpoint for gRPC.
-	// It is usually composed of host, and port '*78'.
-	// Default values are '127.0.0.1:2378'.
-	ExperimentalgRPCAddr string `flag:"experimental-gRPC-addr"`
-
 	// ListenClientURLs is a list of URLs to listen for clients.
 	// It is usually composed of scheme, host, and port '*79'.
 	// Default values are
@@ -104,7 +99,6 @@ type Flags struct {
 func defaultFlags() *Flags {
 	fs := &Flags{}
 	fs.ExperimentalV3Demo = true
-	fs.ExperimentalgRPCAddr = "localhost:2378"
 	fs.ListenClientURLs = map[string]struct{}{"http://localhost:2379": struct{}{}}
 	fs.AdvertiseClientURLs = map[string]struct{}{"http://localhost:2379": struct{}{}}
 	fs.ListenPeerURLs = map[string]struct{}{"http://localhost:2380": struct{}{}}
@@ -132,22 +126,18 @@ func GenerateFlags(name, host string, remote bool, usedPorts *ss.Ports) (*Flags,
 		portPrefix = 23
 	}
 
-	gRPCPort := fmt.Sprintf(":%d78", portPrefix)
 	clientURLPort := fmt.Sprintf(":%d79", portPrefix)
 	peerURLPort := fmt.Sprintf(":%d80", portPrefix)
 	if !remote && usedPorts != nil {
-		pts, err := ss.GetFreePorts(3, ss.TCP, ss.TCP6)
+		pts, err := ss.GetFreePorts(2, ss.TCP, ss.TCP6)
 		if err != nil {
 			return nil, err
 		}
-		if usedPorts.Exist(gRPCPort) {
-			gRPCPort = pts[0]
-		}
 		if usedPorts.Exist(clientURLPort) {
-			clientURLPort = pts[1]
+			clientURLPort = pts[0]
 		}
 		if usedPorts.Exist(peerURLPort) {
-			peerURLPort = pts[2]
+			peerURLPort = pts[1]
 		}
 	}
 
@@ -155,7 +145,6 @@ func GenerateFlags(name, host string, remote bool, usedPorts *ss.Ports) (*Flags,
 	if host != "" {
 		hs = host
 	}
-	gRPCAddr := hs + gRPCPort
 	clientURL := "http://" + hs + clientURLPort
 	peerURL := "http://" + hs + peerURLPort
 
@@ -170,7 +159,6 @@ func GenerateFlags(name, host string, remote bool, usedPorts *ss.Ports) (*Flags,
 
 	fs := defaultFlags()
 	fs.Name = name
-	fs.ExperimentalgRPCAddr = gRPCAddr
 
 	fs.ListenClientURLs = map[string]struct{}{clientURL: struct{}{}}
 	fs.AdvertiseClientURLs = map[string]struct{}{clientURL: struct{}{}}
@@ -236,12 +224,6 @@ func (f *Flags) Pairs() ([][]string, error) {
 	if f.ExperimentalV3Demo {
 		pairs = append(pairs, []string{experimentV3DemoTag, "true"})
 	}
-
-	experimentalgRPCAddrTag, err := f.getTag("ExperimentalgRPCAddr")
-	if err != nil {
-		return nil, err
-	}
-	pairs = append(pairs, []string{experimentalgRPCAddrTag, strings.TrimSpace(f.ExperimentalgRPCAddr)})
 
 	listenClientURLsTag, err := f.getTag("ListenClientURLs")
 	if err != nil {
@@ -397,10 +379,6 @@ func (f *Flags) String() (string, error) {
 
 func (f *Flags) getAllPorts() []string {
 	tm := make(map[string]struct{})
-	if f.ExperimentalgRPCAddr != "" {
-		ss := strings.Split(f.ExperimentalgRPCAddr, ":")
-		tm[strings.TrimSpace(ss[len(ss)-1])] = struct{}{}
-	}
 	for k := range f.ListenClientURLs {
 		ss := strings.Split(k, ":")
 		tm[strings.TrimSpace(ss[len(ss)-1])] = struct{}{}
