@@ -488,7 +488,6 @@ func (c *defaultCluster) Leader() (string, error) {
 		return "", err
 	}
 	defer cli.Close()
-	fmt.Println("Leader API with", endpoints)
 	clus := clientv3.NewCluster(cli)
 	mb, err := clus.MemberLeader(context.Background())
 	if err != nil {
