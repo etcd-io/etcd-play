@@ -24,7 +24,6 @@ import (
 	"strings"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/fatih/color"
 )
@@ -238,14 +237,13 @@ func (nd *NodeTerminal) Terminate() error {
 		return fmt.Errorf("%s is already terminated", nd.Flags.Name)
 	}
 
-	fmt.Fprintf(nd, "Terminate %s\n", nd.Flags.Name)
+	fmt.Fprintf(nd, "Terminate %s [PID: %d]\n", nd.Flags.Name, nd.PID)
 	if err := syscall.Kill(nd.PID, syscall.SIGTERM); err != nil {
 		return err
 	}
-	time.Sleep(time.Second)
-	if err := syscall.Kill(nd.PID, syscall.SIGKILL); err != nil {
-		return err
-	}
+	// if err := syscall.Kill(nd.PID, syscall.SIGKILL); err != nil {
+	// 	return err
+	// }
 
 	nd.pmu.Lock()
 	nd.active = false

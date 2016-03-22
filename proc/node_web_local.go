@@ -251,14 +251,13 @@ func (nd *NodeWebLocal) Terminate() error {
 		return fmt.Errorf("Somebody restarted the node (only %v ago)! Retry in %v!", subt, nd.limitInterval)
 	}
 
-	nd.sharedStream <- fmt.Sprintf("Terminate %s\n", nd.Flags.Name)
+	nd.sharedStream <- fmt.Sprintf("Terminate %s [PID: %d]\n", nd.Flags.Name, nd.PID)
 	if err := syscall.Kill(nd.PID, syscall.SIGTERM); err != nil {
 		return err
 	}
-	time.Sleep(time.Second)
-	if err := syscall.Kill(nd.PID, syscall.SIGKILL); err != nil {
-		return err
-	}
+	// if err := syscall.Kill(nd.PID, syscall.SIGKILL); err != nil {
+	// 	return err
+	// }
 
 	nd.pmu.Lock()
 	nd.lastTerminated = time.Now()
