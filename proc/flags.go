@@ -32,9 +32,6 @@ type Flags struct {
 	// Name is a name for an etcd node.
 	Name string `flag:"name"`
 
-	// ExperimentalV3Demo is either 'true' or 'false'.
-	ExperimentalV3Demo bool `flag:"experimental-v3demo"`
-
 	// ListenClientURLs is a list of URLs to listen for clients.
 	// It is usually composed of scheme, host, and port '*79'.
 	// Default values are
@@ -98,7 +95,6 @@ type Flags struct {
 
 func defaultFlags() *Flags {
 	fs := &Flags{}
-	fs.ExperimentalV3Demo = true
 	fs.ListenClientURLs = map[string]struct{}{"http://localhost:2379": struct{}{}}
 	fs.AdvertiseClientURLs = map[string]struct{}{"http://localhost:2379": struct{}{}}
 	fs.ListenPeerURLs = map[string]struct{}{"http://localhost:2380": struct{}{}}
@@ -216,14 +212,6 @@ func (f *Flags) Pairs() ([][]string, error) {
 		return nil, err
 	}
 	pairs = append(pairs, []string{nameTag, strings.TrimSpace(f.Name)})
-
-	experimentV3DemoTag, err := f.getTag("ExperimentalV3Demo")
-	if err != nil {
-		return nil, err
-	}
-	if f.ExperimentalV3Demo {
-		pairs = append(pairs, []string{experimentV3DemoTag, "true"})
-	}
 
 	listenClientURLsTag, err := f.getTag("ListenClientURLs")
 	if err != nil {

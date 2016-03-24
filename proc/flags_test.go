@@ -41,23 +41,8 @@ func TestGenerateFlags(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.HasPrefix(sf, `--name='etcd1' --experimental-v3demo='true' --experimental-gRPC-addr='localhost:`) {
+	if !strings.HasPrefix(sf, `--name='etcd1'`) {
 		t.Errorf("wrong FlagString from %s", sf)
-	}
-}
-
-func TestGetPairValueByName(t *testing.T) {
-	df, err := GenerateFlags("etcd1", "", false, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	sf, err := df.String()
-	if err != nil {
-		t.Fatal(err)
-	}
-	rs := getPairValueByName("ExperimentalgRPCAddr", sf)
-	if !strings.HasPrefix(rs, "localhost:") {
-		t.Errorf("expected 'localhost:*' but got %s", rs)
 	}
 }
 
