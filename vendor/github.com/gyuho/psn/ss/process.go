@@ -15,7 +15,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gyuho/psn/table"
+	"github.com/gyuho/dataframe"
 	"github.com/olekukonko/tablewriter"
 )
 
@@ -357,13 +357,13 @@ func WriteToTable(w io.Writer, top int, ps ...Process) {
 		rows[i] = sl
 	}
 
-	table.By(
+	dataframe.SortBy(
 		rows,
-		table.MakeAscendingFunc(0), // PROTOCOL
-		table.MakeAscendingFunc(1), // PROGRAM
-		table.MakeAscendingFunc(2), // PID
-		table.MakeAscendingFunc(3), // LOCAL_ADDR
-		table.MakeAscendingFunc(5), // USER
+		dataframe.StringAscendingFunc(0), // PROTOCOL
+		dataframe.StringAscendingFunc(1), // PROGRAM
+		dataframe.StringAscendingFunc(2), // PID
+		dataframe.StringAscendingFunc(3), // LOCAL_ADDR
+		dataframe.StringAscendingFunc(5), // USER
 	).Sort(rows)
 
 	if top != 0 && len(rows) > top {
@@ -405,13 +405,13 @@ func WriteToCSV(f *os.File, ps ...Process) error {
 		rows[i] = sl
 	}
 
-	table.By(
+	dataframe.SortBy(
 		rows,
-		table.MakeAscendingFunc(0), // PROTOCOL
-		table.MakeAscendingFunc(1), // PROGRAM
-		table.MakeAscendingFunc(2), // PID
-		table.MakeAscendingFunc(3), // LOCAL_ADDR
-		table.MakeAscendingFunc(5), // USER
+		dataframe.StringAscendingFunc(0), // PROTOCOL
+		dataframe.StringAscendingFunc(1), // PROGRAM
+		dataframe.StringAscendingFunc(2), // PID
+		dataframe.StringAscendingFunc(3), // LOCAL_ADDR
+		dataframe.StringAscendingFunc(5), // USER
 	).Sort(rows)
 
 	// adding timestamp

@@ -5,28 +5,28 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/coreos/etcd/clientv3",
-			"Comment": "v2.3.0-80-gd0d3b32",
-			"Rev": "d0d3b322104120466ca5a84075b80dcd1c3a22c4"
+			"Comment": "v2.3.0-88-g20a267d",
+			"Rev": "20a267dc6a2ba27b5ff71efe31a2cb4892a98104"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes",
-			"Comment": "v2.3.0-80-gd0d3b32",
-			"Rev": "d0d3b322104120466ca5a84075b80dcd1c3a22c4"
+			"Comment": "v2.3.0-88-g20a267d",
+			"Rev": "20a267dc6a2ba27b5ff71efe31a2cb4892a98104"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/etcdserverpb",
-			"Comment": "v2.3.0-80-gd0d3b32",
-			"Rev": "d0d3b322104120466ca5a84075b80dcd1c3a22c4"
+			"Comment": "v2.3.0-88-g20a267d",
+			"Rev": "20a267dc6a2ba27b5ff71efe31a2cb4892a98104"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/storage/storagepb",
-			"Comment": "v2.3.0-80-gd0d3b32",
-			"Rev": "d0d3b322104120466ca5a84075b80dcd1c3a22c4"
+			"Comment": "v2.3.0-88-g20a267d",
+			"Rev": "20a267dc6a2ba27b5ff71efe31a2cb4892a98104"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/tools/functional-tester/etcd-agent/client",
-			"Comment": "v2.3.0-80-gd0d3b32",
-			"Rev": "d0d3b322104120466ca5a84075b80dcd1c3a22c4"
+			"Comment": "v2.3.0-88-g20a267d",
+			"Rev": "20a267dc6a2ba27b5ff71efe31a2cb4892a98104"
 		},
 		{
 			"ImportPath": "github.com/fatih/color",
@@ -35,7 +35,7 @@
 		},
 		{
 			"ImportPath": "github.com/gogo/protobuf/proto",
-			"Comment": "v0.1-150-g4168943",
+			"Comment": "v0.2",
 			"Rev": "4168943e65a2802828518e95310aeeed6d84c4e5"
 		},
 		{
@@ -47,12 +47,12 @@
 			"Rev": "5434f8b69b7f4f4ef0120e04c046cd6ce54ef0dd"
 		},
 		{
-			"ImportPath": "github.com/gyuho/psn/ss",
-			"Rev": "566e7f491f7aa4ea5e373888a695a15d11be8310"
+			"ImportPath": "github.com/gyuho/dataframe",
+			"Rev": "cf21c08f7d29755f85b7e35b9f315588caf8612d"
 		},
 		{
-			"ImportPath": "github.com/gyuho/psn/table",
-			"Rev": "566e7f491f7aa4ea5e373888a695a15d11be8310"
+			"ImportPath": "github.com/gyuho/psn/ss",
+			"Rev": "66914e389f9256e6bd39df94c003d31f1bf3e51b"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
