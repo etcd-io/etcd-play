@@ -5,28 +5,28 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/coreos/etcd/clientv3",
-			"Comment": "v2.3.0-88-g20a267d",
-			"Rev": "20a267dc6a2ba27b5ff71efe31a2cb4892a98104"
+			"Comment": "v2.3.0-104-g83ada72",
+			"Rev": "83ada7232a13491f7ef94cb398d9af8b3b2cb5fb"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes",
-			"Comment": "v2.3.0-88-g20a267d",
-			"Rev": "20a267dc6a2ba27b5ff71efe31a2cb4892a98104"
+			"Comment": "v2.3.0-104-g83ada72",
+			"Rev": "83ada7232a13491f7ef94cb398d9af8b3b2cb5fb"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/etcdserverpb",
-			"Comment": "v2.3.0-88-g20a267d",
-			"Rev": "20a267dc6a2ba27b5ff71efe31a2cb4892a98104"
+			"Comment": "v2.3.0-104-g83ada72",
+			"Rev": "83ada7232a13491f7ef94cb398d9af8b3b2cb5fb"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/storage/storagepb",
-			"Comment": "v2.3.0-88-g20a267d",
-			"Rev": "20a267dc6a2ba27b5ff71efe31a2cb4892a98104"
+			"Comment": "v2.3.0-104-g83ada72",
+			"Rev": "83ada7232a13491f7ef94cb398d9af8b3b2cb5fb"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/tools/functional-tester/etcd-agent/client",
-			"Comment": "v2.3.0-88-g20a267d",
-			"Rev": "20a267dc6a2ba27b5ff71efe31a2cb4892a98104"
+			"Comment": "v2.3.0-104-g83ada72",
+			"Rev": "83ada7232a13491f7ef94cb398d9af8b3b2cb5fb"
 		},
 		{
 			"ImportPath": "github.com/fatih/color",
@@ -48,7 +48,7 @@
 		},
 		{
 			"ImportPath": "github.com/gyuho/dataframe",
-			"Rev": "cf21c08f7d29755f85b7e35b9f315588caf8612d"
+			"Rev": "7ebbdad5f014cf60edb41946f3b1ed60054cb824"
 		},
 		{
 			"ImportPath": "github.com/gyuho/psn/ss",
@@ -89,23 +89,23 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "4876518f9e71663000c348837735820161a42df7"
+			"Rev": "991d3e32f76f19ee6d9caadb3a22eae8d23315f7"
 		},
 		{
 			"ImportPath": "golang.org/x/net/http2",
-			"Rev": "4876518f9e71663000c348837735820161a42df7"
+			"Rev": "991d3e32f76f19ee6d9caadb3a22eae8d23315f7"
 		},
 		{
 			"ImportPath": "golang.org/x/net/http2/hpack",
-			"Rev": "4876518f9e71663000c348837735820161a42df7"
+			"Rev": "991d3e32f76f19ee6d9caadb3a22eae8d23315f7"
 		},
 		{
 			"ImportPath": "golang.org/x/net/internal/timeseries",
-			"Rev": "4876518f9e71663000c348837735820161a42df7"
+			"Rev": "991d3e32f76f19ee6d9caadb3a22eae8d23315f7"
 		},
 		{
 			"ImportPath": "golang.org/x/net/trace",
-			"Rev": "4876518f9e71663000c348837735820161a42df7"
+			"Rev": "991d3e32f76f19ee6d9caadb3a22eae8d23315f7"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",

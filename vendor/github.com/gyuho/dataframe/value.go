@@ -1,22 +1,52 @@
 package dataframe
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
 
 // Value represents the value in data frame.
 type Value interface {
+	// ToString parses Value to string. It returns false if not possible.
 	ToString() (string, bool)
+
+	// ToNumber parses Value to float64. It returns false if not possible.
 	ToNumber() (float64, bool)
+
+	// ToTime parses Value to time.Time based on the layout. It returns false if not possible.
 	ToTime(layout string) (time.Time, bool)
+
+	// ToDuration parses Value to time.Duration. It returns false if not possible.
 	ToDuration() (time.Duration, bool)
+
+	// IsNil returns true if the Value is nil.
 	IsNil() bool
+
+	// EqualTo returns true if the Value is equal to v.
 	EqualTo(v Value) bool
 }
 
-func NewValue(v string) Value {
-	return String(v)
+func NewStringValue(v interface{}) Value {
+	switch t := v.(type) {
+	case string:
+		return String(t)
+	case int:
+		return String(strconv.FormatInt(int64(t), 10))
+	case float64:
+		return String(strconv.FormatFloat(t, 'f', -1, 64))
+	case time.Time:
+		return String(t.String())
+	case time.Duration:
+		return String(t.String())
+	default:
+		panic(fmt.Errorf("%v is not supported", v))
+	}
+	return nil
+}
+
+func NewStringValueNil() Value {
+	return String("")
 }
 
 type String string
