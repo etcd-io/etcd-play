@@ -16,7 +16,10 @@ package proc
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"math/rand"
+	"net/http"
 	"os"
 	"sort"
 	"strings"
@@ -93,4 +96,12 @@ func openToAppend(fpath string) (*os.File, error) {
 		}
 	}
 	return f, nil
+}
+
+// gracefulClose drains http.Response.Body until it hits EOF
+// and closes it. This prevents TCP/TLS connections from closing,
+// therefore available for reuse.
+func gracefulClose(resp *http.Response) {
+	io.Copy(ioutil.Discard, resp.Body)
+	resp.Body.Close()
 }

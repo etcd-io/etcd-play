@@ -606,7 +606,7 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 				break
 			}
 		}
-		resp.Body.Close()
+		gracefulClose(resp)
 		done <- struct{}{}
 	}()
 	select {
