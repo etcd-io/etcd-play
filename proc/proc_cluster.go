@@ -559,9 +559,9 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 
 	// Hash
 	go func() {
-		kvc := pb.NewKVClient(conn)
+		mc := pb.NewMaintenanceClient(conn)
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		resp, err := kvc.Hash(ctx, &pb.HashRequest{})
+		resp, err := mc.Hash(ctx, &pb.HashRequest{})
 		cancel()
 		if err != nil {
 			errChan <- err

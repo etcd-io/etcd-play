@@ -15,7 +15,6 @@
 package clientv3
 
 import (
-	"crypto/tls"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -28,14 +27,11 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/grpclog"
 )
 
 var (
 	ErrNoAvailableEndpoints = errors.New("etcdclient: no available endpoints")
 )
-
-type Logger grpclog.Logger
 
 // Client provides and manages an etcd v3 client session.
 type Client struct {
@@ -54,28 +50,6 @@ type Client struct {
 
 	ctx    context.Context
 	cancel context.CancelFunc
-
-	logger Logger
-}
-
-// EndpointDialer is a policy for choosing which endpoint to dial next
-type EndpointDialer func(*Client) (*grpc.ClientConn, error)
-
-type Config struct {
-	// Endpoints is a list of URLs
-	Endpoints []string
-
-	// RetryDialer chooses the next endpoint to use
-	RetryDialer EndpointDialer
-
-	// DialTimeout is the timeout for failing to establish a connection.
-	DialTimeout time.Duration
-
-	// TLS holds the client secure credentials, if any.
-	TLS *tls.Config
-
-	// Logger is the logger used by client library.
-	Logger Logger
 }
 
 // New creates a new etcdv3 client from a given configuration.
@@ -93,6 +67,15 @@ func New(cfg Config) (*Client, error) {
 // NewFromURL creates a new etcdv3 client from a URL.
 func NewFromURL(url string) (*Client, error) {
 	return New(Config{Endpoints: []string{url}})
+}
+
+// NewFromConfigFile creates a new etcdv3 client from a configuration file.
+func NewFromConfigFile(path string) (*Client, error) {
+	cfg, err := configFromFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return New(*cfg)
 }
 
 // Close shuts down the client's etcd connections.
@@ -189,14 +172,12 @@ func newClient(cfg *Config) (*Client, error) {
 	client.Lease = NewLease(client)
 	client.Watcher = NewWatcher(client)
 	client.Auth = NewAuth(client)
-	client.Maintenance = &maintenance{c: client}
-	if cfg.Logger == nil {
-		client.logger = log.New(ioutil.Discard, "", 0)
-		// disable client side grpc by default
-		grpclog.SetLogger(log.New(ioutil.Discard, "", 0))
+	client.Maintenance = NewMaintenance(client)
+	if cfg.Logger != nil {
+		logger.Set(cfg.Logger)
 	} else {
-		client.logger = cfg.Logger
-		grpclog.SetLogger(cfg.Logger)
+		// disable client side grpc by default
+		logger.Set(log.New(ioutil.Discard, "", 0))
 	}
 
 	return client, nil
