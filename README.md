@@ -27,6 +27,18 @@ etcd-play web --keep-alive --linux-auto-port=false --production --remote \
 	--agent-endpoints="$(echo $AGENT_RPC_ENDPOINTS)"
 ```
 
+### Start in docker
+```
+# Build image
+docker build -t etcd-play .
+
+# Run in web browser
+docker run -p 8000:8000 --rm --name etcd-play etcd-play bin/etcd-play web
+
+# Run in terminal
+docker run --rm --name etcd-play etcd-play bin/etcd-play terminal
+```
+
 ## Play with `etcd` in a web browser
 
 `etcd` uses the [Raft consensus algorithm][raft-home] to replicate data on distributed machines in order to gracefully handle network partitions, node failures, and even leader failures. The etcd team extensively tests failure scenarios in the [etcd functional test suite][etcd-functests]. Real-time results from this testing are available at the [etcd test dashboard][etcd-dash].
