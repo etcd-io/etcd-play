@@ -1,3 +1,5 @@
+This is an experimental project. Project/code is subject to change anytime.
+
 # etcd-play
 
 [![Build Status](https://img.shields.io/travis/coreos/etcd-play.svg?style=flat-square)][cistat] [![Godoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)][etcd-play-godoc]   
