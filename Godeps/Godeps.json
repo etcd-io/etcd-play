@@ -8,34 +8,39 @@
 			"Rev": "646fd8fe27c55af8231d9f2524f5dc88f9dfe02d"
 		},
 		{
+			"ImportPath": "github.com/coreos/etcd/auth/authpb",
+			"Comment": "v2.3.0-320-g6c8428c",
+			"Rev": "6c8428c3939a7fa224ac8e97005b1967f3fd87f1"
+		},
+		{
 			"ImportPath": "github.com/coreos/etcd/clientv3",
-			"Comment": "v2.3.0-305-g345bdc3",
-			"Rev": "345bdc3db6d44699235f206fcd8f12cc8f1dbe5d"
+			"Comment": "v2.3.0-320-g6c8428c",
+			"Rev": "6c8428c3939a7fa224ac8e97005b1967f3fd87f1"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes",
-			"Comment": "v2.3.0-305-g345bdc3",
-			"Rev": "345bdc3db6d44699235f206fcd8f12cc8f1dbe5d"
+			"Comment": "v2.3.0-320-g6c8428c",
+			"Rev": "6c8428c3939a7fa224ac8e97005b1967f3fd87f1"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/etcdserverpb",
-			"Comment": "v2.3.0-305-g345bdc3",
-			"Rev": "345bdc3db6d44699235f206fcd8f12cc8f1dbe5d"
+			"Comment": "v2.3.0-320-g6c8428c",
+			"Rev": "6c8428c3939a7fa224ac8e97005b1967f3fd87f1"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/pkg/tlsutil",
-			"Comment": "v2.3.0-305-g345bdc3",
-			"Rev": "345bdc3db6d44699235f206fcd8f12cc8f1dbe5d"
+			"Comment": "v2.3.0-320-g6c8428c",
+			"Rev": "6c8428c3939a7fa224ac8e97005b1967f3fd87f1"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/storage/storagepb",
-			"Comment": "v2.3.0-305-g345bdc3",
-			"Rev": "345bdc3db6d44699235f206fcd8f12cc8f1dbe5d"
+			"Comment": "v2.3.0-320-g6c8428c",
+			"Rev": "6c8428c3939a7fa224ac8e97005b1967f3fd87f1"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/tools/functional-tester/etcd-agent/client",
-			"Comment": "v2.3.0-305-g345bdc3",
-			"Rev": "345bdc3db6d44699235f206fcd8f12cc8f1dbe5d"
+			"Comment": "v2.3.0-320-g6c8428c",
+			"Rev": "6c8428c3939a7fa224ac8e97005b1967f3fd87f1"
 		},
 		{
 			"ImportPath": "github.com/fatih/color",
