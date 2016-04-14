@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/exec"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -77,13 +77,8 @@ func (nd *NodeWebLocal) Endpoint() string {
 		es = k
 		break
 	}
-	if strings.HasPrefix(es, "http://") {
-		es = strings.Replace(es, "http://", "", -1)
-	}
-	if strings.HasPrefix(es, "https://") {
-		es = strings.Replace(es, "https://", "", -1)
-	}
-	return es
+	s, _ := url.Parse(es)
+	return s.Host
 }
 
 func (nd *NodeWebLocal) StatusEndpoint() string {
