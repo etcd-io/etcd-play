@@ -28,6 +28,10 @@ type Column interface {
 	// It returns -1 and false if the value does not exist.
 	FindValue(v Value) (int, bool)
 
+	// FindLastValue finds the last Value, and returns the row number.
+	// It returns -1 and false if the value does not exist.
+	FindLastValue(v Value) (int, bool)
+
 	// Front returns the first row Value.
 	Front() (Value, bool)
 
@@ -148,6 +152,22 @@ func (c *column) FindValue(v Value) (int, bool) {
 		if c.data[i].EqualTo(v) {
 			return i, true
 		}
+	}
+	return -1, false
+}
+
+func (c *column) FindLastValue(v Value) (int, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	var idx int
+	for i := range c.data {
+		if c.data[i].EqualTo(v) {
+			idx = i
+		}
+	}
+	if idx != 0 {
+		return idx, true
 	}
 	return -1, false
 }

@@ -85,6 +85,9 @@ service Maintenance {
   // This is designed for testing; do not use this in production when there
   // are ongoing transactions.
   rpc Hash(HashRequest) returns (HashResponse) {}
+
+  // Snapshot sends a snapshot of the entire backend
+  rpc Snapshot(SnapshotRequest) returns (stream SnapshotResponse) {}
 }
 
 service Auth {
@@ -287,10 +290,8 @@ message TxnResponse {
   repeated ResponseUnion responses = 3;
 }
 
-// Compaction compacts the kv store upto the given revision (including).
-// It removes the old versions of a key. It keeps the newest version of
-// the key even if its latest modification revision is smaller than the given
-// revision.
+// Compaction compacts the kv store upto a given revision. All superseded keys
+// with a revision less than the compaction revision will be removed.
 message CompactionRequest {
   int64 revision = 1;
   // physical is set so the RPC will wait until the compaction is physically
@@ -309,6 +310,21 @@ message HashRequest {
 message HashResponse {
   ResponseHeader header = 1;
   uint32 hash = 2;
+}
+
+message SnapshotRequest {
+}
+
+message SnapshotResponse {
+  // header has the current store information. The first header in the snapshot
+  // stream indicates the point in time of the snapshot.
+  ResponseHeader header = 1;
+
+  // remaining_bytes is the number of blob bytes to be sent after this message
+  uint64 remaining_bytes = 2;
+
+  // blob has the next chunk of the snapshot in the snapshot stream.
+  bytes blob = 3;
 }
 
 message WatchRequest {
@@ -399,11 +415,10 @@ message Member {
   uint64 ID = 1;
   // If the member is not started, name will be an empty string.
   string name = 2;
-  bool IsLeader = 3;
-  repeated string peerURLs = 4;
+  repeated string peerURLs = 3;
   // If the member is not started, client_URLs will be an zero length
   // string array.
-  repeated string clientURLs = 5;
+  repeated string clientURLs = 4;
 }
 
 message MemberAddRequest {
@@ -441,7 +456,6 @@ message MemberListResponse {
 }
 
 message DefragmentRequest {
-
 }
 
 message DefragmentResponse {
@@ -481,6 +495,10 @@ message StatusRequest {
 message StatusResponse {
   ResponseHeader header = 1;
   string version = 2;
+  int64 dbSize = 3;
+  uint64 leader = 4;
+  uint64 raftIndex = 5;
+  uint64 raftTerm = 6;
 }
 
 message AuthEnableRequest {
@@ -510,6 +528,8 @@ message AuthUserChangePasswordRequest {
 }
 
 message AuthUserGrantRequest {
+  string user = 1;
+  string role = 2;
 }
 
 message AuthUserRevokeRequest {

@@ -123,8 +123,8 @@ type Cluster interface {
 	// Shutdown terminates and cleans all Nodes.
 	Shutdown() error
 
-	// Endpoints returns all endpoints for clients and a map of name and endpoint.
-	Endpoints() ([]string, map[string]string)
+	// Endpoints returns all endpoints for clients and a map of name and endpoint, vice versa.
+	Endpoints() ([]string, map[string]string, map[string]string)
 
 	// Leader returns the name of the leader.
 	Leader() (string, error)
@@ -158,6 +158,7 @@ type defaultCluster struct {
 	sharedStream chan string
 	idToStream   map[string]chan string
 	nameToNode   map[string]Node
+	epToName     map[string]string
 }
 
 type NodeType int
@@ -231,6 +232,7 @@ func NewCluster(opt NodeType, programPath string, fs []*Flags, opts ...OpOption)
 		sharedStream: bufferedStream,
 		idToStream:   make(map[string]chan string),
 		nameToNode:   make(map[string]Node),
+		epToName:     make(map[string]string),
 	}
 
 	var maxProcNameLength, colorIdx int
@@ -465,40 +467,51 @@ func (c *defaultCluster) Shutdown() error {
 	return nil
 }
 
-func (c *defaultCluster) Endpoints() ([]string, map[string]string) {
-	var endpoints []string
-	nameToGRPCEndpoint := make(map[string]string)
+func (c *defaultCluster) Endpoints() ([]string, map[string]string, map[string]string) {
+	var (
+		endpoints          []string
+		nameToGRPCEndpoint = make(map[string]string)
+		grpcEndpointToName = make(map[string]string)
+	)
 	for n, nd := range c.nameToNode {
 		if nd.Endpoint() != "" && nd.IsActive() {
 			endpoints = append(endpoints, nd.Endpoint())
 		}
-		nameToGRPCEndpoint[n] = nd.Endpoint()
+		ep := nd.Endpoint()
+		nameToGRPCEndpoint[n] = ep
+		grpcEndpointToName[ep] = n
 	}
 	sort.Strings(endpoints)
-	return endpoints, nameToGRPCEndpoint
+	return endpoints, nameToGRPCEndpoint, grpcEndpointToName
 }
 
 func (c *defaultCluster) Leader() (string, error) {
-	endpoints, _ := c.Endpoints()
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   endpoints,
-		DialTimeout: 5 * time.Second,
-	})
-	if err != nil {
-		return "", err
-	}
-	defer cli.Close()
-	clus := clientv3.NewCluster(cli)
-	mb, err := clus.MemberLeader(context.Background())
-	if err != nil {
-		return "", err
-	}
-	for name := range c.nameToNode {
-		if name == mb.Name {
-			return name, nil
+	endpoints, _, epToName := c.Endpoints()
+	var lerr error
+	for _, ep := range endpoints {
+		cli, err := clientv3.New(clientv3.Config{
+			Endpoints:   []string{ep},
+			DialTimeout: 5 * time.Second,
+		})
+		if err != nil {
+			lerr = err
+			continue
 		}
+		defer cli.Close()
+
+		mapi := clientv3.NewMaintenance(cli)
+		resp, err := mapi.Status(context.Background(), ep)
+		if err != nil {
+			lerr = err
+			continue
+		}
+
+		if resp.Leader == resp.Header.MemberId {
+			return epToName[ep], nil
+		}
+		lerr = nil
 	}
-	return "", fmt.Errorf("no leader found")
+	return "", fmt.Errorf("no leader found (%v)", lerr)
 }
 
 var emptyStat = ServerStatus{
@@ -526,24 +539,19 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 
 	// ID, State
 	go func() {
-		clus := pb.NewClusterClient(conn)
+		mapi := pb.NewMaintenanceClient(conn)
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		mbs, err := clus.MemberList(ctx, &pb.MemberListRequest{})
+		sts, err := mapi.Status(ctx, &pb.StatusRequest{})
 		cancel()
 		if err != nil {
 			errChan <- err
 			return
 		}
-		for _, mb := range mbs.Members {
-			if mb.Name == name {
-				stat.ID = fmt.Sprintf("%x", mb.ID)
-				if mb.IsLeader {
-					stat.State = "Leader"
-				} else {
-					stat.State = "Follower"
-				}
-				break
-			}
+		mid := sts.Header.MemberId
+		stat.ID = fmt.Sprintf("%x", mid)
+		stat.State = "Follower"
+		if mid == sts.Leader {
+			stat.State = "Leader"
 		}
 		done <- struct{}{}
 	}()
@@ -623,7 +631,7 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 }
 
 func (c *defaultCluster) Status() (map[string]ServerStatus, error) {
-	_, nameToEndpoint := c.Endpoints()
+	_, nameToEndpoint, _ := c.Endpoints()
 	nameToV2Endpoint := make(map[string]string)
 	for name, nd := range c.nameToNode {
 		nameToV2Endpoint[name] = nd.StatusEndpoint()
@@ -658,7 +666,7 @@ func (c *defaultCluster) Status() (map[string]ServerStatus, error) {
 }
 
 func (c *defaultCluster) Put(name, key, value string, streamIDs ...string) error {
-	endpoints, nameToEndpoint := c.Endpoints()
+	endpoints, nameToEndpoint, _ := c.Endpoints()
 	if name == "" {
 		for n := range nameToEndpoint {
 			name = n
@@ -696,7 +704,7 @@ func (c *defaultCluster) Put(name, key, value string, streamIDs ...string) error
 }
 
 func (c *defaultCluster) Get(name, key string, streamIDs ...string) ([]string, error) {
-	endpoints, nameToEndpoint := c.Endpoints()
+	endpoints, nameToEndpoint, _ := c.Endpoints()
 	if name == "" {
 		for n := range nameToEndpoint {
 			name = n
@@ -745,7 +753,7 @@ func (c *defaultCluster) Get(name, key string, streamIDs ...string) ([]string, e
 }
 
 func (c *defaultCluster) Delete(name, key string, streamIDs ...string) error {
-	endpoints, nameToEndpoint := c.Endpoints()
+	endpoints, nameToEndpoint, _ := c.Endpoints()
 	if name == "" {
 		for n := range nameToEndpoint {
 			name = n
@@ -783,7 +791,7 @@ func (c *defaultCluster) Delete(name, key string, streamIDs ...string) error {
 }
 
 func (c *defaultCluster) stress(name string, stressN int, donec chan struct{}, errc chan error, streamIDs ...string) {
-	endpoints, nameToEndpoint := c.Endpoints()
+	endpoints, nameToEndpoint, _ := c.Endpoints()
 	if name == "" {
 		for n := range nameToEndpoint {
 			name = n
@@ -859,7 +867,7 @@ func (c *defaultCluster) Stress(name string, stressN int, streamIDs ...string) e
 }
 
 func (c *defaultCluster) WatchPut(name string, watchersN int, streamIDs ...string) error {
-	endpoints, nameToEndpoint := c.Endpoints()
+	endpoints, nameToEndpoint, _ := c.Endpoints()
 	if name == "" {
 		for n := range nameToEndpoint {
 			name = n

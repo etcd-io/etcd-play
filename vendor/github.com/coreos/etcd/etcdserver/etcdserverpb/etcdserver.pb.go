@@ -31,6 +31,8 @@
 		CompactionResponse
 		HashRequest
 		HashResponse
+		SnapshotRequest
+		SnapshotResponse
 		WatchRequest
 		WatchCreateRequest
 		WatchCancelRequest

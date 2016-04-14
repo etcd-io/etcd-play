@@ -16,7 +16,7 @@ package proc
 
 import (
 	"fmt"
-	"strings"
+	"net/url"
 	"sync"
 	"time"
 
@@ -41,13 +41,8 @@ func (nd *NodeWebRemoteClient) Endpoint() string {
 		es = k
 		break
 	}
-	if strings.HasPrefix(es, "http://") {
-		es = strings.Replace(es, "http://", "", -1)
-	}
-	if strings.HasPrefix(es, "https://") {
-		es = strings.Replace(es, "https://", "", -1)
-	}
-	return es
+	s, _ := url.Parse(es)
+	return s.Host
 }
 
 func (nd *NodeWebRemoteClient) StatusEndpoint() string {
