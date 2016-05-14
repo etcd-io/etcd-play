@@ -5,38 +5,38 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/coreos/etcd/auth/authpb",
-			"Comment": "v3.0.0-beta.0-100-gdeb21d3",
-			"Rev": "deb21d3da5227297bccab753103e0c1e7afddf4b"
+			"Comment": "v3.0.0-beta.0-104-g46481b1",
+			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/clientv3",
-			"Comment": "v3.0.0-beta.0-100-gdeb21d3",
-			"Rev": "deb21d3da5227297bccab753103e0c1e7afddf4b"
+			"Comment": "v3.0.0-beta.0-104-g46481b1",
+			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes",
-			"Comment": "v3.0.0-beta.0-100-gdeb21d3",
-			"Rev": "deb21d3da5227297bccab753103e0c1e7afddf4b"
+			"Comment": "v3.0.0-beta.0-104-g46481b1",
+			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/etcdserverpb",
-			"Comment": "v3.0.0-beta.0-100-gdeb21d3",
-			"Rev": "deb21d3da5227297bccab753103e0c1e7afddf4b"
+			"Comment": "v3.0.0-beta.0-104-g46481b1",
+			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/mvcc/mvccpb",
-			"Comment": "v3.0.0-beta.0-100-gdeb21d3",
-			"Rev": "deb21d3da5227297bccab753103e0c1e7afddf4b"
+			"Comment": "v3.0.0-beta.0-104-g46481b1",
+			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/pkg/tlsutil",
-			"Comment": "v3.0.0-beta.0-100-gdeb21d3",
-			"Rev": "deb21d3da5227297bccab753103e0c1e7afddf4b"
+			"Comment": "v3.0.0-beta.0-104-g46481b1",
+			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/tools/functional-tester/etcd-agent/client",
-			"Comment": "v3.0.0-beta.0-100-gdeb21d3",
-			"Rev": "deb21d3da5227297bccab753103e0c1e7afddf4b"
+			"Comment": "v3.0.0-beta.0-104-g46481b1",
+			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
 		},
 		{
 			"ImportPath": "github.com/cpuguy83/go-md2man/md2man",
