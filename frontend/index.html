@@ -253,7 +253,7 @@
             });
         }
 
-        var queue_StorageKeysTotal = new Array;
+        var queue_DbSizeTotal = new Array;
         var receiveServerStatus = function() {
             $.ajax({
                 type: "GET",
@@ -261,7 +261,7 @@
                 async: true,
                 dataType: "json",
                 success: function(dataObj) {
-                    queue_StorageKeysTotal.push(dataObj);
+                    queue_DbSizeTotal.push(dataObj);
 
                     document.getElementById('active_user_number').innerHTML = dataObj.ActiveUserNumber + " users here now (deployed " + dataObj.ServerUptime + ")";
                     document.getElementById('active_user_list').innerHTML = dataObj.ActiveUserList;
@@ -447,9 +447,9 @@
                         var series4 = this.series[3];
                         var series5 = this.series[4];
                         setInterval(function() {
-                            // var copiedQueue = queue_StorageKeysTotal.slice();
-                            if (queue_StorageKeysTotal.length > 0) {
-                                var dataObj = queue_StorageKeysTotal.shift();
+                            // var copiedQueue = queue_DbSizeTotal.slice();
+                            if (queue_DbSizeTotal.length > 0) {
+                                var dataObj = queue_DbSizeTotal.shift();
                                 var x = (new Date()).getTime();
                                 series1.addPoint({
                                     x: x,
