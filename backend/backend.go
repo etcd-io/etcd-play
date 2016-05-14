@@ -646,7 +646,7 @@ func stressHandler(ctx context.Context, w http.ResponseWriter, req *http.Request
 		cluster := globalCache.cluster
 		globalCache.mu.Unlock()
 
-		if err := cluster.Stress(selectedNodeName, globalFlags.StressNumber); err != nil {
+		if err := cluster.Stress(selectedNodeName, globalFlags.StressNumber, userID); err != nil {
 			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error: %v", err)))
 			return err
 		}

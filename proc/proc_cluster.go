@@ -828,7 +828,7 @@ func (c *defaultCluster) stress(name string, stressN int, donec chan struct{}, e
 				errChan <- err
 				return
 			}
-			c.Write(name, fmt.Sprintf("[STRESS PUT %2d] %q : %q", i, key, val))
+			c.Write(name, fmt.Sprintf("[STRESS PUT %2d] %q : %q", i, key, val), streamIDs...)
 			done <- struct{}{}
 		}(i)
 	}
