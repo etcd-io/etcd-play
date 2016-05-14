@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2016 The etcd Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,9 +24,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
 )
 
 var (
@@ -50,6 +53,14 @@ type Client struct {
 
 	ctx    context.Context
 	cancel context.CancelFunc
+
+	// fields below are managed by connMonitor
+
+	// reconnc accepts writes which signal the client should reconnect
+	reconnc chan error
+	// newconnc is closed on successful connect and set to a fresh channel
+	newconnc    chan struct{}
+	lastConnErr error
 }
 
 // New creates a new etcdv3 client from a given configuration.
@@ -81,16 +92,23 @@ func NewFromConfigFile(path string) (*Client, error) {
 // Close shuts down the client's etcd connections.
 func (c *Client) Close() error {
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.cancel == nil {
-		c.mu.Unlock()
 		return nil
 	}
 	c.cancel()
 	c.cancel = nil
+	connc := c.newconnc
 	c.mu.Unlock()
+	c.connStartRetry(nil)
 	c.Watcher.Close()
 	c.Lease.Close()
-	return c.conn.Close()
+	<-connc
+	c.mu.Lock()
+	if c.lastConnErr != c.ctx.Err() {
+		return c.lastConnErr
+	}
+	return nil
 }
 
 // Ctx is a context for "out of band" messages (e.g., for sending
@@ -145,6 +163,13 @@ func (c *Client) Dial(endpoint string) (*grpc.ClientConn, error) {
 	return conn, nil
 }
 
+// WithRequireLeader requires client requests to only succeed
+// when the cluster has a leader.
+func WithRequireLeader(ctx context.Context) context.Context {
+	md := metadata.Pairs(rpctypes.MetadataRequireLeaderKey, rpctypes.MetadataHasLeader)
+	return metadata.NewContext(ctx, md)
+}
+
 func newClient(cfg *Config) (*Client, error) {
 	if cfg == nil {
 		cfg = &Config{RetryDialer: dialEndpointList}
@@ -161,12 +186,17 @@ func newClient(cfg *Config) (*Client, error) {
 		return nil, err
 	}
 	client := &Client{
-		conn:   conn,
-		cfg:    *cfg,
-		creds:  creds,
-		ctx:    ctx,
-		cancel: cancel,
+		conn:     conn,
+		cfg:      *cfg,
+		creds:    creds,
+		ctx:      ctx,
+		cancel:   cancel,
+		reconnc:  make(chan error),
+		newconnc: make(chan struct{}),
 	}
+
+	go client.connMonitor()
+
 	client.Cluster = NewCluster(client)
 	client.KV = NewKV(client)
 	client.Lease = NewLease(client)
@@ -191,33 +221,77 @@ func (c *Client) ActiveConnection() *grpc.ClientConn {
 }
 
 // retryConnection establishes a new connection
-func (c *Client) retryConnection(oldConn *grpc.ClientConn, err error) (*grpc.ClientConn, error) {
+func (c *Client) retryConnection(err error) (newConn *grpc.ClientConn, dialErr error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if err != nil {
 		c.errors = append(c.errors, err)
 	}
+	if c.conn != nil {
+		c.conn.Close()
+		if st, _ := c.conn.State(); st != grpc.Shutdown {
+			// wait so grpc doesn't leak sleeping goroutines
+			c.conn.WaitForStateChange(context.Background(), st)
+		}
+	}
 	if c.cancel == nil {
+		// client has called Close() so don't try to dial out
 		return nil, c.ctx.Err()
 	}
-	if oldConn != c.conn {
-		// conn has already been updated
-		return c.conn, nil
-	}
 
-	oldConn.Close()
-	if st, _ := oldConn.State(); st != grpc.Shutdown {
-		// wait for shutdown so grpc doesn't leak sleeping goroutines
-		oldConn.WaitForStateChange(c.ctx, st)
-	}
-
-	conn, dialErr := c.cfg.RetryDialer(c)
+	c.conn, dialErr = c.cfg.RetryDialer(c)
 	if dialErr != nil {
 		c.errors = append(c.errors, dialErr)
-		return nil, dialErr
 	}
-	c.conn = conn
-	return c.conn, nil
+	return c.conn, dialErr
+}
+
+// connStartRetry schedules a reconnect if one is not already running
+func (c *Client) connStartRetry(err error) {
+	select {
+	case c.reconnc <- err:
+	default:
+	}
+}
+
+// connWait waits for a reconnect to be processed
+func (c *Client) connWait(ctx context.Context, err error) (*grpc.ClientConn, error) {
+	c.mu.Lock()
+	ch := c.newconnc
+	c.mu.Unlock()
+	c.connStartRetry(err)
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-ch:
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.conn, c.lastConnErr
+}
+
+// connMonitor monitors the connection and handles retries
+func (c *Client) connMonitor() {
+	var err error
+	for {
+		select {
+		case err = <-c.reconnc:
+		case <-c.ctx.Done():
+			_, err = c.retryConnection(c.ctx.Err())
+			c.mu.Lock()
+			c.lastConnErr = err
+			close(c.newconnc)
+			c.mu.Unlock()
+			return
+		}
+		conn, connErr := c.retryConnection(err)
+		c.mu.Lock()
+		c.lastConnErr = connErr
+		c.conn = conn
+		close(c.newconnc)
+		c.newconnc = make(chan struct{})
+		c.mu.Unlock()
+	}
 }
 
 // dialEndpointList attempts to connect to each endpoint in order until a
@@ -235,9 +309,9 @@ func dialEndpointList(c *Client) (*grpc.ClientConn, error) {
 	return nil, err
 }
 
-// isHalted returns true if the given error and context indicate no forward
+// isHaltErr returns true if the given error and context indicate no forward
 // progress can be made, even after reconnecting.
-func isHalted(ctx context.Context, err error) bool {
+func isHaltErr(ctx context.Context, err error) bool {
 	isRPCError := strings.HasPrefix(grpc.ErrorDesc(err), "etcdserver: ")
 	return isRPCError || ctx.Err() != nil
 }

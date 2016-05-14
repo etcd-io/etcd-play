@@ -115,9 +115,21 @@ func WithPicker(p Picker) DialOption {
 	}
 }
 
+// WithBackoffMaxDelay configures the dialer to use the provided maximum delay
+// when backing off after failed connection attempts.
+func WithBackoffMaxDelay(md time.Duration) DialOption {
+	return WithBackoffConfig(BackoffConfig{MaxDelay: md})
+}
+
 // WithBackoffConfig configures the dialer to use the provided backoff
 // parameters after connection failures.
-func WithBackoffConfig(b *BackoffConfig) DialOption {
+//
+// Use WithBackoffMaxDelay until more parameters on BackoffConfig are opened up
+// for use.
+func WithBackoffConfig(b BackoffConfig) DialOption {
+	// Set defaults to ensure that provided BackoffConfig is valid and
+	// unexported fields get default values.
+	setDefaults(&b)
 	return withBackoff(b)
 }
 
@@ -479,7 +491,10 @@ func (cc *Conn) resetTransport(closeTransport bool) error {
 				return ErrClientConnTimeout
 			}
 			closeTransport = false
-			time.Sleep(sleepTime)
+			select {
+			case <-time.After(sleepTime):
+			case <-cc.shutdownChan:
+			}
 			retries++
 			grpclog.Printf("grpc: Conn.resetTransport failed to create client transport: %v; Reconnecting to %q", err, cc.target)
 			continue

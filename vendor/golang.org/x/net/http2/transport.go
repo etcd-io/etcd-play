@@ -418,8 +418,8 @@ func (t *Transport) NewClientConn(c net.Conn) (*ClientConn, error) {
 	}
 
 	initialSettings := []Setting{
-		{ID: SettingEnablePush, Val: 0},
-		{ID: SettingInitialWindowSize, Val: transportDefaultStreamFlow},
+		Setting{ID: SettingEnablePush, Val: 0},
+		Setting{ID: SettingInitialWindowSize, Val: transportDefaultStreamFlow},
 	}
 	if max := t.maxHeaderListSize(); max != 0 {
 		initialSettings = append(initialSettings, Setting{ID: SettingMaxHeaderListSize, Val: max})
@@ -945,11 +945,14 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 			// Host is :authority, already sent.
 			// Content-Length is automatic, set below.
 			continue
-		case "connection", "proxy-connection", "transfer-encoding", "upgrade", "keep-alive":
+		case "connection", "proxy-connection", "transfer-encoding", "upgrade":
 			// Per 8.1.2.2 Connection-Specific Header
 			// Fields, don't send connection-specific
-			// fields. We have already checked if any
-			// are error-worthy so just ignore the rest.
+			// fields. We deal with these earlier in
+			// RoundTrip, deciding whether they're
+			// error-worthy, but we don't want to mutate
+			// the user's *Request so at this point, just
+			// skip over them at this point.
 			continue
 		case "user-agent":
 			// Match Go's http1 behavior: at most one
@@ -1260,8 +1263,7 @@ func (rl *clientConnReadLoop) handleResponse(cs *clientStream, f *MetaHeadersFra
 	}
 
 	streamEnded := f.StreamEnded()
-	isHead := cs.req.Method == "HEAD"
-	if !streamEnded || isHead {
+	if !streamEnded || cs.req.Method == "HEAD" {
 		res.ContentLength = -1
 		if clens := res.Header["Content-Length"]; len(clens) == 1 {
 			if clen64, err := strconv.ParseInt(clens[0], 10, 64); err == nil {
@@ -1276,7 +1278,7 @@ func (rl *clientConnReadLoop) handleResponse(cs *clientStream, f *MetaHeadersFra
 		}
 	}
 
-	if streamEnded || isHead {
+	if streamEnded {
 		res.Body = noBody
 		return res, nil
 	}
