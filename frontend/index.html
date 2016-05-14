@@ -269,9 +269,9 @@
                     document.getElementById('etcd1_ID').innerHTML = "ID: <b>" + dataObj.Etcd1_ID + "</b>";
                     document.getElementById('etcd1_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd1_Endpoint + "</b>";
                     document.getElementById('etcd1_State').innerHTML = "State: <b>" + dataObj.Etcd1_State + "</b>";
-                    document.getElementById('etcd1_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd1_NumberOfKeys + "</b>";
                     document.getElementById('etcd1_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd1_Hash + "</b>";
                     document.getElementById('etcd1_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd1_Hash + ")";
+                    document.getElementById('etcd1_DbSizeTxt').innerHTML = "DB Size: <b>" + dataObj.Etcd1_DbSizeTxt + "</b>";
                     if (dataObj.Etcd1_State == "Leader") {
                         document.getElementById('etcd1_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd1_State == "Follower") {
@@ -285,9 +285,9 @@
                     document.getElementById('etcd2_ID').innerHTML = "ID: <b>" + dataObj.Etcd2_ID + "</b>";
                     document.getElementById('etcd2_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd2_Endpoint + "</b>";
                     document.getElementById('etcd2_State').innerHTML = "State: <b>" + dataObj.Etcd2_State + "</b>";
-                    document.getElementById('etcd2_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd2_NumberOfKeys + "</b>";
                     document.getElementById('etcd2_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd2_Hash + "</b>";
                     document.getElementById('etcd2_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd2_Hash + ")";
+                    document.getElementById('etcd2_DbSizeTxt').innerHTML = "DB Size: <b>" + dataObj.Etcd2_DbSizeTxt + "</b>";
                     if (dataObj.Etcd2_State == "Leader") {
                         document.getElementById('etcd2_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd2_State == "Follower") {
@@ -301,9 +301,9 @@
                     document.getElementById('etcd3_ID').innerHTML = "ID: <b>" + dataObj.Etcd3_ID + "</b>";
                     document.getElementById('etcd3_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd3_Endpoint + "</b>";
                     document.getElementById('etcd3_State').innerHTML = "State: <b>" + dataObj.Etcd3_State + "</b>";
-                    document.getElementById('etcd3_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd3_NumberOfKeys + "</b>";
                     document.getElementById('etcd3_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd3_Hash + "</b>";
                     document.getElementById('etcd3_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd3_Hash + ")";
+                    document.getElementById('etcd3_DbSizeTxt').innerHTML = "DB Size: <b>" + dataObj.Etcd3_DbSizeTxt + "</b>";
                     if (dataObj.Etcd3_State == "Leader") {
                         document.getElementById('etcd3_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd3_State == "Follower") {
@@ -317,9 +317,9 @@
                     document.getElementById('etcd4_ID').innerHTML = "ID: <b>" + dataObj.Etcd4_ID + "</b>";
                     document.getElementById('etcd4_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd4_Endpoint + "</b>";
                     document.getElementById('etcd4_State').innerHTML = "State: <b>" + dataObj.Etcd4_State + "</b>";
-                    document.getElementById('etcd4_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd4_NumberOfKeys + "</b>";
                     document.getElementById('etcd4_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd4_Hash + "</b>";
                     document.getElementById('etcd4_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd4_Hash + ")";
+                    document.getElementById('etcd4_DbSizeTxt').innerHTML = "DB Size: <b>" + dataObj.Etcd4_DbSizeTxt + "</b>";
                     if (dataObj.Etcd4_State == "Leader") {
                         document.getElementById('etcd4_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd4_State == "Follower") {
@@ -333,9 +333,9 @@
                     document.getElementById('etcd5_ID').innerHTML = "ID: <b>" + dataObj.Etcd5_ID + "</b>";
                     document.getElementById('etcd5_Endpoint').innerHTML = "Endpoint: <b>" + dataObj.Etcd5_Endpoint + "</b>";
                     document.getElementById('etcd5_State').innerHTML = "State: <b>" + dataObj.Etcd5_State + "</b>";
-                    document.getElementById('etcd5_NumberOfKeys').innerHTML = "Number of Keys: <b>" + dataObj.Etcd5_NumberOfKeys + "</b>";
                     document.getElementById('etcd5_Hash').innerHTML = "Hash: <b>" + dataObj.Etcd5_Hash + "</b>";
                     document.getElementById('etcd5_Hash_circle').innerHTML = "(Hash: " + dataObj.Etcd5_Hash + ")";
+                    document.getElementById('etcd5_DbSizeTxt').innerHTML = "DB Size: <b>" + dataObj.Etcd5_DbSizeTxt + "</b>";
                     if (dataObj.Etcd5_State == "Leader") {
                         document.getElementById('etcd5_State_circle').style = "fill: #2E7D32"; // green
                     } else if (dataObj.Etcd5_State == "Follower") {
@@ -453,27 +453,32 @@
                                 var x = (new Date()).getTime();
                                 series1.addPoint({
                                     x: x,
-                                    y: dataObj.Etcd1_NumberOfKeys,
+                                    y: dataObj.Etcd1_DbSize,
+                                    yText: dataObj.Etcd1_DbSizeTxt,
                                     name: dataObj.Etcd1_Name,
                                 }, true, true);
                                 series2.addPoint({
                                     x: x,
-                                    y: dataObj.Etcd2_NumberOfKeys,
+                                    y: dataObj.Etcd2_DbSize,
+                                    yText: dataObj.Etcd2_DbSizeTxt,
                                     name: dataObj.Etcd2_Name,
                                 }, true, true);
                                 series3.addPoint({
                                     x: x,
-                                    y: dataObj.Etcd3_NumberOfKeys,
+                                    y: dataObj.Etcd3_DbSize,
+                                    yText: dataObj.Etcd3_DbSizeTxt,
                                     name: dataObj.Etcd3_Name,
                                 }, true, true);
                                 series4.addPoint({
                                     x: x,
-                                    y: dataObj.Etcd4_NumberOfKeys,
+                                    y: dataObj.Etcd4_DbSize,
+                                    yText: dataObj.Etcd4_DbSizeTxt,
                                     name: dataObj.Etcd4_Name,
                                 }, true, true);
                                 series5.addPoint({
                                     x: x,
-                                    y: dataObj.Etcd5_NumberOfKeys,
+                                    y: dataObj.Etcd5_DbSize,
+                                    yText: dataObj.Etcd5_DbSizeTxt,
                                     name: dataObj.Etcd5_Name,
                                 }, true, true);
                             }
@@ -482,7 +487,7 @@
                 }
             },
             title: {
-                text: 'Number of keys'
+                text: 'DB Size'
             },
             xAxis: {
                 type: 'datetime',
@@ -502,7 +507,8 @@
                 formatter: function() {
                     return '<b>' + this.point.name + '</b><br/>' +
                         Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                        Highcharts.numberFormat(this.y, 2);
+                        this.point.yText;
+                        // Highcharts.numberFormat(this.y, 2);
                 }
             },
             legend: {
@@ -525,6 +531,7 @@
                         data.push({
                             x: time + i * chartRefreshRate,
                             y: 0,
+                            yText: "0 B",
                             name: "unknown"
                         });
                     }
@@ -541,6 +548,7 @@
                         data.push({
                             x: time + i * chartRefreshRate,
                             y: 0,
+                            yText: "0 B",
                             name: "unknown"
                         });
                     }
@@ -557,6 +565,7 @@
                         data.push({
                             x: time + i * chartRefreshRate,
                             y: 0,
+                            yText: "0 B",
                             name: "unknown"
                         });
                     }
@@ -589,6 +598,7 @@
                         data.push({
                             x: time + i * chartRefreshRate,
                             y: 0,
+                            yText: "0 B",
                             name: "unknown"
                         });
                     }
@@ -870,8 +880,8 @@
                                 <div id="etcd1_ID">ID: n/a</div>
                                 <div id="etcd1_Endpoint">Endpoint: n/a</div>
                                 <div id="etcd1_State">State: n/a</div>
-                                <div id="etcd1_NumberOfKeys">Number of Keys: 0</div>
                                 <div id="etcd1_Hash">Hash: 0</div>
+                                <div id="etcd1_DbSizeTxt">DB Size: 0</div>
                                 <br>
                             </div>
                         </div>
@@ -897,8 +907,8 @@
                                 <div id="etcd2_ID">ID: n/a</div>
                                 <div id="etcd2_Endpoint">Endpoint: n/a</div>
                                 <div id="etcd2_State">State: n/a</div>
-                                <div id="etcd2_NumberOfKeys">Number of Keys: 0</div>
                                 <div id="etcd2_Hash">Hash: 0</div>
+                                <div id="etcd2_DbSizeTxt">DB Size: 0</div>
                                 <br>
                             </div>
                         </div>
@@ -924,8 +934,8 @@
                                 <div id="etcd3_ID">ID: n/a</div>
                                 <div id="etcd3_Endpoint">Endpoint: n/a</div>
                                 <div id="etcd3_State">State: n/a</div>
-                                <div id="etcd3_NumberOfKeys">Number of Keys: 0</div>
                                 <div id="etcd3_Hash">Hash: 0</div>
+                                <div id="etcd3_DbSizeTxt">DB Size: 0</div>
                                 <br>
                             </div>
                         </div>
@@ -951,8 +961,8 @@
                                 <div id="etcd4_ID">ID: n/a</div>
                                 <div id="etcd4_Endpoint">Endpoint: n/a</div>
                                 <div id="etcd4_State">State: n/a</div>
-                                <div id="etcd4_NumberOfKeys">Number of Keys: 0</div>
                                 <div id="etcd4_Hash">Hash: 0</div>
+                                <div id="etcd4_DbSizeTxt">DB Size: 0</div>
                                 <br>
                             </div>
                         </div>
@@ -978,8 +988,8 @@
                                 <div id="etcd5_ID">ID: n/a</div>
                                 <div id="etcd5_Endpoint">Endpoint: n/a</div>
                                 <div id="etcd5_State">State: n/a</div>
-                                <div id="etcd5_NumberOfKeys">Number of Keys: 0</div>
                                 <div id="etcd5_Hash">Hash: 0</div>
+                                <div id="etcd5_DbSizeTxt">DB Size: 0</div>
                                 <br>
                             </div>
                         </div>

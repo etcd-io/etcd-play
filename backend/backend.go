@@ -474,49 +474,54 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 		globalStatus.mu.RUnlock()
 
 		etcd1_ID, etcd1_Endpoint, etcd1_State := "unknown", "unknown", ""
-		etcd1_NumberOfKeys, etcd1_Hash := 0, 0
+		etcd1_DbSize, etcd1_DbSizeTxt, etcd1_Hash := uint64(0), "0 B", 0
 		if v, ok := copiedNameToStatus["etcd1"]; ok {
 			etcd1_ID = v.ID
 			etcd1_Endpoint = v.Endpoint
 			etcd1_State = v.State
-			etcd1_NumberOfKeys = v.NumberOfKeys
 			etcd1_Hash = v.Hash
+			etcd1_DbSize = v.DbSize
+			etcd1_DbSizeTxt = v.DbSizeTxt
 		}
 		etcd2_ID, etcd2_Endpoint, etcd2_State := "unknown", "unknown", ""
-		etcd2_NumberOfKeys, etcd2_Hash := 0, 0
+		etcd2_DbSize, etcd2_DbSizeTxt, etcd2_Hash := uint64(0), "0 B", 0
 		if v, ok := copiedNameToStatus["etcd2"]; ok {
 			etcd2_ID = v.ID
 			etcd2_Endpoint = v.Endpoint
 			etcd2_State = v.State
-			etcd2_NumberOfKeys = v.NumberOfKeys
 			etcd2_Hash = v.Hash
+			etcd2_DbSize = v.DbSize
+			etcd2_DbSizeTxt = v.DbSizeTxt
 		}
 		etcd3_ID, etcd3_Endpoint, etcd3_State := "unknown", "unknown", ""
-		etcd3_NumberOfKeys, etcd3_Hash := 0, 0
+		etcd3_DbSize, etcd3_DbSizeTxt, etcd3_Hash := uint64(0), "0 B", 0
 		if v, ok := copiedNameToStatus["etcd3"]; ok {
 			etcd3_ID = v.ID
 			etcd3_Endpoint = v.Endpoint
 			etcd3_State = v.State
-			etcd3_NumberOfKeys = v.NumberOfKeys
 			etcd3_Hash = v.Hash
+			etcd3_DbSize = v.DbSize
+			etcd3_DbSizeTxt = v.DbSizeTxt
 		}
 		etcd4_ID, etcd4_Endpoint, etcd4_State := "unknown", "unknown", ""
-		etcd4_NumberOfKeys, etcd4_Hash := 0, 0
+		etcd4_DbSize, etcd4_DbSizeTxt, etcd4_Hash := uint64(0), "0 B", 0
 		if v, ok := copiedNameToStatus["etcd4"]; ok {
 			etcd4_ID = v.ID
 			etcd4_Endpoint = v.Endpoint
 			etcd4_State = v.State
-			etcd4_NumberOfKeys = v.NumberOfKeys
 			etcd4_Hash = v.Hash
+			etcd4_DbSize = v.DbSize
+			etcd4_DbSizeTxt = v.DbSizeTxt
 		}
 		etcd5_ID, etcd5_Endpoint, etcd5_State := "unknown", "unknown", ""
-		etcd5_NumberOfKeys, etcd5_Hash := 0, 0
+		etcd5_DbSize, etcd5_DbSizeTxt, etcd5_Hash := uint64(0), "0 B", 0
 		if v, ok := copiedNameToStatus["etcd5"]; ok {
 			etcd5_ID = v.ID
 			etcd5_Endpoint = v.Endpoint
 			etcd5_State = v.State
-			etcd5_NumberOfKeys = v.NumberOfKeys
 			etcd5_Hash = v.Hash
+			etcd5_DbSize = v.DbSize
+			etcd5_DbSizeTxt = v.DbSizeTxt
 		}
 
 		resp := struct {
@@ -524,40 +529,45 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 			ActiveUserNumber int
 			ActiveUserList   string
 
-			Etcd1_Name         string
-			Etcd1_ID           string
-			Etcd1_Endpoint     string
-			Etcd1_State        string
-			Etcd1_NumberOfKeys int
-			Etcd1_Hash         int
+			Etcd1_Name      string
+			Etcd1_ID        string
+			Etcd1_Endpoint  string
+			Etcd1_State     string
+			Etcd1_Hash      int
+			Etcd1_DbSize    uint64
+			Etcd1_DbSizeTxt string
 
-			Etcd2_Name         string
-			Etcd2_ID           string
-			Etcd2_Endpoint     string
-			Etcd2_State        string
-			Etcd2_NumberOfKeys int
-			Etcd2_Hash         int
+			Etcd2_Name      string
+			Etcd2_ID        string
+			Etcd2_Endpoint  string
+			Etcd2_State     string
+			Etcd2_Hash      int
+			Etcd2_DbSize    uint64
+			Etcd2_DbSizeTxt string
 
-			Etcd3_Name         string
-			Etcd3_ID           string
-			Etcd3_Endpoint     string
-			Etcd3_State        string
-			Etcd3_NumberOfKeys int
-			Etcd3_Hash         int
+			Etcd3_Name      string
+			Etcd3_ID        string
+			Etcd3_Endpoint  string
+			Etcd3_State     string
+			Etcd3_Hash      int
+			Etcd3_DbSize    uint64
+			Etcd3_DbSizeTxt string
 
-			Etcd4_Name         string
-			Etcd4_ID           string
-			Etcd4_Endpoint     string
-			Etcd4_State        string
-			Etcd4_NumberOfKeys int
-			Etcd4_Hash         int
+			Etcd4_Name      string
+			Etcd4_ID        string
+			Etcd4_Endpoint  string
+			Etcd4_State     string
+			Etcd4_Hash      int
+			Etcd4_DbSize    uint64
+			Etcd4_DbSizeTxt string
 
-			Etcd5_Name         string
-			Etcd5_ID           string
-			Etcd5_Endpoint     string
-			Etcd5_State        string
-			Etcd5_NumberOfKeys int
-			Etcd5_Hash         int
+			Etcd5_Name      string
+			Etcd5_ID        string
+			Etcd5_Endpoint  string
+			Etcd5_State     string
+			Etcd5_Hash      int
+			Etcd5_DbSize    uint64
+			Etcd5_DbSizeTxt string
 		}{
 			humanize.Time(startTime),
 			len(globalCache.users),
@@ -567,36 +577,41 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 			etcd1_ID,
 			etcd1_Endpoint,
 			etcd1_State,
-			etcd1_NumberOfKeys,
 			etcd1_Hash,
+			etcd1_DbSize,
+			etcd1_DbSizeTxt,
 
 			"etcd2",
 			etcd2_ID,
 			etcd2_Endpoint,
 			etcd2_State,
-			etcd2_NumberOfKeys,
 			etcd2_Hash,
+			etcd2_DbSize,
+			etcd2_DbSizeTxt,
 
 			"etcd3",
 			etcd3_ID,
 			etcd3_Endpoint,
 			etcd3_State,
-			etcd3_NumberOfKeys,
 			etcd3_Hash,
+			etcd3_DbSize,
+			etcd3_DbSizeTxt,
 
 			"etcd4",
 			etcd4_ID,
 			etcd4_Endpoint,
 			etcd4_State,
-			etcd4_NumberOfKeys,
 			etcd4_Hash,
+			etcd4_DbSize,
+			etcd4_DbSizeTxt,
 
 			"etcd5",
 			etcd5_ID,
 			etcd5_Endpoint,
 			etcd5_State,
-			etcd5_NumberOfKeys,
 			etcd5_Hash,
+			etcd5_DbSize,
+			etcd5_DbSizeTxt,
 		}
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
 			return err

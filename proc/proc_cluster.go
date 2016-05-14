@@ -15,25 +15,22 @@
 package proc
 
 import (
-	"bufio"
 	"crypto/tls"
 	"fmt"
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"os/signal"
 	"path"
 	"reflect"
 	"sort"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/coreos/etcd/tools/functional-tester/etcd-agent/client"
+	"github.com/dustin/go-humanize"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -78,12 +75,17 @@ type Node interface {
 
 // ServerStatus encapsulates various statistics about an EtcdServer.
 type ServerStatus struct {
-	Name         string
-	ID           string
-	Endpoint     string
-	State        string
-	NumberOfKeys int
-	Hash         int
+	Name     string
+	ID       string
+	Endpoint string
+
+	State string
+	Hash  int
+
+	DbSize    uint64
+	DbSizeTxt string
+
+	// NumberOfKeys int
 }
 
 // Cluster controls a set of Nodes.
@@ -502,12 +504,15 @@ func (c *defaultCluster) Leader() (string, error) {
 }
 
 var emptyStat = ServerStatus{
-	Name:         "",
-	ID:           "unknown",
-	Endpoint:     "unknown",
-	State:        "unreachable",
-	NumberOfKeys: 0,
-	Hash:         0,
+	Name:      "",
+	ID:        "unknown",
+	Endpoint:  "unknown",
+	State:     "unreachable",
+	Hash:      0,
+	DbSize:    0,
+	DbSizeTxt: "0 B",
+
+	// NumberOfKeys: 0,
 }
 
 func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc chan error) {
@@ -528,22 +533,24 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 
 	done, errChan := make(chan struct{}), make(chan error)
 
-	// ID, State
+	// ID, State, DbSize
 	go func() {
 		mapi := pb.NewMaintenanceClient(conn)
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		sts, err := mapi.Status(ctx, &pb.StatusRequest{})
+		sresp, err := mapi.Status(ctx, &pb.StatusRequest{})
 		cancel()
 		if err != nil {
 			errChan <- err
 			return
 		}
-		mid := sts.Header.MemberId
+		mid := sresp.Header.MemberId
 		stat.ID = fmt.Sprintf("%x", mid)
 		stat.State = "Follower"
-		if mid == sts.Leader {
+		if mid == sresp.Leader {
 			stat.State = "Leader"
 		}
+		stat.DbSize = uint64(sresp.DbSize)
+		stat.DbSizeTxt = humanize.Bytes(stat.DbSize)
 		done <- struct{}{}
 	}()
 	select {
@@ -577,47 +584,49 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 		errc <- err
 		return
 	case <-done:
+		rs <- stat
 	}
 
 	// Number of keys
-	go func() {
-		resp, err := http.Get(v2Endpoint + "/metrics")
-		if err != nil {
-			errChan <- err
-			return
-		}
-		scanner := bufio.NewScanner(resp.Body)
-		for scanner.Scan() {
-			txt := scanner.Text()
-			if strings.HasPrefix(txt, "#") {
-				continue
-			}
-			ts := strings.SplitN(txt, " ", 2)
-			fv := 0.0
-			if len(ts) == 2 {
-				v, err := strconv.ParseFloat(ts[1], 64)
-				if err == nil {
-					fv = v
-				}
-			}
-			if ts[0] == "etcd_debugging_mvcc_keys_total" {
-				stat.NumberOfKeys = int(fv)
-				break
-			}
-		}
-		gracefulClose(resp)
-		done <- struct{}{}
-	}()
-	select {
-	case <-time.After(5 * time.Second):
-		errc <- fmt.Errorf("timed out")
-		return
-	case err := <-errChan:
-		errc <- err
-		return
-	case <-done:
-		rs <- stat
-	}
+	// go func() {
+	// 	resp, err := http.Get(v2Endpoint + "/metrics")
+	// 	if err != nil {
+	// 		errChan <- err
+	// 		return
+	// 	}
+	// 	scanner := bufio.NewScanner(resp.Body)
+	// 	for scanner.Scan() {
+	// 		txt := scanner.Text()
+	// 		if strings.HasPrefix(txt, "#") {
+	// 			continue
+	// 		}
+	// 		ts := strings.SplitN(txt, " ", 2)
+	// 		fv := 0.0
+	// 		if len(ts) == 2 {
+	// 			v, err := strconv.ParseFloat(ts[1], 64)
+	// 			if err == nil {
+	// 				fv = v
+	// 			}
+	// 		}
+	// 		if ts[0] == "etcd_debugging_mvcc_keys_total" {
+	// 			stat.NumberOfKeys = int(fv)
+	// 			break
+	// 		}
+	// 	}
+	// 	gracefulClose(resp)
+	// 	done <- struct{}{}
+	// }()
+	// select {
+	// case <-time.After(5 * time.Second):
+	// 	errc <- fmt.Errorf("timed out")
+	// 	return
+	// case err := <-errChan:
+	// 	errc <- err
+	// 	return
+	// case <-done:
+	// 	rs <- stat
+	// }
+
 	return
 }
 
