@@ -406,6 +406,7 @@ func (c *defaultCluster) Bootstrap() error {
 	done, errC := make(chan struct{}), make(chan error)
 	for name, nd := range c.nameToNode {
 		go func(name string, nd Node) {
+			fmt.Println("Starting", name)
 			err := nd.Start()
 			if err != nil {
 				errC <- fmt.Errorf("%s (%v)", name, err)
