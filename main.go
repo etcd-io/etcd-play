@@ -18,7 +18,6 @@
 //	  etcd-play [command]
 //
 //	Available Commands:
-//	  terminal    terminal plays etcd in terminal.
 //	  web         web plays etcd in web browser.
 //
 //	Use "etcd-play [command] --help" for more information about a command.
@@ -30,7 +29,6 @@ import (
 	"os"
 
 	"github.com/coreos/etcd-play/backend"
-	"github.com/coreos/etcd-play/terminal"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +45,6 @@ func init() {
 }
 
 func init() {
-	rootCommand.AddCommand(terminal.Command)
 	rootCommand.AddCommand(backend.WebCommand)
 }
 
