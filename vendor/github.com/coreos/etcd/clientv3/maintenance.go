@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2016 The etcd Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ package clientv3
 
 import (
 	"io"
-	"sync"
 
+	"github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -56,18 +56,15 @@ type Maintenance interface {
 type maintenance struct {
 	c *Client
 
-	mu     sync.Mutex
-	conn   *grpc.ClientConn // conn in-use
+	rc     *remoteClient
 	remote pb.MaintenanceClient
 }
 
 func NewMaintenance(c *Client) Maintenance {
-	conn := c.ActiveConnection()
-	return &maintenance{
-		c:      c,
-		conn:   conn,
-		remote: pb.NewMaintenanceClient(conn),
-	}
+	ret := &maintenance{c: c}
+	f := func(conn *grpc.ClientConn) { ret.remote = pb.NewMaintenanceClient(conn) }
+	ret.rc = newRemoteClient(c, f)
+	return ret
 }
 
 func (m *maintenance) AlarmList(ctx context.Context) (*AlarmResponse, error) {
@@ -81,10 +78,10 @@ func (m *maintenance) AlarmList(ctx context.Context) (*AlarmResponse, error) {
 		if err == nil {
 			return (*AlarmResponse)(resp), nil
 		}
-		if isHalted(ctx, err) {
-			return nil, err
+		if isHaltErr(ctx, err) {
+			return nil, rpctypes.Error(err)
 		}
-		if err = m.switchRemote(err); err != nil {
+		if err = m.rc.reconnectWait(ctx, err); err != nil {
 			return nil, err
 		}
 	}
@@ -100,13 +97,13 @@ func (m *maintenance) AlarmDisarm(ctx context.Context, am *AlarmMember) (*AlarmR
 	if req.MemberID == 0 && req.Alarm == pb.AlarmType_NONE {
 		ar, err := m.AlarmList(ctx)
 		if err != nil {
-			return nil, err
+			return nil, rpctypes.Error(err)
 		}
 		ret := AlarmResponse{}
 		for _, am := range ar.Alarms {
 			dresp, derr := m.AlarmDisarm(ctx, (*AlarmMember)(am))
 			if derr != nil {
-				return nil, derr
+				return nil, rpctypes.Error(derr)
 			}
 			ret.Alarms = append(ret.Alarms, dresp.Alarms...)
 		}
@@ -117,21 +114,21 @@ func (m *maintenance) AlarmDisarm(ctx context.Context, am *AlarmMember) (*AlarmR
 	if err == nil {
 		return (*AlarmResponse)(resp), nil
 	}
-	if !isHalted(ctx, err) {
-		go m.switchRemote(err)
+	if !isHaltErr(ctx, err) {
+		m.rc.reconnect(err)
 	}
-	return nil, err
+	return nil, rpctypes.Error(err)
 }
 
 func (m *maintenance) Defragment(ctx context.Context, endpoint string) (*DefragmentResponse, error) {
 	conn, err := m.c.Dial(endpoint)
 	if err != nil {
-		return nil, err
+		return nil, rpctypes.Error(err)
 	}
 	remote := pb.NewMaintenanceClient(conn)
 	resp, err := remote.Defragment(ctx, &pb.DefragmentRequest{})
 	if err != nil {
-		return nil, err
+		return nil, rpctypes.Error(err)
 	}
 	return (*DefragmentResponse)(resp), nil
 }
@@ -139,12 +136,12 @@ func (m *maintenance) Defragment(ctx context.Context, endpoint string) (*Defragm
 func (m *maintenance) Status(ctx context.Context, endpoint string) (*StatusResponse, error) {
 	conn, err := m.c.Dial(endpoint)
 	if err != nil {
-		return nil, err
+		return nil, rpctypes.Error(err)
 	}
 	remote := pb.NewMaintenanceClient(conn)
 	resp, err := remote.Status(ctx, &pb.StatusRequest{})
 	if err != nil {
-		return nil, err
+		return nil, rpctypes.Error(err)
 	}
 	return (*StatusResponse)(resp), nil
 }
@@ -152,7 +149,7 @@ func (m *maintenance) Status(ctx context.Context, endpoint string) (*StatusRespo
 func (m *maintenance) Snapshot(ctx context.Context) (io.ReadCloser, error) {
 	ss, err := m.getRemote().Snapshot(ctx, &pb.SnapshotRequest{})
 	if err != nil {
-		return nil, err
+		return nil, rpctypes.Error(err)
 	}
 
 	pr, pw := io.Pipe()
@@ -177,19 +174,7 @@ func (m *maintenance) Snapshot(ctx context.Context) (io.ReadCloser, error) {
 }
 
 func (m *maintenance) getRemote() pb.MaintenanceClient {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.rc.mu.Lock()
+	defer m.rc.mu.Unlock()
 	return m.remote
-}
-
-func (m *maintenance) switchRemote(prevErr error) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	newConn, err := m.c.retryConnection(m.conn, prevErr)
-	if err != nil {
-		return err
-	}
-	m.conn = newConn
-	m.remote = pb.NewMaintenanceClient(m.conn)
-	return nil
 }

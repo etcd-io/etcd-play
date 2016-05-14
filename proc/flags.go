@@ -23,97 +23,54 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/gyuho/psn/ss"
 	"github.com/satori/go.uuid"
 )
 
 // Flags is a set of etcd flags.
 type Flags struct {
-	// Name is a name for an etcd node.
-	Name string `flag:"name"`
-
-	// ListenClientURLs is a list of URLs to listen for clients.
-	// It is usually composed of scheme, host, and port '*79'.
-	// Default values are
-	// 'http://localhost:2379,http://localhost:4001'.
-	ListenClientURLs map[string]struct{} `flag:"listen-client-urls"`
-
-	// AdvertiseClientURLs is a list of this node's client URLs
-	// to advertise to the public. The client URLs advertised should
-	// be accessible to machines that talk to etcd cluster. etcd client
-	// libraries parse these URLs to connect to the cluster.
-	// It is usually composed of scheme, host, and port '*79'.
-	// Default values are
-	// 'http://localhost:2379,http://localhost:4001'.
-	AdvertiseClientURLs map[string]struct{} `flag:"advertise-client-urls"`
-
-	// ListenPeerURLs is a list of URLs to listen on for peer traffic.
-	// It is usually composed of scheme, host, and port '*80'.
-	// Default values are
-	// 'http://localhost:2380,http://localhost:7001'.
-	ListenPeerURLs map[string]struct{} `flag:"listen-peer-urls"`
-
-	// InitialAdvertisePeerURLs is URL to advertise to other nodes
-	// in the cluster, used to communicate between nodes.
-	// It is usually composed of scheme, host, and port '*80'.
-	// Default values are
-	// 'http://localhost:2380,http://localhost:7001'.
-	InitialAdvertisePeerURLs map[string]struct{} `flag:"initial-advertise-peer-urls"`
-
-	// InitialCluster is a map of each node name to its
-	// InitialAdvertisePeerURLs.
-	InitialCluster map[string]string `flag:"initial-cluster"`
-
-	// InitialClusterToken is a token specific to cluster.
-	// Specifying this can protect you from unintended cross-cluster
-	// interaction when running multiple clusters.
-	InitialClusterToken string `flag:"initial-cluster-token"`
-
-	// InitialClusterState is either 'new' or 'existing'.
-	InitialClusterState string `flag:"initial-cluster-state"`
-
-	// EnablePprof is either 'true' or 'false'.
-	EnablePprof bool `flag:"enable-pprof"`
-
-	// DataDir is a directory to store its database.
-	// It should be suffixed with '.etcd'.
+	Name    string `flag:"name"`
 	DataDir string `flag:"data-dir"`
 
-	// Proxy is either 'on' or 'off'.
-	Proxy bool `flag:"proxy"`
+	ListenClientURLs    map[string]struct{} `flag:"listen-client-urls"`
+	AdvertiseClientURLs map[string]struct{} `flag:"advertise-client-urls"`
+	ListenPeerURLs      map[string]struct{} `flag:"listen-peer-urls"`
+	AdvertisePeerURLs   map[string]struct{} `flag:"initial-advertise-peer-urls"`
 
-	ClientCertFile      string `flag:"cert-file"`        // Path to the client server TLS cert file.
-	ClientKeyFile       string `flag:"key-file"`         // Path to the client server TLS key file.
-	ClientCertAuth      bool   `flag:"client-cert-auth"` // Enable client cert authentication.
-	ClientTrustedCAFile string `flag:"trusted-ca-file"`  // Path to the client server TLS trusted CA key file.
+	InitialCluster      map[string]string `flag:"initial-cluster"`
+	InitialClusterToken string            `flag:"initial-cluster-token"`
+	InitialClusterState string            `flag:"initial-cluster-state"`
 
-	PeerCertFile       string `flag:"peer-cert-file"`        // Path to the peer server TLS cert file.
-	PeerKeyFile        string `flag:"peer-key-file"`         // Path to the peer server TLS key file.
-	PeerClientCertAuth bool   `flag:"peer-client-cert-auth"` // Enable peer client cert authentication.
-	PeerTrustedCAFile  string `flag:"peer-trusted-ca-file"`  // Path to the peer server TLS trusted CA file.
+	ClientAutoTLS bool `flag:"auto-tls"`
+	PeerAutoTLS   bool `flag:"peer-auto-tls"`
 }
 
 func defaultFlags() *Flags {
 	fs := &Flags{}
+
+	fs.DataDir = "data.etcd"
+
 	fs.ListenClientURLs = map[string]struct{}{"http://localhost:2379": struct{}{}}
 	fs.AdvertiseClientURLs = map[string]struct{}{"http://localhost:2379": struct{}{}}
+
 	fs.ListenPeerURLs = map[string]struct{}{"http://localhost:2380": struct{}{}}
-	fs.InitialAdvertisePeerURLs = map[string]struct{}{"http://localhost:2380": struct{}{}}
+	fs.AdvertisePeerURLs = map[string]struct{}{"http://localhost:2380": struct{}{}}
+
 	fs.InitialCluster = make(map[string]string)
+	fs.InitialClusterToken = ""
 	fs.InitialClusterState = "new"
-	fs.EnablePprof = true
-	fs.DataDir = uuid.NewV4().String() + ".etcd"
+
+	// TODO: enable auto TLS
+	fs.ClientAutoTLS = false
+	fs.PeerAutoTLS = false
+
 	return fs
 }
 
+// ports between 1178 ~ 65480
 var globalPortPrefix uint32 = 12
 
 // GenerateFlags returns generated default flags.
-func GenerateFlags(name, host string, remote bool, usedPorts *ss.Ports) (*Flags, error) {
-	// To allow ports between 1178 ~ 65480.
-	// Therefore, prefix must be between 11 and 654.
-	//
-	// portPrefix < 11 || portPrefix > 654
+func GenerateFlags(name, host string, remote bool) (*Flags, error) {
 	portPrefix := atomic.LoadUint32(&globalPortPrefix)
 	if !remote {
 		atomic.AddUint32(&globalPortPrefix, 1)
@@ -124,18 +81,6 @@ func GenerateFlags(name, host string, remote bool, usedPorts *ss.Ports) (*Flags,
 
 	clientURLPort := fmt.Sprintf(":%d79", portPrefix)
 	peerURLPort := fmt.Sprintf(":%d80", portPrefix)
-	if !remote && usedPorts != nil {
-		pts, err := ss.GetFreePorts(2, ss.TCP, ss.TCP6)
-		if err != nil {
-			return nil, err
-		}
-		if usedPorts.Exist(clientURLPort) {
-			clientURLPort = pts[0]
-		}
-		if usedPorts.Exist(peerURLPort) {
-			peerURLPort = pts[1]
-		}
-	}
 
 	hs := "localhost"
 	if host != "" {
@@ -144,23 +89,22 @@ func GenerateFlags(name, host string, remote bool, usedPorts *ss.Ports) (*Flags,
 	clientURL := "http://" + hs + clientURLPort
 	peerURL := "http://" + hs + peerURLPort
 
-	// TODO: automatic TLS
-	//
-	// if isClientTLS {
-	// 	clientURL = strings.Replace(clientURL, "http://", "https://", -1)
-	// }
-	// if isPeerTLS {
-	// 	peerURL = strings.Replace(peerURL, "http://", "https://", -1)
-	// }
-
 	fs := defaultFlags()
 	fs.Name = name
+	fs.DataDir = name + ".etcd"
+
+	if fs.ClientAutoTLS {
+		clientURL = strings.Replace(clientURL, "http://", "https://", -1)
+	}
+	if fs.PeerAutoTLS {
+		peerURL = strings.Replace(peerURL, "http://", "https://", -1)
+	}
 
 	fs.ListenClientURLs = map[string]struct{}{clientURL: struct{}{}}
 	fs.AdvertiseClientURLs = map[string]struct{}{clientURL: struct{}{}}
 
 	fs.ListenPeerURLs = map[string]struct{}{peerURL: struct{}{}}
-	fs.InitialAdvertisePeerURLs = map[string]struct{}{peerURL: struct{}{}}
+	fs.AdvertisePeerURLs = map[string]struct{}{peerURL: struct{}{}}
 
 	return fs, nil
 }
@@ -179,7 +123,7 @@ func CombineFlags(remote bool, cs ...*Flags) error {
 		} else if portCheck == tp && !remote {
 			return fmt.Errorf("%q has duplicate ports in another node!", cs[i].getAllPorts())
 		}
-		nameToPeerURL[cs[i].Name] = mapToCommaString(cs[i].InitialAdvertisePeerURLs)
+		nameToPeerURL[cs[i].Name] = mapToCommaString(cs[i].AdvertisePeerURLs)
 	}
 	token := uuid.NewV4().String() // must be same (used for cluster-id)
 	for i := range cs {
@@ -231,11 +175,11 @@ func (f *Flags) Pairs() ([][]string, error) {
 	}
 	pairs = append(pairs, []string{listenPeerURLsTag, mapToCommaString(f.ListenPeerURLs)})
 
-	initialAdvertisePeerURLsTag, err := f.getTag("InitialAdvertisePeerURLs")
+	advertisePeerURLsTag, err := f.getTag("AdvertisePeerURLs")
 	if err != nil {
 		return nil, err
 	}
-	pairs = append(pairs, []string{initialAdvertisePeerURLsTag, mapToCommaString(f.InitialAdvertisePeerURLs)})
+	pairs = append(pairs, []string{advertisePeerURLsTag, mapToCommaString(f.AdvertisePeerURLs)})
 
 	initialClusterTag, err := f.getTag("InitialCluster")
 	if err != nil {
@@ -259,78 +203,26 @@ func (f *Flags) Pairs() ([][]string, error) {
 		pairs = append(pairs, []string{initialClusterStateTag, "existing"})
 	}
 
-	enablePprofTag, err := f.getTag("EnablePprof")
-	if err != nil {
-		return nil, err
-	}
-	if f.EnablePprof {
-		pairs = append(pairs, []string{enablePprofTag, "true"})
-	}
-
 	dataDirTag, err := f.getTag("DataDir")
 	if err != nil {
 		return nil, err
 	}
 	pairs = append(pairs, []string{dataDirTag, strings.TrimSpace(f.DataDir)})
 
-	proxyTag, err := f.getTag("Proxy")
+	clientAutoTLSTag, err := f.getTag("ClientAutoTLS")
 	if err != nil {
 		return nil, err
 	}
-	if f.Proxy {
-		pairs = append(pairs, []string{proxyTag, "on"})
+	if f.ClientAutoTLS {
+		pairs = append(pairs, []string{clientAutoTLSTag, "true"})
 	}
 
-	if f.ClientCertFile != "" && f.ClientKeyFile != "" {
-		clientCertTag, err := f.getTag("ClientCertFile")
-		if err != nil {
-			return nil, err
-		}
-		pairs = append(pairs, []string{clientCertTag, f.ClientCertFile})
-
-		clientKeyTag, err := f.getTag("ClientKeyFile")
-		if err != nil {
-			return nil, err
-		}
-		pairs = append(pairs, []string{clientKeyTag, f.ClientKeyFile})
-
-		clientClientCertAuthTag, err := f.getTag("ClientCertAuth")
-		if err != nil {
-			return nil, err
-		}
-		pairs = append(pairs, []string{clientClientCertAuthTag, "true"})
-
-		clientTrustedCAFileTag, err := f.getTag("ClientTrustedCAFile")
-		if err != nil {
-			return nil, err
-		}
-		pairs = append(pairs, []string{clientTrustedCAFileTag, f.PeerTrustedCAFile})
+	peerAutoTLSTag, err := f.getTag("PeerAutoTLS")
+	if err != nil {
+		return nil, err
 	}
-
-	if f.PeerCertFile != "" && f.PeerKeyFile != "" {
-		peerCertTag, err := f.getTag("PeerCertFile")
-		if err != nil {
-			return nil, err
-		}
-		pairs = append(pairs, []string{peerCertTag, f.PeerCertFile})
-
-		peerKeyTag, err := f.getTag("PeerKeyFile")
-		if err != nil {
-			return nil, err
-		}
-		pairs = append(pairs, []string{peerKeyTag, f.PeerKeyFile})
-
-		peerClientCertAuthTag, err := f.getTag("PeerClientCertAuth")
-		if err != nil {
-			return nil, err
-		}
-		pairs = append(pairs, []string{peerClientCertAuthTag, "true"})
-
-		peerTrustedCAFileTag, err := f.getTag("PeerTrustedCAFile")
-		if err != nil {
-			return nil, err
-		}
-		pairs = append(pairs, []string{peerTrustedCAFileTag, f.PeerTrustedCAFile})
+	if f.PeerAutoTLS {
+		pairs = append(pairs, []string{peerAutoTLSTag, "true"})
 	}
 
 	return pairs, nil
@@ -379,7 +271,7 @@ func (f *Flags) getAllPorts() []string {
 		ss := strings.Split(k, ":")
 		tm[strings.TrimSpace(ss[len(ss)-1])] = struct{}{}
 	}
-	for k := range f.InitialAdvertisePeerURLs {
+	for k := range f.AdvertisePeerURLs {
 		ss := strings.Split(k, ":")
 		tm[strings.TrimSpace(ss[len(ss)-1])] = struct{}{}
 	}

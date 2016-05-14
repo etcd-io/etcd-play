@@ -16,12 +16,14 @@ package proc
 
 import (
 	"bufio"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
 	"reflect"
 	"sort"
 	"strconv"
@@ -32,25 +34,17 @@ import (
 	"github.com/coreos/etcd/clientv3"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/coreos/etcd/tools/functional-tester/etcd-agent/client"
-	"github.com/fatih/color"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
 var (
-	colorsTerminal = []color.Attribute{
-		color.FgRed,
-		color.FgGreen,
-		color.FgYellow,
-		color.FgBlue,
-		color.FgMagenta,
-	}
-	colorsToHTML = map[color.Attribute]string{
-		color.FgRed:     "#ff0000",
-		color.FgGreen:   "#008000",
-		color.FgYellow:  "#ff9933",
-		color.FgBlue:    "#0000ff",
-		color.FgMagenta: "#ff00ff",
+	colorsToHTML = []string{
+		"#ff0000", // red
+		"#008000", // green
+		"#ff9933", // yellow
+		"#0000ff", // blue
+		"#ff00ff", // magenta
 	}
 )
 
@@ -77,6 +71,9 @@ type Node interface {
 	// Clean cleans up the resources from the Node. This must be called
 	// after Terminate.
 	Clean() error
+
+	// TLS returns the *tls.Config of the Node.
+	TLS() *tls.Config
 }
 
 // ServerStatus encapsulates various statistics about an EtcdServer.
@@ -146,10 +143,6 @@ type Cluster interface {
 	// Stress stresses the cluster. If the name is not specified, it stresses
 	// random nodes.
 	Stress(name string, stressN int, streamIDs ...string) error
-
-	// WatchPut demos watch feature. If the name is not specified, it watches
-	// on random nodes.
-	WatchPut(name string, watchersN int, streamIDs ...string) error
 }
 
 // defaultCluster groups a set of Node processes.
@@ -164,8 +157,7 @@ type defaultCluster struct {
 type NodeType int
 
 const (
-	Terminal NodeType = iota
-	WebLocal
+	WebLocal NodeType = iota
 	WebRemote
 )
 
@@ -237,7 +229,7 @@ func NewCluster(opt NodeType, programPath string, fs []*Flags, opts ...OpOption)
 
 	var maxProcNameLength, colorIdx int
 	for i, f := range fs {
-		if colorIdx >= len(colorsTerminal) {
+		if colorIdx >= len(colorsToHTML) {
 			colorIdx = 0
 		}
 
@@ -246,21 +238,12 @@ func NewCluster(opt NodeType, programPath string, fs []*Flags, opts ...OpOption)
 			maxProcNameLength = len(name)
 		}
 
+		var (
+			certPath = path.Join(f.DataDir, "fixtures/client/cert.pem")
+			keyPath  = path.Join(f.DataDir, "fixtures/client/key.pem")
+		)
 		var ni Node
 		switch opt {
-		case Terminal:
-			ni = &NodeTerminal{
-				pmu:                &c.mu,
-				pmaxProcNameLength: &maxProcNameLength,
-				colorIdx:           colorIdx,
-				w:                  os.Stdout,
-				ProgramPath:        programPath,
-				Flags:              f,
-				cmd:                nil,
-				PID:                0,
-				active:             false,
-			}
-
 		case WebLocal:
 			ni = &NodeWebLocal{
 				pmu:                &c.mu,
@@ -270,6 +253,9 @@ func NewCluster(opt NodeType, programPath string, fs []*Flags, opts ...OpOption)
 				sharedStream:       bufferedStream, // shared by all nodes
 				ProgramPath:        programPath,
 				Flags:              f,
+				TLSCertPath:        certPath,
+				TLSKeyPath:         keyPath,
+				TLSConfig:          nil,
 				cmd:                nil,
 				PID:                0,
 				active:             false,
@@ -286,6 +272,9 @@ func NewCluster(opt NodeType, programPath string, fs []*Flags, opts ...OpOption)
 			}
 			ni = &NodeWebRemoteClient{
 				Flags:         f,
+				TLSCertPath:   certPath,
+				TLSKeyPath:    keyPath,
+				TLSConfig:     nil,
 				Agent:         a,
 				active:        false,
 				limitInterval: o.limitInterval,
@@ -312,9 +301,6 @@ func (c *defaultCluster) Write(name, msg string, streamIDs ...string) error {
 	}
 
 	switch vt := nd.(type) {
-	case *NodeTerminal:
-		fmt.Fprintln(vt, msg)
-
 	case *NodeWebLocal:
 		if len(streamIDs) == 0 {
 			vt.sharedStream <- msg
@@ -506,7 +492,7 @@ func (c *defaultCluster) Leader() (string, error) {
 			continue
 		}
 
-		if resp.Leader == resp.Header.MemberId {
+		if resp.Header.MemberId == resp.Leader {
 			return epToName[ep], nil
 		}
 		lerr = nil
@@ -524,6 +510,10 @@ var emptyStat = ServerStatus{
 }
 
 func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc chan error) {
+	// func getStatus(name, grpcEndpoint, v2Endpoint string, tlsConfig *tls.Config, rs chan ServerStatus, errc chan error) {
+	// tc := credentials.NewTLS(tlsConfig)
+	// conn, err := grpc.Dial(grpcEndpoint, grpc.WithTransportCredentials(tc), grpc.WithTimeout(5*time.Second))
+
 	conn, err := grpc.Dial(grpcEndpoint, grpc.WithInsecure(), grpc.WithTimeout(5*time.Second))
 	if err != nil {
 		errc <- err
@@ -609,7 +599,7 @@ func getStatus(name, grpcEndpoint, v2Endpoint string, rs chan ServerStatus, errc
 					fv = v
 				}
 			}
-			if ts[0] == "etcd_storage_keys_total" {
+			if ts[0] == "etcd_debugging_mvcc_keys_total" {
 				stat.NumberOfKeys = int(fv)
 				break
 			}
@@ -640,6 +630,7 @@ func (c *defaultCluster) Status() (map[string]ServerStatus, error) {
 	sc, errc := make(chan ServerStatus), make(chan error)
 	for name, grpcEndpoint := range nameToEndpoint {
 		go getStatus(name, grpcEndpoint, nameToV2Endpoint[name], sc, errc)
+		// go getStatus(name, grpcEndpoint, nameToV2Endpoint[name], c.nameToNode[name].TLS(), sc, errc)
 	}
 
 	nameToStatus := make(map[string]ServerStatus)
@@ -731,8 +722,13 @@ func (c *defaultCluster) Get(name, key string, streamIDs ...string) ([]string, e
 
 	c.Write(name, fmt.Sprintf("[GET] Started! (endpoints: %q)", endpoints), streamIDs...)
 
+	var opts []clientv3.OpOption
+	if len(key) == 0 {
+		key = "\x00" // query the whole key
+		opts = append(opts, clientv3.WithFromKey())
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	resp, err := kvc.Get(ctx, key)
+	resp, err := kvc.Get(ctx, key, opts...)
 	cancel()
 	if err != nil {
 		return nil, err
@@ -864,81 +860,4 @@ func (c *defaultCluster) Stress(name string, stressN int, streamIDs ...string) e
 	case <-time.After(5 * time.Second):
 		return fmt.Errorf("Stress timed out!")
 	}
-}
-
-func (c *defaultCluster) WatchPut(name string, watchersN int, streamIDs ...string) error {
-	endpoints, nameToEndpoint, _ := c.Endpoints()
-	if name == "" {
-		for n := range nameToEndpoint {
-			name = n
-			break
-		}
-	}
-	if v, ok := nameToEndpoint[name]; ok {
-		endpoints = []string{v}
-	}
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   endpoints,
-		DialTimeout: 5 * time.Second,
-	})
-	if err != nil {
-		return err
-	}
-	defer cli.Close()
-
-	clientsN := 10 // 1 connection, 10 clients
-	wcs := make([]clientv3.Watcher, clientsN)
-	for i := range wcs {
-		wcs[i] = clientv3.NewWatcher(cli)
-	}
-
-	defer func() {
-		c.Write(name, fmt.Sprintf("[WatchPut] Closing all watchers! (endpoints: %q)", endpoints), streamIDs...)
-		for i := range wcs {
-			wcs[i].Close()
-		}
-	}()
-
-	respChs := make([]<-chan clientv3.WatchResponse, watchersN)
-	for i := 0; i < watchersN; i++ {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-		respChs[i] = wcs[rand.Intn(clientsN)].Watch(ctx, "foo")
-	}
-
-	c.Write(name, "[PUT] Triggers watch...", streamIDs...)
-	kvc := clientv3.NewKV(cli)
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	_, err = kvc.Put(ctx, "foo", "bar")
-	cancel()
-	if err != nil {
-		return err
-	}
-
-	st := time.Now()
-	var wg sync.WaitGroup
-	wg.Add(watchersN)
-	for i := 0; i < watchersN; i++ {
-		go func(i int) {
-			defer wg.Done()
-			rch := respChs[i]
-			select {
-			case wresp, ok := <-rch:
-				if !ok {
-					c.Write(name, "watcher unexpectedly closed", streamIDs...)
-					return
-				}
-				c.Write(name, fmt.Sprintf("[Watch revision] %d\n", wresp.Header.Revision), streamIDs...)
-				for _, ev := range wresp.Events {
-					c.Write(name, fmt.Sprintf("[%s] %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value), streamIDs...)
-				}
-			case <-time.After(3 * time.Second):
-				c.Write(name, "watch timed out")
-			}
-		}(i)
-	}
-	wg.Wait()
-
-	c.Write(name, fmt.Sprintf("[Watch] Done! Took %v!\n", time.Since(st)), streamIDs...)
-	return nil
 }

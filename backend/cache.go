@@ -27,7 +27,6 @@ import (
 
 	"github.com/coreos/etcd-play/proc"
 	"github.com/gorilla/websocket"
-	"github.com/gyuho/psn/ss"
 )
 
 type (
@@ -61,7 +60,6 @@ type (
 )
 
 var (
-	globalPorts = ss.NewPorts()
 	globalCache = &cache{
 		cluster: nil,
 		users:   make(map[string]*userData),
@@ -77,18 +75,6 @@ var (
 
 // initGlobalData must be called at the beginning of 'web' command.
 func initGlobalData() {
-	if globalFlags.LinuxAutoPort {
-		globalPorts.Refresh()
-		go func() {
-			for {
-				select {
-				case <-time.After(globalFlags.LinuxIntervalPortRefresh):
-					globalPorts.Refresh()
-				}
-			}
-		}()
-	}
-
 	globalCache.mu.Lock()
 	if globalCache.users == nil {
 		globalCache.users = make(map[string]*userData)
@@ -189,7 +175,7 @@ func withCache(h ContextHandler) ContextHandler {
 		if _, ok := globalCache.users[userID]; !ok {
 			globalCache.users[userID] = &userData{
 				upgrader:        &websocket.Upgrader{},
-				startTime:       time.Now(),
+				startTime:       time.Now().Round(uptimeScale),
 				lastRequestTime: time.Time{},
 				requestCount:    0,
 				keyHistory: []string{

@@ -33,7 +33,7 @@ func TestFlagsTag(t *testing.T) {
 }
 
 func TestGenerateFlags(t *testing.T) {
-	df, err := GenerateFlags("etcd1", "", false, nil)
+	df, err := GenerateFlags("etcd1", "", false)
 	if err != nil {
 		t.Error(err)
 	}
@@ -49,7 +49,7 @@ func TestGenerateFlags(t *testing.T) {
 func TestCombineFlags(t *testing.T) {
 	fs := make([]*Flags, 5)
 	for i := range fs {
-		df, err := GenerateFlags(fmt.Sprintf("etcd%d", i), "", false, nil)
+		df, err := GenerateFlags(fmt.Sprintf("etcd%d", i), "", false)
 		if err != nil {
 			t.Error(err)
 		}
@@ -65,7 +65,7 @@ func TestCombineFlags(t *testing.T) {
 }
 
 func TestGetAllPorts(t *testing.T) {
-	df, err := GenerateFlags("etcd1", "", false, nil)
+	df, err := GenerateFlags("etcd1", "", false)
 	if err != nil {
 		t.Error(err)
 	}

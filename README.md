@@ -6,41 +6,6 @@ This is an experimental project. Project/code is subject to change anytime.
 
 etcd-play is a playground for exploring the [`etcd`][etcd-home] distributed key-value database. Try it out live at [play.etcd.io][play-etcd].
 
-## Get started
-
-```
-# Install
-go get -v -u github.com/coreos/etcd
-go get -v -u github.com/coreos/etcd/tools/functional-tester/etcd-agent
-go get -v -u github.com/coreos/etcd-play
-
-etcd-play web        # run in your web browser (localhost)
-etcd-play terminal   # run in terminal
-
-# Run with remote machines
-etcd-agent  # deploy in machine1
-etcd-agent  # deploy in machine2
-etcd-agent  # deploy in machine3
-etcd-agent  # deploy in machine4
-etcd-agent  # deploy in machine5
-
-AGENT_RPC_ENDPOINTS='10.0.0.1:9027,10.0.0.2:9027,10.0.0.3:9027,10.0.0.4:9027,10.0.0.5:9027'
-etcd-play web --keep-alive --linux-auto-port=false --production --remote \
-	--agent-endpoints="$(echo $AGENT_RPC_ENDPOINTS)"
-```
-
-### Start in docker
-```
-# Build image
-docker build -t etcd-play .
-
-# Run in web browser
-docker run -p 8000:8000 --rm --name etcd-play etcd-play bin/etcd-play web
-
-# Run in terminal
-docker run --rm --name etcd-play etcd-play bin/etcd-play terminal
-```
-
 ## Play with `etcd` in a web browser
 
 `etcd` uses the [Raft consensus algorithm][raft-home] to replicate data on distributed machines in order to gracefully handle network partitions, node failures, and even leader failures. The etcd team extensively tests failure scenarios in the [etcd functional test suite][etcd-functests]. Real-time results from this testing are available at the [etcd test dashboard][etcd-dash].
@@ -74,10 +39,6 @@ The animation above shows the Leader going down, and shortly a new leader is ele
 <img src="https://storage.googleapis.com/play-etcd/all_nodes_failures_20160307.gif" alt="all_node_failures"/>
 
 The animation above shows all nodes being terminated with the `Kill` button. `etcd` recovers the data from stable storage. You can see the number of keys and hash values match, before and after. The cluster can handle client requests immediately after recovery with a new leader.
-
-## Play with `etcd` in a terminal
-
-<img src="https://storage.googleapis.com/play-etcd/terminal.png" alt="terminal" width="570"/>
 
 [cistat]: https://travis-ci.org/coreos/etcd-play
 [etcd-dash]: http://dash.etcd.io

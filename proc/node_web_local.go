@@ -16,6 +16,7 @@ package proc
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -38,6 +39,10 @@ type NodeWebLocal struct {
 
 	ProgramPath string
 	Flags       *Flags
+
+	TLSCertPath string
+	TLSKeyPath  string
+	TLSConfig   *tls.Config
 
 	cmd *exec.Cmd
 	PID int
@@ -62,7 +67,7 @@ func (nd *NodeWebLocal) Write(p []byte) (int, error) {
 		}
 		if len(line) > 1 {
 			format := fmt.Sprintf("%%%ds | ", *(nd.pmaxProcNameLength))
-			format = fmt.Sprintf(`<b><font color="%s">`, colorsToHTML[colorsTerminal[nd.colorIdx]]) + format + "</font>" + "%s</b>"
+			format = fmt.Sprintf(`<b><font color="%s">`, colorsToHTML[nd.colorIdx]) + format + "</font>" + "%s</b>"
 			nd.sharedStream <- fmt.Sprintf(format, nd.Flags.Name, line)
 			wrote += len(line)
 		}
@@ -99,6 +104,14 @@ func (nd *NodeWebLocal) IsActive() bool {
 
 func (nd *NodeWebLocal) Start() error {
 	defer func() {
+		// if nd.TLSConfig == nil {
+		// 	tlsConfig, err := autoSelfCert(nd.TLSCertPath, nd.TLSKeyPath)
+		// 	if err != nil {
+		// 		nd.sharedStream <- fmt.Sprintf("TLS %s: error (%v)\n", nd.Flags.Name, err)
+		// 	}
+		// 	nd.TLSConfig = tlsConfig
+		// }
+
 		if err := recover(); err != nil {
 			nd.sharedStream <- fmt.Sprintf("Start %s: panic (%v)\n", nd.Flags.Name, err)
 		}
@@ -281,4 +294,8 @@ func (nd *NodeWebLocal) Clean() error {
 		return err
 	}
 	return nil
+}
+
+func (nd *NodeWebLocal) TLS() *tls.Config {
+	return nd.TLSConfig
 }

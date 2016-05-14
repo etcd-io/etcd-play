@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2016 The etcd Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ type Config struct {
 	Logger Logger
 }
 
-type YamlConfig struct {
+type yamlConfig struct {
 	Endpoints             []string      `json:"endpoints"`
 	DialTimeout           time.Duration `json:"dial-timeout"`
 	InsecureTransport     bool          `json:"insecure-transport"`
@@ -61,7 +61,7 @@ func configFromFile(fpath string) (*Config, error) {
 		return nil, err
 	}
 
-	yc := &YamlConfig{}
+	yc := &yamlConfig{}
 
 	err = yaml.Unmarshal(b, yc)
 	if err != nil {

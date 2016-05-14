@@ -1,4 +1,4 @@
-// Copyright 2016 Nippon Telegraph and Telephone Corporation.
+// Copyright 2016 The etcd Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/coreos/etcd/auth/authpb"
+	"github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -26,6 +27,8 @@ import (
 
 type (
 	AuthEnableResponse             pb.AuthEnableResponse
+	AuthDisableResponse            pb.AuthDisableResponse
+	AuthenticateResponse           pb.AuthenticateResponse
 	AuthUserAddResponse            pb.AuthUserAddResponse
 	AuthUserDeleteResponse         pb.AuthUserDeleteResponse
 	AuthUserChangePasswordResponse pb.AuthUserChangePasswordResponse
@@ -45,6 +48,12 @@ const (
 type Auth interface {
 	// AuthEnable enables auth of an etcd cluster.
 	AuthEnable(ctx context.Context) (*AuthEnableResponse, error)
+
+	// AuthDisable disables auth of an etcd cluster.
+	AuthDisable(ctx context.Context) (*AuthDisableResponse, error)
+
+	// Authenticate does authenticate with given user name and password.
+	Authenticate(ctx context.Context, name string, password string) (*AuthenticateResponse, error)
 
 	// UserAdd adds a new user to an etcd cluster.
 	UserAdd(ctx context.Context, name string, password string) (*AuthUserAddResponse, error)
@@ -83,32 +92,42 @@ func NewAuth(c *Client) Auth {
 
 func (auth *auth) AuthEnable(ctx context.Context) (*AuthEnableResponse, error) {
 	resp, err := auth.remote.AuthEnable(ctx, &pb.AuthEnableRequest{})
-	return (*AuthEnableResponse)(resp), err
+	return (*AuthEnableResponse)(resp), rpctypes.Error(err)
+}
+
+func (auth *auth) AuthDisable(ctx context.Context) (*AuthDisableResponse, error) {
+	resp, err := auth.remote.AuthDisable(ctx, &pb.AuthDisableRequest{})
+	return (*AuthDisableResponse)(resp), rpctypes.Error(err)
+}
+
+func (auth *auth) Authenticate(ctx context.Context, name string, password string) (*AuthenticateResponse, error) {
+	resp, err := auth.remote.Authenticate(ctx, &pb.AuthenticateRequest{Name: name, Password: password})
+	return (*AuthenticateResponse)(resp), rpctypes.Error(err)
 }
 
 func (auth *auth) UserAdd(ctx context.Context, name string, password string) (*AuthUserAddResponse, error) {
 	resp, err := auth.remote.UserAdd(ctx, &pb.AuthUserAddRequest{Name: name, Password: password})
-	return (*AuthUserAddResponse)(resp), err
+	return (*AuthUserAddResponse)(resp), rpctypes.Error(err)
 }
 
 func (auth *auth) UserDelete(ctx context.Context, name string) (*AuthUserDeleteResponse, error) {
 	resp, err := auth.remote.UserDelete(ctx, &pb.AuthUserDeleteRequest{Name: name})
-	return (*AuthUserDeleteResponse)(resp), err
+	return (*AuthUserDeleteResponse)(resp), rpctypes.Error(err)
 }
 
 func (auth *auth) UserChangePassword(ctx context.Context, name string, password string) (*AuthUserChangePasswordResponse, error) {
 	resp, err := auth.remote.UserChangePassword(ctx, &pb.AuthUserChangePasswordRequest{Name: name, Password: password})
-	return (*AuthUserChangePasswordResponse)(resp), err
+	return (*AuthUserChangePasswordResponse)(resp), rpctypes.Error(err)
 }
 
 func (auth *auth) UserGrant(ctx context.Context, user string, role string) (*AuthUserGrantResponse, error) {
 	resp, err := auth.remote.UserGrant(ctx, &pb.AuthUserGrantRequest{User: user, Role: role})
-	return (*AuthUserGrantResponse)(resp), err
+	return (*AuthUserGrantResponse)(resp), rpctypes.Error(err)
 }
 
 func (auth *auth) RoleAdd(ctx context.Context, name string) (*AuthRoleAddResponse, error) {
 	resp, err := auth.remote.RoleAdd(ctx, &pb.AuthRoleAddRequest{Name: name})
-	return (*AuthRoleAddResponse)(resp), err
+	return (*AuthRoleAddResponse)(resp), rpctypes.Error(err)
 }
 
 func (auth *auth) RoleGrant(ctx context.Context, name string, key string, permType PermissionType) (*AuthRoleGrantResponse, error) {
@@ -117,7 +136,7 @@ func (auth *auth) RoleGrant(ctx context.Context, name string, key string, permTy
 		PermType: authpb.Permission_Type(permType),
 	}
 	resp, err := auth.remote.RoleGrant(ctx, &pb.AuthRoleGrantRequest{Name: name, Perm: perm})
-	return (*AuthRoleGrantResponse)(resp), err
+	return (*AuthRoleGrantResponse)(resp), rpctypes.Error(err)
 }
 
 func StrToPermissionType(s string) (PermissionType, error) {

@@ -1,4 +1,4 @@
-// Copyright 2016 CoreOS, Inc.
+// Copyright 2016 The etcd Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package clientv3
 import (
 	"sync"
 
+	"github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes"
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"golang.org/x/net/context"
 )
@@ -146,16 +147,16 @@ func (txn *txn) Commit() (*TxnResponse, error) {
 			return (*TxnResponse)(resp), nil
 		}
 
-		if isHalted(txn.ctx, err) {
-			return nil, err
+		if isHaltErr(txn.ctx, err) {
+			return nil, rpctypes.Error(err)
 		}
 
 		if txn.isWrite {
-			go kv.switchRemote(err)
-			return nil, err
+			kv.rc.reconnect(err)
+			return nil, rpctypes.Error(err)
 		}
 
-		if nerr := kv.switchRemote(err); nerr != nil {
+		if nerr := kv.rc.reconnectWait(txn.ctx, err); nerr != nil {
 			return nil, nerr
 		}
 	}
