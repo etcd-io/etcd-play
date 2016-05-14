@@ -21,12 +21,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/coreos/etcd-play/proc"
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 	"golang.org/x/net/context"
 )
@@ -39,9 +39,6 @@ type (
 		ClusterSize int
 		LiveLog     bool
 
-		LinuxAutoPort            bool
-		LinuxIntervalPortRefresh time.Duration
-
 		KeepAlive      bool
 		ClusterTimeout time.Duration
 		LimitInterval  time.Duration
@@ -49,9 +46,7 @@ type (
 
 		StressNumber int
 
-		PlayWebPort string
-		Production  bool
-
+		PlayWebPort    string
 		IsRemote       bool
 		AgentEndpoints []string
 	}
@@ -107,19 +102,14 @@ func init() {
 	WebCommand.PersistentFlags().IntVar(&globalFlags.ClusterSize, "cluster-size", 5, "size of cluster to create")
 	WebCommand.PersistentFlags().BoolVar(&globalFlags.LiveLog, "live-log", false, "'true' to enable streaming etcd logs (only support localhost)")
 
-	WebCommand.PersistentFlags().BoolVar(&globalFlags.LinuxAutoPort, "linux-auto-port", strings.Contains(runtime.GOOS, "linux"), "(only linux supported) 'true' to automate port findings")
-	WebCommand.PersistentFlags().DurationVar(&globalFlags.LinuxIntervalPortRefresh, "linux-port-refresh", 10*time.Second, "(only linux supported) interval to refresh free ports")
-
 	WebCommand.PersistentFlags().BoolVarP(&globalFlags.KeepAlive, "keep-alive", "k", false, "'true' to run demo without auto-termination (this overwrites cluster-timeout)")
 	WebCommand.PersistentFlags().DurationVar(&globalFlags.ClusterTimeout, "cluster-timeout", 5*time.Minute, "after timeout, etcd shuts down the cluster")
 	WebCommand.PersistentFlags().DurationVar(&globalFlags.LimitInterval, "limit-interval", 7*time.Second, "interval to rate-limit immediate restart, terminate")
 	WebCommand.PersistentFlags().DurationVar(&globalFlags.ReviveInterval, "revive-interval", 15*time.Minute, "interval to automatically revive all-failed cluster")
 
-	WebCommand.PersistentFlags().IntVar(&globalFlags.StressNumber, "stress-number", 10, "size of stress requests")
+	WebCommand.PersistentFlags().IntVar(&globalFlags.StressNumber, "stress-number", 5, "size of stress requests")
 
 	WebCommand.PersistentFlags().StringVarP(&globalFlags.PlayWebPort, "port", "p", ":8000", "port to serve the play web interface")
-	WebCommand.PersistentFlags().BoolVar(&globalFlags.Production, "production", false, "'true' when deploying as a web server in production")
-
 	WebCommand.PersistentFlags().BoolVar(&globalFlags.IsRemote, "remote", false, "'true' when agents are deployed remotely")
 	WebCommand.PersistentFlags().StringSliceVar(&globalFlags.AgentEndpoints, "agent-endpoints", []string{"localhost:9027"}, "list of remote agent endpoints")
 }
@@ -145,16 +135,8 @@ func CommandFunc(cmd *cobra.Command, args []string) {
 	defer cancel()
 
 	mainRouter := http.NewServeMux()
+	mainRouter.Handle("/", http.FileServer(http.Dir("./frontend")))
 
-	// mainRouter.Handle("/", http.FileServer(http.Dir("./frontend")))
-	staticHandler := staticLocalHandler
-	if globalFlags.IsRemote {
-		staticHandler = staticRemoteHandler
-	}
-	mainRouter.Handle("/", &ContextAdapter{
-		ctx:     rootContext,
-		handler: withCache(ContextHandlerFunc(staticHandler)),
-	})
 	mainRouter.Handle("/ws", &ContextAdapter{
 		ctx:     rootContext,
 		handler: withCache(ContextHandlerFunc(wsHandler)),
@@ -207,6 +189,7 @@ func CommandFunc(cmd *cobra.Command, args []string) {
 		ctx:     rootContext,
 		handler: withCache(ContextHandlerFunc(killHandler)),
 	})
+
 	mainRouter.Handle("/restart_1", &ContextAdapter{
 		ctx:     rootContext,
 		handler: withCache(ContextHandlerFunc(restartHandler)),
@@ -364,7 +347,7 @@ func startClusterHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 	switch req.Method {
 	case "GET":
 		wport := globalFlags.PlayWebPort
-		if globalFlags.Production {
+		if globalFlags.IsRemote {
 			wport = ":80"
 		}
 		resp := struct {
@@ -412,7 +395,7 @@ func startCluster(nodeType proc.NodeType, clusterSize int, liveLog bool, limitIn
 		if len(agentEndpoints) > 1 && nodeType == proc.WebRemote {
 			host = strings.TrimSpace(strings.Split(agentEndpoints[i], ":")[0])
 		}
-		df, err := proc.GenerateFlags(fmt.Sprintf("etcd%d", i+1), host, nodeType == proc.WebRemote, globalPorts)
+		df, err := proc.GenerateFlags(fmt.Sprintf("etcd%d", i+1), host, nodeType == proc.WebRemote)
 		if err != nil {
 			errc <- err
 			return
@@ -576,7 +559,7 @@ func serverStatusHandler(ctx context.Context, w http.ResponseWriter, req *http.R
 			Etcd5_NumberOfKeys int
 			Etcd5_Hash         int
 		}{
-			fmt.Sprintf("%v", time.Now().Round(uptimeScale).Sub(startTime)),
+			humanize.Time(startTime),
 			len(globalCache.users),
 			activeUserList,
 
@@ -663,7 +646,7 @@ func stressHandler(ctx context.Context, w http.ResponseWriter, req *http.Request
 		cluster := globalCache.cluster
 		globalCache.mu.Unlock()
 
-		if err := cluster.Stress(selectedNodeName, 10); err != nil {
+		if err := cluster.Stress(selectedNodeName, globalFlags.StressNumber); err != nil {
 			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error: %v", err)))
 			return err
 		}
@@ -822,9 +805,27 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 					return err
 				}
 			} else {
-				rs := fmt.Sprintf("<b>[GET]</b> %#q (key: %q)", vs, key)
+				ks := key
+				if len(ks) == 0 {
+					ks = "\x00"
+				}
+				res := ""
+				for i, rv := range vs {
+					res += fmt.Sprintf("%q", rv)
+					if i != len(vs)-1 {
+						res += ", "
+					}
+					if i > 0 && i%5 == 0 {
+						res += "<br>"
+					}
+					if i > 25 {
+						res += "... (see below)"
+						break
+					}
+				}
+				rs := fmt.Sprintf("<b>[GET]</b> %s (key: %q)", res, ks)
 				if len(vs) == 0 {
-					rs = fmt.Sprintf("<b>[GET]</b> not exist (key: %q)", key)
+					rs = fmt.Sprintf("<b>[GET]</b> not exist (key: %q)", ks)
 				}
 				resp := struct {
 					Message string
