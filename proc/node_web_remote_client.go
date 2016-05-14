@@ -15,6 +15,7 @@
 package proc
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/url"
 	"sync"
@@ -24,8 +25,13 @@ import (
 )
 
 type NodeWebRemoteClient struct {
-	mu    sync.Mutex
+	mu    sync.Mutex // guards the following
 	Flags *Flags
+
+	TLSCertPath string
+	TLSKeyPath  string
+	TLSConfig   *tls.Config
+
 	Agent client.Agent
 
 	active bool
@@ -75,6 +81,15 @@ func (nd *NodeWebRemoteClient) Start() error {
 	if _, err := nd.Agent.Start(flagSlice...); err != nil {
 		return err
 	}
+
+	// if nd.TLSConfig == nil {
+	// 	tlsConfig, err := autoSelfCert(nd.TLSCertPath, nd.TLSKeyPath)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	nd.TLSConfig = tlsConfig
+	// }
+
 	nd.active = true
 	return nil
 }
@@ -145,4 +160,8 @@ func (nd *NodeWebRemoteClient) Clean() error {
 		return err
 	}
 	return nil
+}
+
+func (nd *NodeWebRemoteClient) TLS() *tls.Config {
+	return nd.TLSConfig
 }

@@ -15,14 +15,7 @@
 package proc
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
 	"math/rand"
-	"net/http"
-	"os"
-	"sort"
-	"strings"
 	"time"
 )
 
@@ -60,48 +53,4 @@ func multiRandBytes(bytesN, sliceN int) [][]byte {
 		}
 	}
 	return rs
-}
-
-func mapToCommaString(m map[string]struct{}) string {
-	if len(m) == 0 {
-		return ""
-	}
-	var ss []string
-	for k := range m {
-		ss = append(ss, k)
-	}
-	sort.Strings(ss)
-	return strings.TrimSpace(strings.Join(ss, ","))
-}
-
-func mapToMapString(m map[string]string) string {
-	if len(m) == 0 {
-		return ""
-	}
-	var ss []string
-	for k, v := range m {
-		val := fmt.Sprintf("%s=%s", k, v)
-		ss = append(ss, val)
-	}
-	sort.Strings(ss)
-	return strings.TrimSpace(strings.Join(ss, ","))
-}
-
-func openToAppend(fpath string) (*os.File, error) {
-	f, err := os.OpenFile(fpath, os.O_RDWR|os.O_APPEND, 0777)
-	if err != nil {
-		f, err = os.Create(fpath)
-		if err != nil {
-			return f, err
-		}
-	}
-	return f, nil
-}
-
-// gracefulClose drains http.Response.Body until it hits EOF
-// and closes it. This prevents TCP/TLS connections from closing,
-// therefore available for reuse.
-func gracefulClose(resp *http.Response) {
-	io.Copy(ioutil.Discard, resp.Body)
-	resp.Body.Close()
 }
