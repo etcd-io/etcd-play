@@ -133,18 +133,18 @@ type Cluster interface {
 
 	// Put puts key-value to the cluster. If the name is not specified, it
 	// sends request to a random node.
-	Put(name, key, value string, streamIDs ...string) error
+	Put(name, key, value string, streamIDs ...string) (time.Duration, error)
 
 	// Get get the value from the key. If the name is not specified,
 	// it gets from a random node.
-	Get(name, key string, streamIDs ...string) ([]string, error)
+	Get(name, key string, prefix bool, streamIDs ...string) ([]string, time.Duration, error)
 
 	// Delete deletes the key.
-	Delete(ame, key string, streamIDs ...string) error
+	Delete(ame, key string, prefix bool, streamIDs ...string) (int64, time.Duration, error)
 
 	// Stress stresses the cluster. If the name is not specified, it stresses
 	// random nodes.
-	Stress(name string, stressN int, streamIDs ...string) error
+	Stress(name string, stressN int, streamIDs ...string) (time.Duration, error)
 }
 
 // defaultCluster groups a set of Node processes.
@@ -666,7 +666,7 @@ func (c *defaultCluster) Status() (map[string]ServerStatus, error) {
 	return nameToStatus, err
 }
 
-func (c *defaultCluster) Put(name, key, value string, streamIDs ...string) error {
+func (c *defaultCluster) Put(name, key, value string, streamIDs ...string) (time.Duration, error) {
 	endpoints, nameToEndpoint, _ := c.Endpoints()
 	if name == "" {
 		for n := range nameToEndpoint {
@@ -677,7 +677,7 @@ func (c *defaultCluster) Put(name, key, value string, streamIDs ...string) error
 	if v, ok := nameToEndpoint[name]; ok {
 		endpoints = []string{v}
 	} else {
-		return fmt.Errorf("%s does not exist", name)
+		return time.Duration(0), fmt.Errorf("%s does not exist", name)
 	}
 
 	cli, err := clientv3.New(clientv3.Config{
@@ -685,7 +685,7 @@ func (c *defaultCluster) Put(name, key, value string, streamIDs ...string) error
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {
-		return err
+		return time.Duration(0), err
 	}
 	defer cli.Close()
 
@@ -697,14 +697,16 @@ func (c *defaultCluster) Put(name, key, value string, streamIDs ...string) error
 	_, err = kvc.Put(ctx, key, value)
 	cancel()
 	if err != nil {
-		return err
+		return time.Duration(0), err
 	}
-	c.Write(name, fmt.Sprintf("[PUT] %q : %q / Took %v (endpoints: %q)", key, value, time.Since(st), endpoints), streamIDs...)
 
-	return nil
+	took := time.Since(st)
+	c.Write(name, fmt.Sprintf("[PUT] %q : %q / Took %v (endpoints: %q)", key, value, took, endpoints), streamIDs...)
+
+	return took, nil
 }
 
-func (c *defaultCluster) Get(name, key string, streamIDs ...string) ([]string, error) {
+func (c *defaultCluster) Get(name, key string, prefix bool, streamIDs ...string) ([]string, time.Duration, error) {
 	endpoints, nameToEndpoint, _ := c.Endpoints()
 	if name == "" {
 		for n := range nameToEndpoint {
@@ -715,7 +717,7 @@ func (c *defaultCluster) Get(name, key string, streamIDs ...string) ([]string, e
 	if v, ok := nameToEndpoint[name]; ok {
 		endpoints = []string{v}
 	} else {
-		return nil, fmt.Errorf("%s does not exist", name)
+		return nil, time.Duration(0), fmt.Errorf("%s does not exist", name)
 	}
 
 	cli, err := clientv3.New(clientv3.Config{
@@ -723,25 +725,26 @@ func (c *defaultCluster) Get(name, key string, streamIDs ...string) ([]string, e
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {
-		return nil, err
+		return nil, time.Duration(0), err
 	}
 	defer cli.Close()
-
-	kvc := clientv3.NewKV(cli)
-	st := time.Now()
-
-	c.Write(name, fmt.Sprintf("[GET] Started! (endpoints: %q)", endpoints), streamIDs...)
 
 	var opts []clientv3.OpOption
 	if len(key) == 0 {
 		key = "\x00" // query the whole key
 		opts = append(opts, clientv3.WithFromKey())
+	} else if prefix {
+		opts = append(opts, clientv3.WithPrefix())
 	}
+
+	kvc := clientv3.NewKV(cli)
+	c.Write(name, fmt.Sprintf("[GET] Started! (endpoints: %q)", endpoints), streamIDs...)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	st := time.Now()
 	resp, err := kvc.Get(ctx, key, opts...)
 	cancel()
 	if err != nil {
-		return nil, err
+		return nil, time.Duration(0), err
 	}
 	vs := []string{}
 	if len(resp.Kvs) > 0 {
@@ -753,12 +756,13 @@ func (c *defaultCluster) Get(name, key string, streamIDs ...string) ([]string, e
 		c.Write(name, fmt.Sprintf("[GET] %q does not exist!", key), streamIDs...)
 	}
 
-	c.Write(name, fmt.Sprintf("[GET] Done! Took %v (endpoints: %q)", time.Since(st), endpoints), streamIDs...)
+	took := time.Since(st)
+	c.Write(name, fmt.Sprintf("[GET] Done! Took %v (endpoints: %q)", took, endpoints), streamIDs...)
 	sort.Strings(vs)
-	return vs, nil
+	return vs, took, nil
 }
 
-func (c *defaultCluster) Delete(name, key string, streamIDs ...string) error {
+func (c *defaultCluster) Delete(name, key string, prefix bool, streamIDs ...string) (int64, time.Duration, error) {
 	endpoints, nameToEndpoint, _ := c.Endpoints()
 	if name == "" {
 		for n := range nameToEndpoint {
@@ -769,7 +773,7 @@ func (c *defaultCluster) Delete(name, key string, streamIDs ...string) error {
 	if v, ok := nameToEndpoint[name]; ok {
 		endpoints = []string{v}
 	} else {
-		return fmt.Errorf("%s does not exist", name)
+		return 0, time.Duration(0), fmt.Errorf("%s does not exist", name)
 	}
 
 	cli, err := clientv3.New(clientv3.Config{
@@ -777,23 +781,33 @@ func (c *defaultCluster) Delete(name, key string, streamIDs ...string) error {
 		DialTimeout: 5 * time.Second,
 	})
 	if err != nil {
-		return err
+		return 0, time.Duration(0), err
 	}
 	defer cli.Close()
 
-	kvc := clientv3.NewKV(cli)
-	st := time.Now()
+	var opts []clientv3.OpOption
+	if len(key) == 0 {
+		key = "\x00" // query the whole key
+		opts = append(opts, clientv3.WithFromKey())
+	} else if prefix {
+		opts = append(opts, clientv3.WithPrefix())
+	}
 
+	kvc := clientv3.NewKV(cli)
 	c.Write(name, fmt.Sprintf("[DELETE] Started! (endpoints: %q)", endpoints), streamIDs...)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	_, err = kvc.Delete(ctx, key)
+	st := time.Now()
+	var dresp *clientv3.DeleteResponse
+	dresp, err = kvc.Delete(ctx, key, opts...)
 	cancel()
 	if err != nil {
-		return err
+		return 0, time.Duration(0), err
 	}
-	c.Write(name, fmt.Sprintf("[DELETE] Done! Took %v (endpoints: %q)", time.Since(st), endpoints), streamIDs...)
 
-	return nil
+	took := time.Since(st)
+	c.Write(name, fmt.Sprintf("[DELETE] %d deleted! Took %v (endpoints: %q)", dresp.Deleted, took, endpoints), streamIDs...)
+
+	return dresp.Deleted, took, nil
 }
 
 func (c *defaultCluster) stress(name string, stressN int, donec chan struct{}, errc chan error, streamIDs ...string) {
@@ -829,7 +843,7 @@ func (c *defaultCluster) stress(name string, stressN int, donec chan struct{}, e
 	for i := 0; i < stressN; i++ {
 		go func(i int) {
 			kvc := kvcs[rand.Intn(clientsN)]
-			key, val := fmt.Sprintf("sample_%d_%s", i, keys[i]), string(vals[i])
+			key, val := fmt.Sprintf("foo_%d_%s", i, keys[i]), string(vals[i])
 			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 			_, err = kvc.Put(ctx, key, val)
 			cancel()
@@ -859,15 +873,17 @@ func (c *defaultCluster) stress(name string, stressN int, donec chan struct{}, e
 	return
 }
 
-func (c *defaultCluster) Stress(name string, stressN int, streamIDs ...string) error {
+func (c *defaultCluster) Stress(name string, stressN int, streamIDs ...string) (time.Duration, error) {
 	donec, errc := make(chan struct{}), make(chan error)
+	st := time.Now()
 	go c.stress(name, stressN, donec, errc, streamIDs...)
 	select {
 	case err := <-errc:
-		return err
+		return time.Duration(0), err
 	case <-donec:
-		return nil
+		took := time.Since(st)
+		return took, nil
 	case <-time.After(5 * time.Second):
-		return fmt.Errorf("Stress timed out!")
+		return time.Duration(0), fmt.Errorf("Stress timed out!")
 	}
 }

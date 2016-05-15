@@ -695,10 +695,12 @@
                         type: "GET",
                         url: "/stress",
                         async: true,
-                        dataType: "html",
+                        dataType: "json",
                         success: function(dataObj) {
-                            appendLog(dataObj);
-                            // wsConn.send(dataObj);
+                            appendLog(dataObj.Message);
+                            // wsConn.send(dataObj.Message);
+
+                            document.getElementById('result').innerHTML = dataObj.Result
                         }
                     });
                 }

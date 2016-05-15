@@ -234,6 +234,7 @@ func getWelcomeMsg() string {
 - <font color='red'>Kill</font> to stop node(even the <font color='green'><b>leader</b></font>). <font color='red'>Restart</font> to recover node.<br>
 - <font color='blue'>Hash</font> shows how <b>etcd</b>, <i>as a distributed database</i>, <b>keeps its data consistent</b>.<br>
 - Select <b>any endpoint</b><i>(etcd1, etcd2, ...)</i> to PUT, GET, DELETE, and then click <b>Submit</b>.<br>
+- Pass <b><i>--prefix</i></b> to GET and DELETE to query by prefix.<br>
 <br>
 <i>Note: Request logs are streamed based on your IP and user agent. So if you have multiple<br>
 web browsers running at the same time, logs might be shown only in one of them.</i><br>

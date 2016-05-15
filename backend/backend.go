@@ -107,7 +107,7 @@ func init() {
 	WebCommand.PersistentFlags().DurationVar(&globalFlags.LimitInterval, "limit-interval", 7*time.Second, "interval to rate-limit immediate restart, terminate")
 	WebCommand.PersistentFlags().DurationVar(&globalFlags.ReviveInterval, "revive-interval", 15*time.Minute, "interval to automatically revive all-failed cluster")
 
-	WebCommand.PersistentFlags().IntVar(&globalFlags.StressNumber, "stress-number", 5, "size of stress requests")
+	WebCommand.PersistentFlags().IntVar(&globalFlags.StressNumber, "stress-number", 3, "size of stress requests")
 
 	WebCommand.PersistentFlags().StringVarP(&globalFlags.PlayWebPort, "port", "p", ":8000", "port to serve the play web interface")
 	WebCommand.PersistentFlags().BoolVar(&globalFlags.IsRemote, "remote", false, "'true' when agents are deployed remotely")
@@ -661,11 +661,23 @@ func stressHandler(ctx context.Context, w http.ResponseWriter, req *http.Request
 		cluster := globalCache.cluster
 		globalCache.mu.Unlock()
 
-		if err := cluster.Stress(selectedNodeName, globalFlags.StressNumber, userID); err != nil {
+		took, err := cluster.Stress(selectedNodeName, globalFlags.StressNumber, userID)
+		if err != nil {
 			fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("error: %v", err)))
 			return err
 		}
-		fmt.Fprintln(w, boldHTMLMsg(fmt.Sprintf("Stress %s request successfully requested", selectedNodeName)))
+
+		rs := fmt.Sprintf("Success! Wrote %d keys to %q (took %v)", globalFlags.StressNumber, selectedNodeName, took)
+		resp := struct {
+			Message string
+			Result  string
+		}{
+			boldHTMLMsg("[STRESS] Success!"),
+			"<b>[STRESS]</b> " + rs,
+		}
+		if err = json.NewEncoder(w).Encode(resp); err != nil {
+			return err
+		}
 
 	default:
 		http.Error(w, "Method Not Allowed", 405)
@@ -775,13 +787,14 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 
 		switch opt {
 		case "PUT":
-			if err := cluster.Put(name, key, value, userID); err != nil {
+			took, err := cluster.Put(name, key, value, userID)
+			if err != nil {
 				resp := struct {
 					Message string
 					Result  string
 				}{
-					boldHTMLMsg(fmt.Sprintf("[PUT] error %v (key: %q / value: %q)", err, key, value)),
-					fmt.Sprintf("<b>[PUT] error %v (key: %q)</b>", err, key),
+					boldHTMLMsg(fmt.Sprintf("[PUT] error %v (key %q / value %q)", err, key, value)),
+					fmt.Sprintf("<b>[PUT] error %v (key %q)</b>", err, key),
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
 					return err
@@ -794,12 +807,12 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 				if len(valT) > 3 {
 					valT = valT[:3] + "..."
 				}
-				rs := fmt.Sprintf("success! %q : %q (at %s PST)", keyT, valT, nowPST().String()[:19])
+				rs := fmt.Sprintf("Success! %q : %q (took %v)", keyT, valT, took)
 				resp := struct {
 					Message string
 					Result  string
 				}{
-					boldHTMLMsg("[PUT] success!"),
+					boldHTMLMsg("[PUT] Success!"),
 					"<b>[PUT]</b> " + rs,
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
@@ -808,19 +821,25 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 			}
 
 		case "GET":
-			if vs, err := cluster.Get(name, key, userID); err != nil {
+			keyTxt, prefix := strings.TrimSpace(key), false
+			if strings.Contains(keyTxt, "--prefix") {
+				keyTxt = strings.TrimSpace(strings.Replace(keyTxt, "--prefix", "", 1))
+				prefix = true
+			}
+			vs, took, err := cluster.Get(name, keyTxt, prefix, userID)
+			if err != nil {
 				resp := struct {
 					Message string
 					Result  string
 				}{
-					boldHTMLMsg(fmt.Sprintf("[GET] error %v (key: %q)", err, key)),
-					fmt.Sprintf("<b>[GET] error %v (key: %q)</b>", err, key),
+					boldHTMLMsg(fmt.Sprintf("[GET] error %v (key %q)", err, keyTxt)),
+					fmt.Sprintf("<b>[GET] error %v (key %q)</b>", err, keyTxt),
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
 					return err
 				}
 			} else {
-				ks := key
+				ks := keyTxt
 				if len(ks) == 0 {
 					ks = "\x00"
 				}
@@ -838,15 +857,15 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 						break
 					}
 				}
-				rs := fmt.Sprintf("<b>[GET]</b> %s (key: %q)", res, ks)
+				rs := fmt.Sprintf("<b>[GET]</b> %s (key %q, took %v)", res, ks, took)
 				if len(vs) == 0 {
-					rs = fmt.Sprintf("<b>[GET]</b> not exist (key: %q)", ks)
+					rs = fmt.Sprintf("<b>[GET]</b> not exist (key %q, took %v)", ks, took)
 				}
 				resp := struct {
 					Message string
 					Result  string
 				}{
-					boldHTMLMsg("[GET] success!"),
+					boldHTMLMsg("[GET] Success!"),
 					rs,
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
@@ -855,24 +874,38 @@ func keyValueHandler(ctx context.Context, w http.ResponseWriter, req *http.Reque
 			}
 
 		case "DELETE":
-			if err := cluster.Delete(name, key, userID); err != nil {
+			keyTxt, prefix := strings.TrimSpace(key), false
+			if strings.Contains(keyTxt, "--prefix") {
+				keyTxt = strings.TrimSpace(strings.Replace(keyTxt, "--prefix", "", 1))
+				prefix = true
+			}
+			delN, took, err := cluster.Delete(name, keyTxt, prefix, userID)
+			if err != nil {
+				ks := keyTxt
+				if len(ks) == 0 {
+					ks = "\x00"
+				}
 				resp := struct {
 					Message string
 					Result  string
 				}{
-					boldHTMLMsg(fmt.Sprintf("[DELETE] error %v (key: %q)", err, key)),
-					fmt.Sprintf("<b>[DELETE] error %v (key: %q)</b>", err, key),
+					boldHTMLMsg(fmt.Sprintf("[DELETE] error %v (key %q)", err, ks)),
+					fmt.Sprintf("<b>[DELETE] error %v (key %q)</b>", err, ks),
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
 					return err
 				}
 			} else {
+				ks := keyTxt
+				if len(ks) == 0 {
+					ks = "\x00"
+				}
 				resp := struct {
 					Message string
 					Result  string
 				}{
-					boldHTMLMsg("[DELETE] success!"),
-					fmt.Sprintf("<b>[DELETE]</b> successfully deleted %q", key),
+					boldHTMLMsg("[DELETE] Success!"),
+					fmt.Sprintf("<b>[DELETE]</b> successfully deleted %q (deleted %d keys, took %v)", ks, delN, took),
 				}
 				if err = json.NewEncoder(w).Encode(resp); err != nil {
 					return err
