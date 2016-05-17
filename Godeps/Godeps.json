@@ -5,38 +5,38 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/coreos/etcd/auth/authpb",
-			"Comment": "v3.0.0-beta.0-104-g46481b1",
-			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
+			"Comment": "v3.0.0-beta.0-143-g7678fc1",
+			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/clientv3",
-			"Comment": "v3.0.0-beta.0-104-g46481b1",
-			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
+			"Comment": "v3.0.0-beta.0-143-g7678fc1",
+			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes",
-			"Comment": "v3.0.0-beta.0-104-g46481b1",
-			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
+			"Comment": "v3.0.0-beta.0-143-g7678fc1",
+			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/etcdserverpb",
-			"Comment": "v3.0.0-beta.0-104-g46481b1",
-			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
+			"Comment": "v3.0.0-beta.0-143-g7678fc1",
+			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/mvcc/mvccpb",
-			"Comment": "v3.0.0-beta.0-104-g46481b1",
-			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
+			"Comment": "v3.0.0-beta.0-143-g7678fc1",
+			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/pkg/tlsutil",
-			"Comment": "v3.0.0-beta.0-104-g46481b1",
-			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
+			"Comment": "v3.0.0-beta.0-143-g7678fc1",
+			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/tools/functional-tester/etcd-agent/client",
-			"Comment": "v3.0.0-beta.0-104-g46481b1",
-			"Rev": "46481b17fc745cb3b7aa682a24220e782d9ce6dd"
+			"Comment": "v3.0.0-beta.0-143-g7678fc1",
+			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
 		},
 		{
 			"ImportPath": "github.com/cpuguy83/go-md2man/md2man",
@@ -109,6 +109,10 @@
 		{
 			"ImportPath": "golang.org/x/net/trace",
 			"Rev": "6acef71eb69611914f7a30939ea9f6e194c78172"
+		},
+		{
+			"ImportPath": "golang.org/x/time/rate",
+			"Rev": "a4bde12657593d5e90d0533a3e4fd95e635124cb"
 		},
 		{
 			"ImportPath": "google.golang.org/grpc",
