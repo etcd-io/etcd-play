@@ -1,42 +1,42 @@
 {
 	"ImportPath": "github.com/coreos/etcd-play",
 	"GoVersion": "go1.6",
-	"GodepVersion": "v63",
+	"GodepVersion": "v60",
 	"Deps": [
 		{
 			"ImportPath": "github.com/coreos/etcd/auth/authpb",
-			"Comment": "v3.0.0-beta.0-143-g7678fc1",
-			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
+			"Comment": "v3.0.0-beta.0-218-g3ed5d28",
+			"Rev": "3ed5d28e2efb46ef2fc1ce3984a2a1a729cd6c5e"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/clientv3",
-			"Comment": "v3.0.0-beta.0-143-g7678fc1",
-			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
+			"Comment": "v3.0.0-beta.0-218-g3ed5d28",
+			"Rev": "3ed5d28e2efb46ef2fc1ce3984a2a1a729cd6c5e"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes",
-			"Comment": "v3.0.0-beta.0-143-g7678fc1",
-			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
+			"Comment": "v3.0.0-beta.0-218-g3ed5d28",
+			"Rev": "3ed5d28e2efb46ef2fc1ce3984a2a1a729cd6c5e"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/etcdserver/etcdserverpb",
-			"Comment": "v3.0.0-beta.0-143-g7678fc1",
-			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
+			"Comment": "v3.0.0-beta.0-218-g3ed5d28",
+			"Rev": "3ed5d28e2efb46ef2fc1ce3984a2a1a729cd6c5e"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/mvcc/mvccpb",
-			"Comment": "v3.0.0-beta.0-143-g7678fc1",
-			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
+			"Comment": "v3.0.0-beta.0-218-g3ed5d28",
+			"Rev": "3ed5d28e2efb46ef2fc1ce3984a2a1a729cd6c5e"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/pkg/tlsutil",
-			"Comment": "v3.0.0-beta.0-143-g7678fc1",
-			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
+			"Comment": "v3.0.0-beta.0-218-g3ed5d28",
+			"Rev": "3ed5d28e2efb46ef2fc1ce3984a2a1a729cd6c5e"
 		},
 		{
 			"ImportPath": "github.com/coreos/etcd/tools/functional-tester/etcd-agent/client",
-			"Comment": "v3.0.0-beta.0-143-g7678fc1",
-			"Rev": "7678fc153a8d8cfbe9bf8d03c7f28c86c0152165"
+			"Comment": "v3.0.0-beta.0-218-g3ed5d28",
+			"Rev": "3ed5d28e2efb46ef2fc1ce3984a2a1a729cd6c5e"
 		},
 		{
 			"ImportPath": "github.com/cpuguy83/go-md2man/md2man",
@@ -62,7 +62,8 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "1f512fc3f05332ba7117626cdfb4e07474e58e60"
+			"Comment": "v1.0.0-2-g8b209f6",
+			"Rev": "8b209f63177a963547dc3cee89350a327ead0412"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
