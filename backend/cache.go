@@ -172,7 +172,7 @@ func withCache(h ContextHandler) ContextHandler {
 		ctx = context.WithValue(ctx, userKey, &userID)
 
 		globalCache.mu.Lock()
-		if _, ok := globalCache.users[userID]; !ok {
+		if _, ok := globalCache.users[userID]; !ok { // if user visits first time, create user cache
 			globalCache.users[userID] = &userData{
 				upgrader:        &websocket.Upgrader{},
 				startTime:       time.Now().Round(uptimeScale),
@@ -187,6 +187,7 @@ func withCache(h ContextHandler) ContextHandler {
 
 		// (X) this will deadlock
 		// defer globalCache.mu.Unlock()
+
 		return h.ServeHTTPContext(ctx, w, req)
 	})
 }
