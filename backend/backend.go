@@ -123,8 +123,8 @@ func CommandFunc(cmd *cobra.Command, args []string) {
 	if globalFlags.IsRemote {
 		if globalFlags.ClusterSize != len(globalFlags.AgentEndpoints) {
 			logger.Error("etcd-play cluster-size and agent-endpoints must be the same size",
-				zap.Int("cluster-size", globalFlags.ClusterSize),
-				zap.Object("agent-endpoints", len(globalFlags.AgentEndpoints)),
+				zap.Int("cluster_size", globalFlags.ClusterSize),
+				zap.Object("agent_endpoints", len(globalFlags.AgentEndpoints)),
 			)
 			os.Exit(0)
 		}
