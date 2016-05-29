@@ -17,7 +17,6 @@ package backend
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -28,6 +27,7 @@ import (
 	"github.com/coreos/etcd-play/proc"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
+	"github.com/uber-go/zap"
 	"golang.org/x/net/context"
 )
 
@@ -77,15 +77,11 @@ type ContextAdapter struct {
 
 func (ca *ContextAdapter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if err := ca.handler.ServeHTTPContext(ca.ctx, w, req); err != nil {
-		// import log "github.com/Sirupsen/logrus"
-		// log.WithFields(log.Fields{
-		// 	"event_type": "error",
-		// 	"method":     req.Method,
-		// 	"path":       req.URL.Path,
-		// 	"error":      err,
-		// }).Errorln("ServeHTTP error")
-
-		log.Printf("[ServeHTTP error] %v (method: %s, path: %s)", err, req.Method, req.URL.Path)
+		logger.Error("ServeHTTP",
+			zap.String("method", req.Method),
+			zap.String("path", req.URL.Path),
+			zap.Err(err),
+		)
 	}
 }
 
@@ -117,14 +113,19 @@ func init() {
 func CommandFunc(cmd *cobra.Command, args []string) {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Fprintln(os.Stdout, "[etcd-play error]", err)
+			logger.Error("etcd-play error",
+				zap.Object("error", err),
+			)
 			os.Exit(0)
 		}
 	}()
 
 	if globalFlags.IsRemote {
 		if globalFlags.ClusterSize != len(globalFlags.AgentEndpoints) {
-			fmt.Fprintf(os.Stdout, "[etcd-play error] cluster-size and agent-endpoints must be the same size (%d != %d)\n", globalFlags.ClusterSize, len(globalFlags.AgentEndpoints))
+			logger.Error("etcd-play cluster-size and agent-endpoints must be the same size",
+				zap.Int("cluster-size", globalFlags.ClusterSize),
+				zap.Object("agent-endpoints", len(globalFlags.AgentEndpoints)),
+			)
 			os.Exit(0)
 		}
 	}
@@ -211,9 +212,11 @@ func CommandFunc(cmd *cobra.Command, args []string) {
 		handler: withCache(ContextHandlerFunc(restartHandler)),
 	})
 
-	fmt.Fprintln(os.Stdout, "Serving http://localhost"+globalFlags.PlayWebPort)
+	logger.Info("Started serving", zap.String("address", fmt.Sprintf("http://localhost%s", globalFlags.PlayWebPort)))
 	if err := http.ListenAndServe(globalFlags.PlayWebPort, mainRouter); err != nil {
-		fmt.Fprintln(os.Stdout, "[etcd-play error]", err)
+		logger.Error("etcd-play error",
+			zap.Object("error", err),
+		)
 		os.Exit(0)
 	}
 }

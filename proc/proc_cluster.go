@@ -17,7 +17,6 @@ package proc
 import (
 	"crypto/tls"
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -31,6 +30,7 @@ import (
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/coreos/etcd/tools/functional-tester/etcd-agent/client"
 	"github.com/dustin/go-humanize"
+	"github.com/uber-go/zap"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -408,7 +408,7 @@ func (c *defaultCluster) Bootstrap() error {
 	done, errC := make(chan struct{}), make(chan error)
 	for name, nd := range c.nameToNode {
 		go func(name string, nd Node) {
-			fmt.Println("Starting", name)
+			logger.Info("Starting", zap.String("name", name))
 			err := nd.Start()
 			if err != nil {
 				errC <- fmt.Errorf("%s (%v)", name, err)
@@ -431,7 +431,7 @@ func (c *defaultCluster) Bootstrap() error {
 	sc := make(chan os.Signal, 10)
 	signal.Notify(sc, os.Interrupt, os.Kill)
 	s := <-sc
-	log.Printf("Got signal %s... shutting down...", s)
+	logger.Info("Shutting down...", zap.String("signal", s.String()))
 	return c.Shutdown()
 }
 
@@ -445,10 +445,10 @@ func (c *defaultCluster) Shutdown() error {
 		go func(name string, nd Node) {
 			defer wg.Done()
 			if err := nd.Terminate(); err != nil {
-				log.Printf("Terminate(%s): error (%v)", name, err)
+				logger.Error("Terminate error", zap.String("name", name), zap.Err(err))
 			}
 			if err := nd.Clean(); err != nil {
-				log.Printf("Clean(%s): error (%v)", name, err)
+				logger.Error("Clean error", zap.String("name", name), zap.Err(err))
 			}
 		}(name, nd)
 	}
