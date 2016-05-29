@@ -212,7 +212,7 @@ func CommandFunc(cmd *cobra.Command, args []string) {
 		handler: withCache(ContextHandlerFunc(restartHandler)),
 	})
 
-	logger.Info("Started serving", zap.String("address", fmt.Sprintf("http://localhost%s", globalFlags.PlayWebPort)))
+	logger.Info("started serving", zap.String("address", fmt.Sprintf("http://localhost%s", globalFlags.PlayWebPort)))
 	if err := http.ListenAndServe(globalFlags.PlayWebPort, mainRouter); err != nil {
 		logger.Error("etcd-play error",
 			zap.Object("error", err),

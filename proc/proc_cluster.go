@@ -408,7 +408,7 @@ func (c *defaultCluster) Bootstrap() error {
 	done, errC := make(chan struct{}), make(chan error)
 	for name, nd := range c.nameToNode {
 		go func(name string, nd Node) {
-			logger.Info("Starting", zap.String("name", name))
+			logger.Info("starting node", zap.String("name", name))
 			err := nd.Start()
 			if err != nil {
 				errC <- fmt.Errorf("%s (%v)", name, err)
@@ -431,7 +431,7 @@ func (c *defaultCluster) Bootstrap() error {
 	sc := make(chan os.Signal, 10)
 	signal.Notify(sc, os.Interrupt, os.Kill)
 	s := <-sc
-	logger.Info("Shutting down...", zap.String("signal", s.String()))
+	logger.Info("shutting down cluster", zap.String("signal", s.String()))
 	return c.Shutdown()
 }
 
@@ -445,10 +445,10 @@ func (c *defaultCluster) Shutdown() error {
 		go func(name string, nd Node) {
 			defer wg.Done()
 			if err := nd.Terminate(); err != nil {
-				logger.Error("Terminate error", zap.String("name", name), zap.Err(err))
+				logger.Error("terminate error", zap.String("name", name), zap.Err(err))
 			}
 			if err := nd.Clean(); err != nil {
-				logger.Error("Clean error", zap.String("name", name), zap.Err(err))
+				logger.Error("clean error", zap.String("name", name), zap.Err(err))
 			}
 		}(name, nd)
 	}
