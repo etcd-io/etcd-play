@@ -10,6 +10,7 @@ import:
 - package: github.com/gorilla/websocket
 - package: github.com/satori/go.uuid
 - package: github.com/spf13/cobra
+- package: github.com/uber-go/zap
 - package: golang.org/x/net
   subpackages:
   - context
