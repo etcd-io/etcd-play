@@ -1,5 +1,5 @@
 hash: f0a60ba5d4edbb3087470199a98ccef10bf7efe596dfad2e8758eaa3392a17b2
-updated: 2016-05-29T11:58:59.367173238-07:00
+updated: 2016-05-29T12:25:53.417813009-07:00
 imports:
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
@@ -35,6 +35,8 @@ imports:
   version: f368244301305f414206f889b1735a54cfc8bde8
 - name: github.com/spf13/pflag
   version: cb88ea77998c3f024757528e3305022ab50b43be
+- name: github.com/uber-go/zap
+  version: 1392e24b604fdb23ef846186bcf4ae349482c558
 - name: golang.org/x/net
   version: 30db96677b74e24b967e23f911eb3364fc61a011
   subpackages:
