@@ -16,4 +16,6 @@ package proc
 
 import "github.com/uber-go/zap"
 
-var logger = zap.NewJSON()
+var logger = zap.NewJSON(
+	zap.Fields(zap.String("package", "etcd-play/proc")),
+)
