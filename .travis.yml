@@ -5,5 +5,10 @@ sudo: false
 go:
 - tip
 
+addons:
+  apt:
+    packages:
+    - libpcap-dev
+
 script:
 - ./test
