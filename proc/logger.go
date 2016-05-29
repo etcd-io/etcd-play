@@ -17,7 +17,3 @@ package proc
 import "github.com/uber-go/zap"
 
 var logger = zap.NewJSON()
-
-func init() {
-	logger.StubTime()
-}
