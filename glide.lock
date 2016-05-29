@@ -1,0 +1,62 @@
+hash: f0a60ba5d4edbb3087470199a98ccef10bf7efe596dfad2e8758eaa3392a17b2
+updated: 2016-05-29T11:58:59.367173238-07:00
+imports:
+- name: github.com/cloudfoundry-incubator/candiedyaml
+  version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
+- name: github.com/coreos/etcd
+  version: 84e7fa149e37272899e495a357c580fc5feddec9
+  subpackages:
+  - clientv3
+  - etcdserver/etcdserverpb
+  - pkg/tlsutil
+  - tools/functional-tester/etcd-agent/client
+  - auth/authpb
+  - etcdserver/api/v3rpc/rpctypes
+  - mvcc/mvccpb
+- name: github.com/dustin/go-humanize
+  version: 9436b7a0ebd4b3a35fb30aa244f8f85244088bfa
+- name: github.com/ghodss/yaml
+  version: e8e0db9016175449df0e9c4b6e6995a9433a395c
+- name: github.com/gogo/protobuf
+  version: c18eea6ad611eecf94a9ba38471f59706199409e
+  subpackages:
+  - proto
+- name: github.com/golang/protobuf
+  version: 9e6977f30c91c78396e719e164e57f9287fff42c
+  subpackages:
+  - proto
+- name: github.com/gorilla/websocket
+  version: afffb151969cb38ce452b0e1b8d20cd91fe7cd45
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/satori/go.uuid
+  version: f9ab0dce87d815821e221626b772e3475a0d2749
+- name: github.com/spf13/cobra
+  version: f368244301305f414206f889b1735a54cfc8bde8
+- name: github.com/spf13/pflag
+  version: cb88ea77998c3f024757528e3305022ab50b43be
+- name: golang.org/x/net
+  version: 30db96677b74e24b967e23f911eb3364fc61a011
+  subpackages:
+  - context
+  - http2
+  - trace
+  - http2/hpack
+  - lex/httplex
+  - internal/timeseries
+- name: golang.org/x/time
+  version: a4bde12657593d5e90d0533a3e4fd95e635124cb
+  subpackages:
+  - rate
+- name: google.golang.org/grpc
+  version: 8213ee577a465c1f314d85748fb29e4eeed59baf
+  subpackages:
+  - credentials
+  - grpclog
+  - metadata
+  - codes
+  - internal
+  - naming
+  - transport
+  - peer
+devImports: []

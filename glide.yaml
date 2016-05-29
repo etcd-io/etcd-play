@@ -1,0 +1,16 @@
+package: github.com/coreos/etcd-play
+import:
+- package: github.com/coreos/etcd
+  subpackages:
+  - clientv3
+  - etcdserver/etcdserverpb
+  - pkg/tlsutil
+  - tools/functional-tester/etcd-agent/client
+- package: github.com/dustin/go-humanize
+- package: github.com/gorilla/websocket
+- package: github.com/satori/go.uuid
+- package: github.com/spf13/cobra
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: google.golang.org/grpc
