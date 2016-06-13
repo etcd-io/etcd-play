@@ -209,7 +209,7 @@ type RangeRequest struct {
 	Limit int64 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
 	// revision is the point-in-time of the key-value store to use for the range.
 	// If revision is less or equal to zero, the range is over the newest key-value store.
-	// If the revision has been compacted, ErrCompaction is returned as a response.
+	// If the revision has been compacted, ErrCompacted is returned as a response.
 	Revision int64 `protobuf:"varint,4,opt,name=revision,proto3" json:"revision,omitempty"`
 	// sort_order is the order for returned sorted results.
 	SortOrder RangeRequest_SortOrder `protobuf:"varint,5,opt,name=sort_order,json=sortOrder,proto3,enum=etcdserverpb.RangeRequest_SortOrder" json:"sort_order,omitempty"`
@@ -319,106 +319,106 @@ func (m *DeleteRangeResponse) GetHeader() *ResponseHeader {
 	return nil
 }
 
-type RequestUnion struct {
+type RequestOp struct {
 	// request is a union of request types accepted by a transaction.
 	//
 	// Types that are valid to be assigned to Request:
-	//	*RequestUnion_RequestRange
-	//	*RequestUnion_RequestPut
-	//	*RequestUnion_RequestDeleteRange
-	Request isRequestUnion_Request `protobuf_oneof:"request"`
+	//	*RequestOp_RequestRange
+	//	*RequestOp_RequestPut
+	//	*RequestOp_RequestDeleteRange
+	Request isRequestOp_Request `protobuf_oneof:"request"`
 }
 
-func (m *RequestUnion) Reset()                    { *m = RequestUnion{} }
-func (m *RequestUnion) String() string            { return proto.CompactTextString(m) }
-func (*RequestUnion) ProtoMessage()               {}
-func (*RequestUnion) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{7} }
+func (m *RequestOp) Reset()                    { *m = RequestOp{} }
+func (m *RequestOp) String() string            { return proto.CompactTextString(m) }
+func (*RequestOp) ProtoMessage()               {}
+func (*RequestOp) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{7} }
 
-type isRequestUnion_Request interface {
-	isRequestUnion_Request()
+type isRequestOp_Request interface {
+	isRequestOp_Request()
 	MarshalTo([]byte) (int, error)
 	Size() int
 }
 
-type RequestUnion_RequestRange struct {
+type RequestOp_RequestRange struct {
 	RequestRange *RangeRequest `protobuf:"bytes,1,opt,name=request_range,json=requestRange,oneof"`
 }
-type RequestUnion_RequestPut struct {
+type RequestOp_RequestPut struct {
 	RequestPut *PutRequest `protobuf:"bytes,2,opt,name=request_put,json=requestPut,oneof"`
 }
-type RequestUnion_RequestDeleteRange struct {
+type RequestOp_RequestDeleteRange struct {
 	RequestDeleteRange *DeleteRangeRequest `protobuf:"bytes,3,opt,name=request_delete_range,json=requestDeleteRange,oneof"`
 }
 
-func (*RequestUnion_RequestRange) isRequestUnion_Request()       {}
-func (*RequestUnion_RequestPut) isRequestUnion_Request()         {}
-func (*RequestUnion_RequestDeleteRange) isRequestUnion_Request() {}
+func (*RequestOp_RequestRange) isRequestOp_Request()       {}
+func (*RequestOp_RequestPut) isRequestOp_Request()         {}
+func (*RequestOp_RequestDeleteRange) isRequestOp_Request() {}
 
-func (m *RequestUnion) GetRequest() isRequestUnion_Request {
+func (m *RequestOp) GetRequest() isRequestOp_Request {
 	if m != nil {
 		return m.Request
 	}
 	return nil
 }
 
-func (m *RequestUnion) GetRequestRange() *RangeRequest {
-	if x, ok := m.GetRequest().(*RequestUnion_RequestRange); ok {
+func (m *RequestOp) GetRequestRange() *RangeRequest {
+	if x, ok := m.GetRequest().(*RequestOp_RequestRange); ok {
 		return x.RequestRange
 	}
 	return nil
 }
 
-func (m *RequestUnion) GetRequestPut() *PutRequest {
-	if x, ok := m.GetRequest().(*RequestUnion_RequestPut); ok {
+func (m *RequestOp) GetRequestPut() *PutRequest {
+	if x, ok := m.GetRequest().(*RequestOp_RequestPut); ok {
 		return x.RequestPut
 	}
 	return nil
 }
 
-func (m *RequestUnion) GetRequestDeleteRange() *DeleteRangeRequest {
-	if x, ok := m.GetRequest().(*RequestUnion_RequestDeleteRange); ok {
+func (m *RequestOp) GetRequestDeleteRange() *DeleteRangeRequest {
+	if x, ok := m.GetRequest().(*RequestOp_RequestDeleteRange); ok {
 		return x.RequestDeleteRange
 	}
 	return nil
 }
 
 // XXX_OneofFuncs is for the internal use of the proto package.
-func (*RequestUnion) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _RequestUnion_OneofMarshaler, _RequestUnion_OneofUnmarshaler, _RequestUnion_OneofSizer, []interface{}{
-		(*RequestUnion_RequestRange)(nil),
-		(*RequestUnion_RequestPut)(nil),
-		(*RequestUnion_RequestDeleteRange)(nil),
+func (*RequestOp) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _RequestOp_OneofMarshaler, _RequestOp_OneofUnmarshaler, _RequestOp_OneofSizer, []interface{}{
+		(*RequestOp_RequestRange)(nil),
+		(*RequestOp_RequestPut)(nil),
+		(*RequestOp_RequestDeleteRange)(nil),
 	}
 }
 
-func _RequestUnion_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*RequestUnion)
+func _RequestOp_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*RequestOp)
 	// request
 	switch x := m.Request.(type) {
-	case *RequestUnion_RequestRange:
+	case *RequestOp_RequestRange:
 		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.RequestRange); err != nil {
 			return err
 		}
-	case *RequestUnion_RequestPut:
+	case *RequestOp_RequestPut:
 		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.RequestPut); err != nil {
 			return err
 		}
-	case *RequestUnion_RequestDeleteRange:
+	case *RequestOp_RequestDeleteRange:
 		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.RequestDeleteRange); err != nil {
 			return err
 		}
 	case nil:
 	default:
-		return fmt.Errorf("RequestUnion.Request has unexpected type %T", x)
+		return fmt.Errorf("RequestOp.Request has unexpected type %T", x)
 	}
 	return nil
 }
 
-func _RequestUnion_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*RequestUnion)
+func _RequestOp_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*RequestOp)
 	switch tag {
 	case 1: // request.request_range
 		if wire != proto.WireBytes {
@@ -426,7 +426,7 @@ func _RequestUnion_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.B
 		}
 		msg := new(RangeRequest)
 		err := b.DecodeMessage(msg)
-		m.Request = &RequestUnion_RequestRange{msg}
+		m.Request = &RequestOp_RequestRange{msg}
 		return true, err
 	case 2: // request.request_put
 		if wire != proto.WireBytes {
@@ -434,7 +434,7 @@ func _RequestUnion_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.B
 		}
 		msg := new(PutRequest)
 		err := b.DecodeMessage(msg)
-		m.Request = &RequestUnion_RequestPut{msg}
+		m.Request = &RequestOp_RequestPut{msg}
 		return true, err
 	case 3: // request.request_delete_range
 		if wire != proto.WireBytes {
@@ -442,28 +442,28 @@ func _RequestUnion_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.B
 		}
 		msg := new(DeleteRangeRequest)
 		err := b.DecodeMessage(msg)
-		m.Request = &RequestUnion_RequestDeleteRange{msg}
+		m.Request = &RequestOp_RequestDeleteRange{msg}
 		return true, err
 	default:
 		return false, nil
 	}
 }
 
-func _RequestUnion_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*RequestUnion)
+func _RequestOp_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*RequestOp)
 	// request
 	switch x := m.Request.(type) {
-	case *RequestUnion_RequestRange:
+	case *RequestOp_RequestRange:
 		s := proto.Size(x.RequestRange)
 		n += proto.SizeVarint(1<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *RequestUnion_RequestPut:
+	case *RequestOp_RequestPut:
 		s := proto.Size(x.RequestPut)
 		n += proto.SizeVarint(2<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *RequestUnion_RequestDeleteRange:
+	case *RequestOp_RequestDeleteRange:
 		s := proto.Size(x.RequestDeleteRange)
 		n += proto.SizeVarint(3<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
@@ -475,106 +475,106 @@ func _RequestUnion_OneofSizer(msg proto.Message) (n int) {
 	return n
 }
 
-type ResponseUnion struct {
+type ResponseOp struct {
 	// response is a union of response types returned by a transaction.
 	//
 	// Types that are valid to be assigned to Response:
-	//	*ResponseUnion_ResponseRange
-	//	*ResponseUnion_ResponsePut
-	//	*ResponseUnion_ResponseDeleteRange
-	Response isResponseUnion_Response `protobuf_oneof:"response"`
+	//	*ResponseOp_ResponseRange
+	//	*ResponseOp_ResponsePut
+	//	*ResponseOp_ResponseDeleteRange
+	Response isResponseOp_Response `protobuf_oneof:"response"`
 }
 
-func (m *ResponseUnion) Reset()                    { *m = ResponseUnion{} }
-func (m *ResponseUnion) String() string            { return proto.CompactTextString(m) }
-func (*ResponseUnion) ProtoMessage()               {}
-func (*ResponseUnion) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{8} }
+func (m *ResponseOp) Reset()                    { *m = ResponseOp{} }
+func (m *ResponseOp) String() string            { return proto.CompactTextString(m) }
+func (*ResponseOp) ProtoMessage()               {}
+func (*ResponseOp) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{8} }
 
-type isResponseUnion_Response interface {
-	isResponseUnion_Response()
+type isResponseOp_Response interface {
+	isResponseOp_Response()
 	MarshalTo([]byte) (int, error)
 	Size() int
 }
 
-type ResponseUnion_ResponseRange struct {
+type ResponseOp_ResponseRange struct {
 	ResponseRange *RangeResponse `protobuf:"bytes,1,opt,name=response_range,json=responseRange,oneof"`
 }
-type ResponseUnion_ResponsePut struct {
+type ResponseOp_ResponsePut struct {
 	ResponsePut *PutResponse `protobuf:"bytes,2,opt,name=response_put,json=responsePut,oneof"`
 }
-type ResponseUnion_ResponseDeleteRange struct {
+type ResponseOp_ResponseDeleteRange struct {
 	ResponseDeleteRange *DeleteRangeResponse `protobuf:"bytes,3,opt,name=response_delete_range,json=responseDeleteRange,oneof"`
 }
 
-func (*ResponseUnion_ResponseRange) isResponseUnion_Response()       {}
-func (*ResponseUnion_ResponsePut) isResponseUnion_Response()         {}
-func (*ResponseUnion_ResponseDeleteRange) isResponseUnion_Response() {}
+func (*ResponseOp_ResponseRange) isResponseOp_Response()       {}
+func (*ResponseOp_ResponsePut) isResponseOp_Response()         {}
+func (*ResponseOp_ResponseDeleteRange) isResponseOp_Response() {}
 
-func (m *ResponseUnion) GetResponse() isResponseUnion_Response {
+func (m *ResponseOp) GetResponse() isResponseOp_Response {
 	if m != nil {
 		return m.Response
 	}
 	return nil
 }
 
-func (m *ResponseUnion) GetResponseRange() *RangeResponse {
-	if x, ok := m.GetResponse().(*ResponseUnion_ResponseRange); ok {
+func (m *ResponseOp) GetResponseRange() *RangeResponse {
+	if x, ok := m.GetResponse().(*ResponseOp_ResponseRange); ok {
 		return x.ResponseRange
 	}
 	return nil
 }
 
-func (m *ResponseUnion) GetResponsePut() *PutResponse {
-	if x, ok := m.GetResponse().(*ResponseUnion_ResponsePut); ok {
+func (m *ResponseOp) GetResponsePut() *PutResponse {
+	if x, ok := m.GetResponse().(*ResponseOp_ResponsePut); ok {
 		return x.ResponsePut
 	}
 	return nil
 }
 
-func (m *ResponseUnion) GetResponseDeleteRange() *DeleteRangeResponse {
-	if x, ok := m.GetResponse().(*ResponseUnion_ResponseDeleteRange); ok {
+func (m *ResponseOp) GetResponseDeleteRange() *DeleteRangeResponse {
+	if x, ok := m.GetResponse().(*ResponseOp_ResponseDeleteRange); ok {
 		return x.ResponseDeleteRange
 	}
 	return nil
 }
 
 // XXX_OneofFuncs is for the internal use of the proto package.
-func (*ResponseUnion) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ResponseUnion_OneofMarshaler, _ResponseUnion_OneofUnmarshaler, _ResponseUnion_OneofSizer, []interface{}{
-		(*ResponseUnion_ResponseRange)(nil),
-		(*ResponseUnion_ResponsePut)(nil),
-		(*ResponseUnion_ResponseDeleteRange)(nil),
+func (*ResponseOp) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _ResponseOp_OneofMarshaler, _ResponseOp_OneofUnmarshaler, _ResponseOp_OneofSizer, []interface{}{
+		(*ResponseOp_ResponseRange)(nil),
+		(*ResponseOp_ResponsePut)(nil),
+		(*ResponseOp_ResponseDeleteRange)(nil),
 	}
 }
 
-func _ResponseUnion_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ResponseUnion)
+func _ResponseOp_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*ResponseOp)
 	// response
 	switch x := m.Response.(type) {
-	case *ResponseUnion_ResponseRange:
+	case *ResponseOp_ResponseRange:
 		_ = b.EncodeVarint(1<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ResponseRange); err != nil {
 			return err
 		}
-	case *ResponseUnion_ResponsePut:
+	case *ResponseOp_ResponsePut:
 		_ = b.EncodeVarint(2<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ResponsePut); err != nil {
 			return err
 		}
-	case *ResponseUnion_ResponseDeleteRange:
+	case *ResponseOp_ResponseDeleteRange:
 		_ = b.EncodeVarint(3<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.ResponseDeleteRange); err != nil {
 			return err
 		}
 	case nil:
 	default:
-		return fmt.Errorf("ResponseUnion.Response has unexpected type %T", x)
+		return fmt.Errorf("ResponseOp.Response has unexpected type %T", x)
 	}
 	return nil
 }
 
-func _ResponseUnion_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ResponseUnion)
+func _ResponseOp_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*ResponseOp)
 	switch tag {
 	case 1: // response.response_range
 		if wire != proto.WireBytes {
@@ -582,7 +582,7 @@ func _ResponseUnion_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.
 		}
 		msg := new(RangeResponse)
 		err := b.DecodeMessage(msg)
-		m.Response = &ResponseUnion_ResponseRange{msg}
+		m.Response = &ResponseOp_ResponseRange{msg}
 		return true, err
 	case 2: // response.response_put
 		if wire != proto.WireBytes {
@@ -590,7 +590,7 @@ func _ResponseUnion_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.
 		}
 		msg := new(PutResponse)
 		err := b.DecodeMessage(msg)
-		m.Response = &ResponseUnion_ResponsePut{msg}
+		m.Response = &ResponseOp_ResponsePut{msg}
 		return true, err
 	case 3: // response.response_delete_range
 		if wire != proto.WireBytes {
@@ -598,28 +598,28 @@ func _ResponseUnion_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.
 		}
 		msg := new(DeleteRangeResponse)
 		err := b.DecodeMessage(msg)
-		m.Response = &ResponseUnion_ResponseDeleteRange{msg}
+		m.Response = &ResponseOp_ResponseDeleteRange{msg}
 		return true, err
 	default:
 		return false, nil
 	}
 }
 
-func _ResponseUnion_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ResponseUnion)
+func _ResponseOp_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*ResponseOp)
 	// response
 	switch x := m.Response.(type) {
-	case *ResponseUnion_ResponseRange:
+	case *ResponseOp_ResponseRange:
 		s := proto.Size(x.ResponseRange)
 		n += proto.SizeVarint(1<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ResponseUnion_ResponsePut:
+	case *ResponseOp_ResponsePut:
 		s := proto.Size(x.ResponsePut)
 		n += proto.SizeVarint(2<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
 		n += s
-	case *ResponseUnion_ResponseDeleteRange:
+	case *ResponseOp_ResponseDeleteRange:
 		s := proto.Size(x.ResponseDeleteRange)
 		n += proto.SizeVarint(3<<3 | proto.WireBytes)
 		n += proto.SizeVarint(uint64(s))
@@ -826,9 +826,9 @@ type TxnRequest struct {
 	// and the response will contain their respective responses in order.
 	Compare []*Compare `protobuf:"bytes,1,rep,name=compare" json:"compare,omitempty"`
 	// success is a list of requests which will be applied when compare evaluates to true.
-	Success []*RequestUnion `protobuf:"bytes,2,rep,name=success" json:"success,omitempty"`
+	Success []*RequestOp `protobuf:"bytes,2,rep,name=success" json:"success,omitempty"`
 	// failure is a list of requests which will be applied when compare evaluates to false.
-	Failure []*RequestUnion `protobuf:"bytes,3,rep,name=failure" json:"failure,omitempty"`
+	Failure []*RequestOp `protobuf:"bytes,3,rep,name=failure" json:"failure,omitempty"`
 }
 
 func (m *TxnRequest) Reset()                    { *m = TxnRequest{} }
@@ -843,14 +843,14 @@ func (m *TxnRequest) GetCompare() []*Compare {
 	return nil
 }
 
-func (m *TxnRequest) GetSuccess() []*RequestUnion {
+func (m *TxnRequest) GetSuccess() []*RequestOp {
 	if m != nil {
 		return m.Success
 	}
 	return nil
 }
 
-func (m *TxnRequest) GetFailure() []*RequestUnion {
+func (m *TxnRequest) GetFailure() []*RequestOp {
 	if m != nil {
 		return m.Failure
 	}
@@ -863,7 +863,7 @@ type TxnResponse struct {
 	Succeeded bool `protobuf:"varint,2,opt,name=succeeded,proto3" json:"succeeded,omitempty"`
 	// responses is a list of responses corresponding to the results from applying
 	// success if succeeded is true or failure if succeeded is false.
-	Responses []*ResponseUnion `protobuf:"bytes,3,rep,name=responses" json:"responses,omitempty"`
+	Responses []*ResponseOp `protobuf:"bytes,3,rep,name=responses" json:"responses,omitempty"`
 }
 
 func (m *TxnResponse) Reset()                    { *m = TxnResponse{} }
@@ -878,7 +878,7 @@ func (m *TxnResponse) GetHeader() *ResponseHeader {
 	return nil
 }
 
-func (m *TxnResponse) GetResponses() []*ResponseUnion {
+func (m *TxnResponse) GetResponses() []*ResponseOp {
 	if m != nil {
 		return m.Responses
 	}
@@ -1548,6 +1548,7 @@ func (*AuthUserAddRequest) ProtoMessage()               {}
 func (*AuthUserAddRequest) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{47} }
 
 type AuthUserGetRequest struct {
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 }
 
 func (m *AuthUserGetRequest) Reset()                    { *m = AuthUserGetRequest{} }
@@ -1579,25 +1580,27 @@ func (*AuthUserChangePasswordRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptorRpc, []int{50}
 }
 
-type AuthUserGrantRequest struct {
+type AuthUserGrantRoleRequest struct {
 	// user is the name of the user which should be granted a given role.
 	User string `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	// role is the name of the role to grant to the user.
 	Role string `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
 }
 
-func (m *AuthUserGrantRequest) Reset()                    { *m = AuthUserGrantRequest{} }
-func (m *AuthUserGrantRequest) String() string            { return proto.CompactTextString(m) }
-func (*AuthUserGrantRequest) ProtoMessage()               {}
-func (*AuthUserGrantRequest) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{51} }
+func (m *AuthUserGrantRoleRequest) Reset()                    { *m = AuthUserGrantRoleRequest{} }
+func (m *AuthUserGrantRoleRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserGrantRoleRequest) ProtoMessage()               {}
+func (*AuthUserGrantRoleRequest) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{51} }
 
-type AuthUserRevokeRequest struct {
+type AuthUserRevokeRoleRequest struct {
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Role string `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
 }
 
-func (m *AuthUserRevokeRequest) Reset()                    { *m = AuthUserRevokeRequest{} }
-func (m *AuthUserRevokeRequest) String() string            { return proto.CompactTextString(m) }
-func (*AuthUserRevokeRequest) ProtoMessage()               {}
-func (*AuthUserRevokeRequest) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{52} }
+func (m *AuthUserRevokeRoleRequest) Reset()                    { *m = AuthUserRevokeRoleRequest{} }
+func (m *AuthUserRevokeRoleRequest) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserRevokeRoleRequest) ProtoMessage()               {}
+func (*AuthUserRevokeRoleRequest) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{52} }
 
 type AuthRoleAddRequest struct {
 	// name is the name of the role to add to the authentication system.
@@ -1610,6 +1613,7 @@ func (*AuthRoleAddRequest) ProtoMessage()               {}
 func (*AuthRoleAddRequest) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{53} }
 
 type AuthRoleGetRequest struct {
+	Role string `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
 }
 
 func (m *AuthRoleGetRequest) Reset()                    { *m = AuthRoleGetRequest{} }
@@ -1618,6 +1622,7 @@ func (*AuthRoleGetRequest) ProtoMessage()               {}
 func (*AuthRoleGetRequest) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{54} }
 
 type AuthRoleDeleteRequest struct {
+	Role string `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
 }
 
 func (m *AuthRoleDeleteRequest) Reset()                    { *m = AuthRoleDeleteRequest{} }
@@ -1625,32 +1630,39 @@ func (m *AuthRoleDeleteRequest) String() string            { return proto.Compac
 func (*AuthRoleDeleteRequest) ProtoMessage()               {}
 func (*AuthRoleDeleteRequest) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{55} }
 
-type AuthRoleGrantRequest struct {
+type AuthRoleGrantPermissionRequest struct {
 	// name is the name of the role which will be granted the permission.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// perm is the permission to grant to the role.
 	Perm *authpb.Permission `protobuf:"bytes,2,opt,name=perm" json:"perm,omitempty"`
 }
 
-func (m *AuthRoleGrantRequest) Reset()                    { *m = AuthRoleGrantRequest{} }
-func (m *AuthRoleGrantRequest) String() string            { return proto.CompactTextString(m) }
-func (*AuthRoleGrantRequest) ProtoMessage()               {}
-func (*AuthRoleGrantRequest) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{56} }
+func (m *AuthRoleGrantPermissionRequest) Reset()         { *m = AuthRoleGrantPermissionRequest{} }
+func (m *AuthRoleGrantPermissionRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthRoleGrantPermissionRequest) ProtoMessage()    {}
+func (*AuthRoleGrantPermissionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptorRpc, []int{56}
+}
 
-func (m *AuthRoleGrantRequest) GetPerm() *authpb.Permission {
+func (m *AuthRoleGrantPermissionRequest) GetPerm() *authpb.Permission {
 	if m != nil {
 		return m.Perm
 	}
 	return nil
 }
 
-type AuthRoleRevokeRequest struct {
+type AuthRoleRevokePermissionRequest struct {
+	Role     string `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	Key      string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	RangeEnd string `protobuf:"bytes,3,opt,name=range_end,json=rangeEnd,proto3" json:"range_end,omitempty"`
 }
 
-func (m *AuthRoleRevokeRequest) Reset()                    { *m = AuthRoleRevokeRequest{} }
-func (m *AuthRoleRevokeRequest) String() string            { return proto.CompactTextString(m) }
-func (*AuthRoleRevokeRequest) ProtoMessage()               {}
-func (*AuthRoleRevokeRequest) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{57} }
+func (m *AuthRoleRevokePermissionRequest) Reset()         { *m = AuthRoleRevokePermissionRequest{} }
+func (m *AuthRoleRevokePermissionRequest) String() string { return proto.CompactTextString(m) }
+func (*AuthRoleRevokePermissionRequest) ProtoMessage()    {}
+func (*AuthRoleRevokePermissionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptorRpc, []int{57}
+}
 
 type AuthEnableResponse struct {
 	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
@@ -1720,6 +1732,7 @@ func (m *AuthUserAddResponse) GetHeader() *ResponseHeader {
 
 type AuthUserGetResponse struct {
 	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+	Roles  []string        `protobuf:"bytes,2,rep,name=roles" json:"roles,omitempty"`
 }
 
 func (m *AuthUserGetResponse) Reset()                    { *m = AuthUserGetResponse{} }
@@ -1768,32 +1781,32 @@ func (m *AuthUserChangePasswordResponse) GetHeader() *ResponseHeader {
 	return nil
 }
 
-type AuthUserGrantResponse struct {
+type AuthUserGrantRoleResponse struct {
 	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
 }
 
-func (m *AuthUserGrantResponse) Reset()                    { *m = AuthUserGrantResponse{} }
-func (m *AuthUserGrantResponse) String() string            { return proto.CompactTextString(m) }
-func (*AuthUserGrantResponse) ProtoMessage()               {}
-func (*AuthUserGrantResponse) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{65} }
+func (m *AuthUserGrantRoleResponse) Reset()                    { *m = AuthUserGrantRoleResponse{} }
+func (m *AuthUserGrantRoleResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserGrantRoleResponse) ProtoMessage()               {}
+func (*AuthUserGrantRoleResponse) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{65} }
 
-func (m *AuthUserGrantResponse) GetHeader() *ResponseHeader {
+func (m *AuthUserGrantRoleResponse) GetHeader() *ResponseHeader {
 	if m != nil {
 		return m.Header
 	}
 	return nil
 }
 
-type AuthUserRevokeResponse struct {
+type AuthUserRevokeRoleResponse struct {
 	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
 }
 
-func (m *AuthUserRevokeResponse) Reset()                    { *m = AuthUserRevokeResponse{} }
-func (m *AuthUserRevokeResponse) String() string            { return proto.CompactTextString(m) }
-func (*AuthUserRevokeResponse) ProtoMessage()               {}
-func (*AuthUserRevokeResponse) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{66} }
+func (m *AuthUserRevokeRoleResponse) Reset()                    { *m = AuthUserRevokeRoleResponse{} }
+func (m *AuthUserRevokeRoleResponse) String() string            { return proto.CompactTextString(m) }
+func (*AuthUserRevokeRoleResponse) ProtoMessage()               {}
+func (*AuthUserRevokeRoleResponse) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{66} }
 
-func (m *AuthUserRevokeResponse) GetHeader() *ResponseHeader {
+func (m *AuthUserRevokeRoleResponse) GetHeader() *ResponseHeader {
 	if m != nil {
 		return m.Header
 	}
@@ -1817,7 +1830,8 @@ func (m *AuthRoleAddResponse) GetHeader() *ResponseHeader {
 }
 
 type AuthRoleGetResponse struct {
-	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+	Header *ResponseHeader      `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
+	Perm   []*authpb.Permission `protobuf:"bytes,2,rep,name=perm" json:"perm,omitempty"`
 }
 
 func (m *AuthRoleGetResponse) Reset()                    { *m = AuthRoleGetResponse{} }
@@ -1828,6 +1842,13 @@ func (*AuthRoleGetResponse) Descriptor() ([]byte, []int) { return fileDescriptor
 func (m *AuthRoleGetResponse) GetHeader() *ResponseHeader {
 	if m != nil {
 		return m.Header
+	}
+	return nil
+}
+
+func (m *AuthRoleGetResponse) GetPerm() []*authpb.Permission {
+	if m != nil {
+		return m.Perm
 	}
 	return nil
 }
@@ -1848,32 +1869,36 @@ func (m *AuthRoleDeleteResponse) GetHeader() *ResponseHeader {
 	return nil
 }
 
-type AuthRoleGrantResponse struct {
+type AuthRoleGrantPermissionResponse struct {
 	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
 }
 
-func (m *AuthRoleGrantResponse) Reset()                    { *m = AuthRoleGrantResponse{} }
-func (m *AuthRoleGrantResponse) String() string            { return proto.CompactTextString(m) }
-func (*AuthRoleGrantResponse) ProtoMessage()               {}
-func (*AuthRoleGrantResponse) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{70} }
+func (m *AuthRoleGrantPermissionResponse) Reset()         { *m = AuthRoleGrantPermissionResponse{} }
+func (m *AuthRoleGrantPermissionResponse) String() string { return proto.CompactTextString(m) }
+func (*AuthRoleGrantPermissionResponse) ProtoMessage()    {}
+func (*AuthRoleGrantPermissionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptorRpc, []int{70}
+}
 
-func (m *AuthRoleGrantResponse) GetHeader() *ResponseHeader {
+func (m *AuthRoleGrantPermissionResponse) GetHeader() *ResponseHeader {
 	if m != nil {
 		return m.Header
 	}
 	return nil
 }
 
-type AuthRoleRevokeResponse struct {
+type AuthRoleRevokePermissionResponse struct {
 	Header *ResponseHeader `protobuf:"bytes,1,opt,name=header" json:"header,omitempty"`
 }
 
-func (m *AuthRoleRevokeResponse) Reset()                    { *m = AuthRoleRevokeResponse{} }
-func (m *AuthRoleRevokeResponse) String() string            { return proto.CompactTextString(m) }
-func (*AuthRoleRevokeResponse) ProtoMessage()               {}
-func (*AuthRoleRevokeResponse) Descriptor() ([]byte, []int) { return fileDescriptorRpc, []int{71} }
+func (m *AuthRoleRevokePermissionResponse) Reset()         { *m = AuthRoleRevokePermissionResponse{} }
+func (m *AuthRoleRevokePermissionResponse) String() string { return proto.CompactTextString(m) }
+func (*AuthRoleRevokePermissionResponse) ProtoMessage()    {}
+func (*AuthRoleRevokePermissionResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptorRpc, []int{71}
+}
 
-func (m *AuthRoleRevokeResponse) GetHeader() *ResponseHeader {
+func (m *AuthRoleRevokePermissionResponse) GetHeader() *ResponseHeader {
 	if m != nil {
 		return m.Header
 	}
@@ -1888,8 +1913,8 @@ func init() {
 	proto.RegisterType((*PutResponse)(nil), "etcdserverpb.PutResponse")
 	proto.RegisterType((*DeleteRangeRequest)(nil), "etcdserverpb.DeleteRangeRequest")
 	proto.RegisterType((*DeleteRangeResponse)(nil), "etcdserverpb.DeleteRangeResponse")
-	proto.RegisterType((*RequestUnion)(nil), "etcdserverpb.RequestUnion")
-	proto.RegisterType((*ResponseUnion)(nil), "etcdserverpb.ResponseUnion")
+	proto.RegisterType((*RequestOp)(nil), "etcdserverpb.RequestOp")
+	proto.RegisterType((*ResponseOp)(nil), "etcdserverpb.ResponseOp")
 	proto.RegisterType((*Compare)(nil), "etcdserverpb.Compare")
 	proto.RegisterType((*TxnRequest)(nil), "etcdserverpb.TxnRequest")
 	proto.RegisterType((*TxnResponse)(nil), "etcdserverpb.TxnResponse")
@@ -1932,13 +1957,13 @@ func init() {
 	proto.RegisterType((*AuthUserGetRequest)(nil), "etcdserverpb.AuthUserGetRequest")
 	proto.RegisterType((*AuthUserDeleteRequest)(nil), "etcdserverpb.AuthUserDeleteRequest")
 	proto.RegisterType((*AuthUserChangePasswordRequest)(nil), "etcdserverpb.AuthUserChangePasswordRequest")
-	proto.RegisterType((*AuthUserGrantRequest)(nil), "etcdserverpb.AuthUserGrantRequest")
-	proto.RegisterType((*AuthUserRevokeRequest)(nil), "etcdserverpb.AuthUserRevokeRequest")
+	proto.RegisterType((*AuthUserGrantRoleRequest)(nil), "etcdserverpb.AuthUserGrantRoleRequest")
+	proto.RegisterType((*AuthUserRevokeRoleRequest)(nil), "etcdserverpb.AuthUserRevokeRoleRequest")
 	proto.RegisterType((*AuthRoleAddRequest)(nil), "etcdserverpb.AuthRoleAddRequest")
 	proto.RegisterType((*AuthRoleGetRequest)(nil), "etcdserverpb.AuthRoleGetRequest")
 	proto.RegisterType((*AuthRoleDeleteRequest)(nil), "etcdserverpb.AuthRoleDeleteRequest")
-	proto.RegisterType((*AuthRoleGrantRequest)(nil), "etcdserverpb.AuthRoleGrantRequest")
-	proto.RegisterType((*AuthRoleRevokeRequest)(nil), "etcdserverpb.AuthRoleRevokeRequest")
+	proto.RegisterType((*AuthRoleGrantPermissionRequest)(nil), "etcdserverpb.AuthRoleGrantPermissionRequest")
+	proto.RegisterType((*AuthRoleRevokePermissionRequest)(nil), "etcdserverpb.AuthRoleRevokePermissionRequest")
 	proto.RegisterType((*AuthEnableResponse)(nil), "etcdserverpb.AuthEnableResponse")
 	proto.RegisterType((*AuthDisableResponse)(nil), "etcdserverpb.AuthDisableResponse")
 	proto.RegisterType((*AuthenticateResponse)(nil), "etcdserverpb.AuthenticateResponse")
@@ -1946,13 +1971,13 @@ func init() {
 	proto.RegisterType((*AuthUserGetResponse)(nil), "etcdserverpb.AuthUserGetResponse")
 	proto.RegisterType((*AuthUserDeleteResponse)(nil), "etcdserverpb.AuthUserDeleteResponse")
 	proto.RegisterType((*AuthUserChangePasswordResponse)(nil), "etcdserverpb.AuthUserChangePasswordResponse")
-	proto.RegisterType((*AuthUserGrantResponse)(nil), "etcdserverpb.AuthUserGrantResponse")
-	proto.RegisterType((*AuthUserRevokeResponse)(nil), "etcdserverpb.AuthUserRevokeResponse")
+	proto.RegisterType((*AuthUserGrantRoleResponse)(nil), "etcdserverpb.AuthUserGrantRoleResponse")
+	proto.RegisterType((*AuthUserRevokeRoleResponse)(nil), "etcdserverpb.AuthUserRevokeRoleResponse")
 	proto.RegisterType((*AuthRoleAddResponse)(nil), "etcdserverpb.AuthRoleAddResponse")
 	proto.RegisterType((*AuthRoleGetResponse)(nil), "etcdserverpb.AuthRoleGetResponse")
 	proto.RegisterType((*AuthRoleDeleteResponse)(nil), "etcdserverpb.AuthRoleDeleteResponse")
-	proto.RegisterType((*AuthRoleGrantResponse)(nil), "etcdserverpb.AuthRoleGrantResponse")
-	proto.RegisterType((*AuthRoleRevokeResponse)(nil), "etcdserverpb.AuthRoleRevokeResponse")
+	proto.RegisterType((*AuthRoleGrantPermissionResponse)(nil), "etcdserverpb.AuthRoleGrantPermissionResponse")
+	proto.RegisterType((*AuthRoleRevokePermissionResponse)(nil), "etcdserverpb.AuthRoleRevokePermissionResponse")
 	proto.RegisterEnum("etcdserverpb.AlarmType", AlarmType_name, AlarmType_value)
 	proto.RegisterEnum("etcdserverpb.RangeRequest_SortOrder", RangeRequest_SortOrder_name, RangeRequest_SortOrder_value)
 	proto.RegisterEnum("etcdserverpb.RangeRequest_SortTarget", RangeRequest_SortTarget_name, RangeRequest_SortTarget_value)
@@ -2896,19 +2921,19 @@ type AuthClient interface {
 	// UserChangePassword changes the password of a specified user.
 	UserChangePassword(ctx context.Context, in *AuthUserChangePasswordRequest, opts ...grpc.CallOption) (*AuthUserChangePasswordResponse, error)
 	// UserGrant grants a role to a specified user.
-	UserGrant(ctx context.Context, in *AuthUserGrantRequest, opts ...grpc.CallOption) (*AuthUserGrantResponse, error)
-	// UserRevoke revokes a role of specified user.
-	UserRevoke(ctx context.Context, in *AuthUserRevokeRequest, opts ...grpc.CallOption) (*AuthUserRevokeResponse, error)
+	UserGrantRole(ctx context.Context, in *AuthUserGrantRoleRequest, opts ...grpc.CallOption) (*AuthUserGrantRoleResponse, error)
+	// UserRevokeRole revokes a role of specified user.
+	UserRevokeRole(ctx context.Context, in *AuthUserRevokeRoleRequest, opts ...grpc.CallOption) (*AuthUserRevokeRoleResponse, error)
 	// RoleAdd adds a new role.
 	RoleAdd(ctx context.Context, in *AuthRoleAddRequest, opts ...grpc.CallOption) (*AuthRoleAddResponse, error)
 	// RoleGet gets detailed role information or lists all roles.
 	RoleGet(ctx context.Context, in *AuthRoleGetRequest, opts ...grpc.CallOption) (*AuthRoleGetResponse, error)
 	// RoleDelete deletes a specified role.
 	RoleDelete(ctx context.Context, in *AuthRoleDeleteRequest, opts ...grpc.CallOption) (*AuthRoleDeleteResponse, error)
-	// RoleGrant grants a permission of a specified key or range to a specified role.
-	RoleGrant(ctx context.Context, in *AuthRoleGrantRequest, opts ...grpc.CallOption) (*AuthRoleGrantResponse, error)
-	// RoleRevoke revokes a key or range permission of a specified role.
-	RoleRevoke(ctx context.Context, in *AuthRoleRevokeRequest, opts ...grpc.CallOption) (*AuthRoleRevokeResponse, error)
+	// RoleGrantPermission grants a permission of a specified key or range to a specified role.
+	RoleGrantPermission(ctx context.Context, in *AuthRoleGrantPermissionRequest, opts ...grpc.CallOption) (*AuthRoleGrantPermissionResponse, error)
+	// RoleRevokePermission revokes a key or range permission of a specified role.
+	RoleRevokePermission(ctx context.Context, in *AuthRoleRevokePermissionRequest, opts ...grpc.CallOption) (*AuthRoleRevokePermissionResponse, error)
 }
 
 type authClient struct {
@@ -2982,18 +3007,18 @@ func (c *authClient) UserChangePassword(ctx context.Context, in *AuthUserChangeP
 	return out, nil
 }
 
-func (c *authClient) UserGrant(ctx context.Context, in *AuthUserGrantRequest, opts ...grpc.CallOption) (*AuthUserGrantResponse, error) {
-	out := new(AuthUserGrantResponse)
-	err := grpc.Invoke(ctx, "/etcdserverpb.Auth/UserGrant", in, out, c.cc, opts...)
+func (c *authClient) UserGrantRole(ctx context.Context, in *AuthUserGrantRoleRequest, opts ...grpc.CallOption) (*AuthUserGrantRoleResponse, error) {
+	out := new(AuthUserGrantRoleResponse)
+	err := grpc.Invoke(ctx, "/etcdserverpb.Auth/UserGrantRole", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) UserRevoke(ctx context.Context, in *AuthUserRevokeRequest, opts ...grpc.CallOption) (*AuthUserRevokeResponse, error) {
-	out := new(AuthUserRevokeResponse)
-	err := grpc.Invoke(ctx, "/etcdserverpb.Auth/UserRevoke", in, out, c.cc, opts...)
+func (c *authClient) UserRevokeRole(ctx context.Context, in *AuthUserRevokeRoleRequest, opts ...grpc.CallOption) (*AuthUserRevokeRoleResponse, error) {
+	out := new(AuthUserRevokeRoleResponse)
+	err := grpc.Invoke(ctx, "/etcdserverpb.Auth/UserRevokeRole", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3027,18 +3052,18 @@ func (c *authClient) RoleDelete(ctx context.Context, in *AuthRoleDeleteRequest, 
 	return out, nil
 }
 
-func (c *authClient) RoleGrant(ctx context.Context, in *AuthRoleGrantRequest, opts ...grpc.CallOption) (*AuthRoleGrantResponse, error) {
-	out := new(AuthRoleGrantResponse)
-	err := grpc.Invoke(ctx, "/etcdserverpb.Auth/RoleGrant", in, out, c.cc, opts...)
+func (c *authClient) RoleGrantPermission(ctx context.Context, in *AuthRoleGrantPermissionRequest, opts ...grpc.CallOption) (*AuthRoleGrantPermissionResponse, error) {
+	out := new(AuthRoleGrantPermissionResponse)
+	err := grpc.Invoke(ctx, "/etcdserverpb.Auth/RoleGrantPermission", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *authClient) RoleRevoke(ctx context.Context, in *AuthRoleRevokeRequest, opts ...grpc.CallOption) (*AuthRoleRevokeResponse, error) {
-	out := new(AuthRoleRevokeResponse)
-	err := grpc.Invoke(ctx, "/etcdserverpb.Auth/RoleRevoke", in, out, c.cc, opts...)
+func (c *authClient) RoleRevokePermission(ctx context.Context, in *AuthRoleRevokePermissionRequest, opts ...grpc.CallOption) (*AuthRoleRevokePermissionResponse, error) {
+	out := new(AuthRoleRevokePermissionResponse)
+	err := grpc.Invoke(ctx, "/etcdserverpb.Auth/RoleRevokePermission", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3063,19 +3088,19 @@ type AuthServer interface {
 	// UserChangePassword changes the password of a specified user.
 	UserChangePassword(context.Context, *AuthUserChangePasswordRequest) (*AuthUserChangePasswordResponse, error)
 	// UserGrant grants a role to a specified user.
-	UserGrant(context.Context, *AuthUserGrantRequest) (*AuthUserGrantResponse, error)
-	// UserRevoke revokes a role of specified user.
-	UserRevoke(context.Context, *AuthUserRevokeRequest) (*AuthUserRevokeResponse, error)
+	UserGrantRole(context.Context, *AuthUserGrantRoleRequest) (*AuthUserGrantRoleResponse, error)
+	// UserRevokeRole revokes a role of specified user.
+	UserRevokeRole(context.Context, *AuthUserRevokeRoleRequest) (*AuthUserRevokeRoleResponse, error)
 	// RoleAdd adds a new role.
 	RoleAdd(context.Context, *AuthRoleAddRequest) (*AuthRoleAddResponse, error)
 	// RoleGet gets detailed role information or lists all roles.
 	RoleGet(context.Context, *AuthRoleGetRequest) (*AuthRoleGetResponse, error)
 	// RoleDelete deletes a specified role.
 	RoleDelete(context.Context, *AuthRoleDeleteRequest) (*AuthRoleDeleteResponse, error)
-	// RoleGrant grants a permission of a specified key or range to a specified role.
-	RoleGrant(context.Context, *AuthRoleGrantRequest) (*AuthRoleGrantResponse, error)
-	// RoleRevoke revokes a key or range permission of a specified role.
-	RoleRevoke(context.Context, *AuthRoleRevokeRequest) (*AuthRoleRevokeResponse, error)
+	// RoleGrantPermission grants a permission of a specified key or range to a specified role.
+	RoleGrantPermission(context.Context, *AuthRoleGrantPermissionRequest) (*AuthRoleGrantPermissionResponse, error)
+	// RoleRevokePermission revokes a key or range permission of a specified role.
+	RoleRevokePermission(context.Context, *AuthRoleRevokePermissionRequest) (*AuthRoleRevokePermissionResponse, error)
 }
 
 func RegisterAuthServer(s *grpc.Server, srv AuthServer) {
@@ -3208,38 +3233,38 @@ func _Auth_UserChangePassword_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_UserGrant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthUserGrantRequest)
+func _Auth_UserGrantRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthUserGrantRoleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).UserGrant(ctx, in)
+		return srv.(AuthServer).UserGrantRole(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/etcdserverpb.Auth/UserGrant",
+		FullMethod: "/etcdserverpb.Auth/UserGrantRole",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).UserGrant(ctx, req.(*AuthUserGrantRequest))
+		return srv.(AuthServer).UserGrantRole(ctx, req.(*AuthUserGrantRoleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_UserRevoke_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthUserRevokeRequest)
+func _Auth_UserRevokeRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthUserRevokeRoleRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).UserRevoke(ctx, in)
+		return srv.(AuthServer).UserRevokeRole(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/etcdserverpb.Auth/UserRevoke",
+		FullMethod: "/etcdserverpb.Auth/UserRevokeRole",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).UserRevoke(ctx, req.(*AuthUserRevokeRequest))
+		return srv.(AuthServer).UserRevokeRole(ctx, req.(*AuthUserRevokeRoleRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3298,38 +3323,38 @@ func _Auth_RoleDelete_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_RoleGrant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthRoleGrantRequest)
+func _Auth_RoleGrantPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRoleGrantPermissionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).RoleGrant(ctx, in)
+		return srv.(AuthServer).RoleGrantPermission(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/etcdserverpb.Auth/RoleGrant",
+		FullMethod: "/etcdserverpb.Auth/RoleGrantPermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).RoleGrant(ctx, req.(*AuthRoleGrantRequest))
+		return srv.(AuthServer).RoleGrantPermission(ctx, req.(*AuthRoleGrantPermissionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_RoleRevoke_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthRoleRevokeRequest)
+func _Auth_RoleRevokePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthRoleRevokePermissionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).RoleRevoke(ctx, in)
+		return srv.(AuthServer).RoleRevokePermission(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/etcdserverpb.Auth/RoleRevoke",
+		FullMethod: "/etcdserverpb.Auth/RoleRevokePermission",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).RoleRevoke(ctx, req.(*AuthRoleRevokeRequest))
+		return srv.(AuthServer).RoleRevokePermission(ctx, req.(*AuthRoleRevokePermissionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3367,12 +3392,12 @@ var _Auth_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Auth_UserChangePassword_Handler,
 		},
 		{
-			MethodName: "UserGrant",
-			Handler:    _Auth_UserGrant_Handler,
+			MethodName: "UserGrantRole",
+			Handler:    _Auth_UserGrantRole_Handler,
 		},
 		{
-			MethodName: "UserRevoke",
-			Handler:    _Auth_UserRevoke_Handler,
+			MethodName: "UserRevokeRole",
+			Handler:    _Auth_UserRevokeRole_Handler,
 		},
 		{
 			MethodName: "RoleAdd",
@@ -3387,12 +3412,12 @@ var _Auth_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Auth_RoleDelete_Handler,
 		},
 		{
-			MethodName: "RoleGrant",
-			Handler:    _Auth_RoleGrant_Handler,
+			MethodName: "RoleGrantPermission",
+			Handler:    _Auth_RoleGrantPermission_Handler,
 		},
 		{
-			MethodName: "RoleRevoke",
-			Handler:    _Auth_RoleRevoke_Handler,
+			MethodName: "RoleRevokePermission",
+			Handler:    _Auth_RoleRevokePermission_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},
@@ -3672,7 +3697,7 @@ func (m *DeleteRangeResponse) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *RequestUnion) Marshal() (data []byte, err error) {
+func (m *RequestOp) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -3682,7 +3707,7 @@ func (m *RequestUnion) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *RequestUnion) MarshalTo(data []byte) (int, error) {
+func (m *RequestOp) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -3697,7 +3722,7 @@ func (m *RequestUnion) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *RequestUnion_RequestRange) MarshalTo(data []byte) (int, error) {
+func (m *RequestOp_RequestRange) MarshalTo(data []byte) (int, error) {
 	i := 0
 	if m.RequestRange != nil {
 		data[i] = 0xa
@@ -3711,7 +3736,7 @@ func (m *RequestUnion_RequestRange) MarshalTo(data []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *RequestUnion_RequestPut) MarshalTo(data []byte) (int, error) {
+func (m *RequestOp_RequestPut) MarshalTo(data []byte) (int, error) {
 	i := 0
 	if m.RequestPut != nil {
 		data[i] = 0x12
@@ -3725,7 +3750,7 @@ func (m *RequestUnion_RequestPut) MarshalTo(data []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *RequestUnion_RequestDeleteRange) MarshalTo(data []byte) (int, error) {
+func (m *RequestOp_RequestDeleteRange) MarshalTo(data []byte) (int, error) {
 	i := 0
 	if m.RequestDeleteRange != nil {
 		data[i] = 0x1a
@@ -3739,7 +3764,7 @@ func (m *RequestUnion_RequestDeleteRange) MarshalTo(data []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ResponseUnion) Marshal() (data []byte, err error) {
+func (m *ResponseOp) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -3749,7 +3774,7 @@ func (m *ResponseUnion) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *ResponseUnion) MarshalTo(data []byte) (int, error) {
+func (m *ResponseOp) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -3764,7 +3789,7 @@ func (m *ResponseUnion) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *ResponseUnion_ResponseRange) MarshalTo(data []byte) (int, error) {
+func (m *ResponseOp_ResponseRange) MarshalTo(data []byte) (int, error) {
 	i := 0
 	if m.ResponseRange != nil {
 		data[i] = 0xa
@@ -3778,7 +3803,7 @@ func (m *ResponseUnion_ResponseRange) MarshalTo(data []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ResponseUnion_ResponsePut) MarshalTo(data []byte) (int, error) {
+func (m *ResponseOp_ResponsePut) MarshalTo(data []byte) (int, error) {
 	i := 0
 	if m.ResponsePut != nil {
 		data[i] = 0x12
@@ -3792,7 +3817,7 @@ func (m *ResponseUnion_ResponsePut) MarshalTo(data []byte) (int, error) {
 	}
 	return i, nil
 }
-func (m *ResponseUnion_ResponseDeleteRange) MarshalTo(data []byte) (int, error) {
+func (m *ResponseOp_ResponseDeleteRange) MarshalTo(data []byte) (int, error) {
 	i := 0
 	if m.ResponseDeleteRange != nil {
 		data[i] = 0x1a
@@ -5161,6 +5186,12 @@ func (m *AuthUserGetRequest) MarshalTo(data []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Name) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintRpc(data, i, uint64(len(m.Name)))
+		i += copy(data[i:], m.Name)
+	}
 	return i, nil
 }
 
@@ -5218,7 +5249,7 @@ func (m *AuthUserChangePasswordRequest) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *AuthUserGrantRequest) Marshal() (data []byte, err error) {
+func (m *AuthUserGrantRoleRequest) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -5228,7 +5259,7 @@ func (m *AuthUserGrantRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *AuthUserGrantRequest) MarshalTo(data []byte) (int, error) {
+func (m *AuthUserGrantRoleRequest) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -5248,7 +5279,7 @@ func (m *AuthUserGrantRequest) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *AuthUserRevokeRequest) Marshal() (data []byte, err error) {
+func (m *AuthUserRevokeRoleRequest) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -5258,11 +5289,23 @@ func (m *AuthUserRevokeRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *AuthUserRevokeRequest) MarshalTo(data []byte) (int, error) {
+func (m *AuthUserRevokeRoleRequest) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
 	_ = l
+	if len(m.Name) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintRpc(data, i, uint64(len(m.Name)))
+		i += copy(data[i:], m.Name)
+	}
+	if len(m.Role) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintRpc(data, i, uint64(len(m.Role)))
+		i += copy(data[i:], m.Role)
+	}
 	return i, nil
 }
 
@@ -5305,6 +5348,12 @@ func (m *AuthRoleGetRequest) MarshalTo(data []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Role) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintRpc(data, i, uint64(len(m.Role)))
+		i += copy(data[i:], m.Role)
+	}
 	return i, nil
 }
 
@@ -5323,10 +5372,16 @@ func (m *AuthRoleDeleteRequest) MarshalTo(data []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.Role) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintRpc(data, i, uint64(len(m.Role)))
+		i += copy(data[i:], m.Role)
+	}
 	return i, nil
 }
 
-func (m *AuthRoleGrantRequest) Marshal() (data []byte, err error) {
+func (m *AuthRoleGrantPermissionRequest) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -5336,7 +5391,7 @@ func (m *AuthRoleGrantRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *AuthRoleGrantRequest) MarshalTo(data []byte) (int, error) {
+func (m *AuthRoleGrantPermissionRequest) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -5360,7 +5415,7 @@ func (m *AuthRoleGrantRequest) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *AuthRoleRevokeRequest) Marshal() (data []byte, err error) {
+func (m *AuthRoleRevokePermissionRequest) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -5370,11 +5425,29 @@ func (m *AuthRoleRevokeRequest) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *AuthRoleRevokeRequest) MarshalTo(data []byte) (int, error) {
+func (m *AuthRoleRevokePermissionRequest) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
 	_ = l
+	if len(m.Role) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintRpc(data, i, uint64(len(m.Role)))
+		i += copy(data[i:], m.Role)
+	}
+	if len(m.Key) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintRpc(data, i, uint64(len(m.Key)))
+		i += copy(data[i:], m.Key)
+	}
+	if len(m.RangeEnd) > 0 {
+		data[i] = 0x1a
+		i++
+		i = encodeVarintRpc(data, i, uint64(len(m.RangeEnd)))
+		i += copy(data[i:], m.RangeEnd)
+	}
 	return i, nil
 }
 
@@ -5521,6 +5594,21 @@ func (m *AuthUserGetResponse) MarshalTo(data []byte) (int, error) {
 		}
 		i += n37
 	}
+	if len(m.Roles) > 0 {
+		for _, s := range m.Roles {
+			data[i] = 0x12
+			i++
+			l = len(s)
+			for l >= 1<<7 {
+				data[i] = uint8(uint64(l)&0x7f | 0x80)
+				l >>= 7
+				i++
+			}
+			data[i] = uint8(l)
+			i++
+			i += copy(data[i:], s)
+		}
+	}
 	return i, nil
 }
 
@@ -5580,7 +5668,7 @@ func (m *AuthUserChangePasswordResponse) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *AuthUserGrantResponse) Marshal() (data []byte, err error) {
+func (m *AuthUserGrantRoleResponse) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -5590,7 +5678,7 @@ func (m *AuthUserGrantResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *AuthUserGrantResponse) MarshalTo(data []byte) (int, error) {
+func (m *AuthUserGrantRoleResponse) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -5608,7 +5696,7 @@ func (m *AuthUserGrantResponse) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *AuthUserRevokeResponse) Marshal() (data []byte, err error) {
+func (m *AuthUserRevokeRoleResponse) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -5618,7 +5706,7 @@ func (m *AuthUserRevokeResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *AuthUserRevokeResponse) MarshalTo(data []byte) (int, error) {
+func (m *AuthUserRevokeRoleResponse) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -5689,6 +5777,18 @@ func (m *AuthRoleGetResponse) MarshalTo(data []byte) (int, error) {
 		}
 		i += n43
 	}
+	if len(m.Perm) > 0 {
+		for _, msg := range m.Perm {
+			data[i] = 0x12
+			i++
+			i = encodeVarintRpc(data, i, uint64(msg.Size()))
+			n, err := msg.MarshalTo(data[i:])
+			if err != nil {
+				return 0, err
+			}
+			i += n
+		}
+	}
 	return i, nil
 }
 
@@ -5720,7 +5820,7 @@ func (m *AuthRoleDeleteResponse) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *AuthRoleGrantResponse) Marshal() (data []byte, err error) {
+func (m *AuthRoleGrantPermissionResponse) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -5730,7 +5830,7 @@ func (m *AuthRoleGrantResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *AuthRoleGrantResponse) MarshalTo(data []byte) (int, error) {
+func (m *AuthRoleGrantPermissionResponse) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -5748,7 +5848,7 @@ func (m *AuthRoleGrantResponse) MarshalTo(data []byte) (int, error) {
 	return i, nil
 }
 
-func (m *AuthRoleRevokeResponse) Marshal() (data []byte, err error) {
+func (m *AuthRoleRevokePermissionResponse) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
 	n, err := m.MarshalTo(data)
@@ -5758,7 +5858,7 @@ func (m *AuthRoleRevokeResponse) Marshal() (data []byte, err error) {
 	return data[:n], nil
 }
 
-func (m *AuthRoleRevokeResponse) MarshalTo(data []byte) (int, error) {
+func (m *AuthRoleRevokePermissionResponse) MarshalTo(data []byte) (int, error) {
 	var i int
 	_ = i
 	var l int
@@ -5923,7 +6023,7 @@ func (m *DeleteRangeResponse) Size() (n int) {
 	return n
 }
 
-func (m *RequestUnion) Size() (n int) {
+func (m *RequestOp) Size() (n int) {
 	var l int
 	_ = l
 	if m.Request != nil {
@@ -5932,7 +6032,7 @@ func (m *RequestUnion) Size() (n int) {
 	return n
 }
 
-func (m *RequestUnion_RequestRange) Size() (n int) {
+func (m *RequestOp_RequestRange) Size() (n int) {
 	var l int
 	_ = l
 	if m.RequestRange != nil {
@@ -5941,7 +6041,7 @@ func (m *RequestUnion_RequestRange) Size() (n int) {
 	}
 	return n
 }
-func (m *RequestUnion_RequestPut) Size() (n int) {
+func (m *RequestOp_RequestPut) Size() (n int) {
 	var l int
 	_ = l
 	if m.RequestPut != nil {
@@ -5950,7 +6050,7 @@ func (m *RequestUnion_RequestPut) Size() (n int) {
 	}
 	return n
 }
-func (m *RequestUnion_RequestDeleteRange) Size() (n int) {
+func (m *RequestOp_RequestDeleteRange) Size() (n int) {
 	var l int
 	_ = l
 	if m.RequestDeleteRange != nil {
@@ -5959,7 +6059,7 @@ func (m *RequestUnion_RequestDeleteRange) Size() (n int) {
 	}
 	return n
 }
-func (m *ResponseUnion) Size() (n int) {
+func (m *ResponseOp) Size() (n int) {
 	var l int
 	_ = l
 	if m.Response != nil {
@@ -5968,7 +6068,7 @@ func (m *ResponseUnion) Size() (n int) {
 	return n
 }
 
-func (m *ResponseUnion_ResponseRange) Size() (n int) {
+func (m *ResponseOp_ResponseRange) Size() (n int) {
 	var l int
 	_ = l
 	if m.ResponseRange != nil {
@@ -5977,7 +6077,7 @@ func (m *ResponseUnion_ResponseRange) Size() (n int) {
 	}
 	return n
 }
-func (m *ResponseUnion_ResponsePut) Size() (n int) {
+func (m *ResponseOp_ResponsePut) Size() (n int) {
 	var l int
 	_ = l
 	if m.ResponsePut != nil {
@@ -5986,7 +6086,7 @@ func (m *ResponseUnion_ResponsePut) Size() (n int) {
 	}
 	return n
 }
-func (m *ResponseUnion_ResponseDeleteRange) Size() (n int) {
+func (m *ResponseOp_ResponseDeleteRange) Size() (n int) {
 	var l int
 	_ = l
 	if m.ResponseDeleteRange != nil {
@@ -6559,6 +6659,10 @@ func (m *AuthUserAddRequest) Size() (n int) {
 func (m *AuthUserGetRequest) Size() (n int) {
 	var l int
 	_ = l
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovRpc(uint64(l))
+	}
 	return n
 }
 
@@ -6586,7 +6690,7 @@ func (m *AuthUserChangePasswordRequest) Size() (n int) {
 	return n
 }
 
-func (m *AuthUserGrantRequest) Size() (n int) {
+func (m *AuthUserGrantRoleRequest) Size() (n int) {
 	var l int
 	_ = l
 	l = len(m.User)
@@ -6600,9 +6704,17 @@ func (m *AuthUserGrantRequest) Size() (n int) {
 	return n
 }
 
-func (m *AuthUserRevokeRequest) Size() (n int) {
+func (m *AuthUserRevokeRoleRequest) Size() (n int) {
 	var l int
 	_ = l
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovRpc(uint64(l))
+	}
+	l = len(m.Role)
+	if l > 0 {
+		n += 1 + l + sovRpc(uint64(l))
+	}
 	return n
 }
 
@@ -6619,16 +6731,24 @@ func (m *AuthRoleAddRequest) Size() (n int) {
 func (m *AuthRoleGetRequest) Size() (n int) {
 	var l int
 	_ = l
+	l = len(m.Role)
+	if l > 0 {
+		n += 1 + l + sovRpc(uint64(l))
+	}
 	return n
 }
 
 func (m *AuthRoleDeleteRequest) Size() (n int) {
 	var l int
 	_ = l
+	l = len(m.Role)
+	if l > 0 {
+		n += 1 + l + sovRpc(uint64(l))
+	}
 	return n
 }
 
-func (m *AuthRoleGrantRequest) Size() (n int) {
+func (m *AuthRoleGrantPermissionRequest) Size() (n int) {
 	var l int
 	_ = l
 	l = len(m.Name)
@@ -6642,9 +6762,21 @@ func (m *AuthRoleGrantRequest) Size() (n int) {
 	return n
 }
 
-func (m *AuthRoleRevokeRequest) Size() (n int) {
+func (m *AuthRoleRevokePermissionRequest) Size() (n int) {
 	var l int
 	_ = l
+	l = len(m.Role)
+	if l > 0 {
+		n += 1 + l + sovRpc(uint64(l))
+	}
+	l = len(m.Key)
+	if l > 0 {
+		n += 1 + l + sovRpc(uint64(l))
+	}
+	l = len(m.RangeEnd)
+	if l > 0 {
+		n += 1 + l + sovRpc(uint64(l))
+	}
 	return n
 }
 
@@ -6699,6 +6831,12 @@ func (m *AuthUserGetResponse) Size() (n int) {
 		l = m.Header.Size()
 		n += 1 + l + sovRpc(uint64(l))
 	}
+	if len(m.Roles) > 0 {
+		for _, s := range m.Roles {
+			l = len(s)
+			n += 1 + l + sovRpc(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -6722,7 +6860,7 @@ func (m *AuthUserChangePasswordResponse) Size() (n int) {
 	return n
 }
 
-func (m *AuthUserGrantResponse) Size() (n int) {
+func (m *AuthUserGrantRoleResponse) Size() (n int) {
 	var l int
 	_ = l
 	if m.Header != nil {
@@ -6732,7 +6870,7 @@ func (m *AuthUserGrantResponse) Size() (n int) {
 	return n
 }
 
-func (m *AuthUserRevokeResponse) Size() (n int) {
+func (m *AuthUserRevokeRoleResponse) Size() (n int) {
 	var l int
 	_ = l
 	if m.Header != nil {
@@ -6759,6 +6897,12 @@ func (m *AuthRoleGetResponse) Size() (n int) {
 		l = m.Header.Size()
 		n += 1 + l + sovRpc(uint64(l))
 	}
+	if len(m.Perm) > 0 {
+		for _, e := range m.Perm {
+			l = e.Size()
+			n += 1 + l + sovRpc(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -6772,7 +6916,7 @@ func (m *AuthRoleDeleteResponse) Size() (n int) {
 	return n
 }
 
-func (m *AuthRoleGrantResponse) Size() (n int) {
+func (m *AuthRoleGrantPermissionResponse) Size() (n int) {
 	var l int
 	_ = l
 	if m.Header != nil {
@@ -6782,7 +6926,7 @@ func (m *AuthRoleGrantResponse) Size() (n int) {
 	return n
 }
 
-func (m *AuthRoleRevokeResponse) Size() (n int) {
+func (m *AuthRoleRevokePermissionResponse) Size() (n int) {
 	var l int
 	_ = l
 	if m.Header != nil {
@@ -7701,7 +7845,7 @@ func (m *DeleteRangeResponse) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *RequestUnion) Unmarshal(data []byte) error {
+func (m *RequestOp) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -7724,10 +7868,10 @@ func (m *RequestUnion) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: RequestUnion: wiretype end group for non-group")
+			return fmt.Errorf("proto: RequestOp: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: RequestUnion: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: RequestOp: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -7760,7 +7904,7 @@ func (m *RequestUnion) Unmarshal(data []byte) error {
 			if err := v.Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Request = &RequestUnion_RequestRange{v}
+			m.Request = &RequestOp_RequestRange{v}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -7792,7 +7936,7 @@ func (m *RequestUnion) Unmarshal(data []byte) error {
 			if err := v.Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Request = &RequestUnion_RequestPut{v}
+			m.Request = &RequestOp_RequestPut{v}
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -7824,7 +7968,7 @@ func (m *RequestUnion) Unmarshal(data []byte) error {
 			if err := v.Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Request = &RequestUnion_RequestDeleteRange{v}
+			m.Request = &RequestOp_RequestDeleteRange{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -7847,7 +7991,7 @@ func (m *RequestUnion) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *ResponseUnion) Unmarshal(data []byte) error {
+func (m *ResponseOp) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -7870,10 +8014,10 @@ func (m *ResponseUnion) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ResponseUnion: wiretype end group for non-group")
+			return fmt.Errorf("proto: ResponseOp: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ResponseUnion: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ResponseOp: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -7906,7 +8050,7 @@ func (m *ResponseUnion) Unmarshal(data []byte) error {
 			if err := v.Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Response = &ResponseUnion_ResponseRange{v}
+			m.Response = &ResponseOp_ResponseRange{v}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -7938,7 +8082,7 @@ func (m *ResponseUnion) Unmarshal(data []byte) error {
 			if err := v.Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Response = &ResponseUnion_ResponsePut{v}
+			m.Response = &ResponseOp_ResponsePut{v}
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -7970,7 +8114,7 @@ func (m *ResponseUnion) Unmarshal(data []byte) error {
 			if err := v.Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Response = &ResponseUnion_ResponseDeleteRange{v}
+			m.Response = &ResponseOp_ResponseDeleteRange{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -8288,7 +8432,7 @@ func (m *TxnRequest) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Success = append(m.Success, &RequestUnion{})
+			m.Success = append(m.Success, &RequestOp{})
 			if err := m.Success[len(m.Success)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -8319,7 +8463,7 @@ func (m *TxnRequest) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Failure = append(m.Failure, &RequestUnion{})
+			m.Failure = append(m.Failure, &RequestOp{})
 			if err := m.Failure[len(m.Failure)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -8453,7 +8597,7 @@ func (m *TxnResponse) Unmarshal(data []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Responses = append(m.Responses, &ResponseUnion{})
+			m.Responses = append(m.Responses, &ResponseOp{})
 			if err := m.Responses[len(m.Responses)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -11965,6 +12109,35 @@ func (m *AuthUserGetRequest) Unmarshal(data []byte) error {
 			return fmt.Errorf("proto: AuthUserGetRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRpc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipRpc(data[iNdEx:])
@@ -12173,7 +12346,7 @@ func (m *AuthUserChangePasswordRequest) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *AuthUserGrantRequest) Unmarshal(data []byte) error {
+func (m *AuthUserGrantRoleRequest) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -12196,10 +12369,10 @@ func (m *AuthUserGrantRequest) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AuthUserGrantRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: AuthUserGrantRoleRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AuthUserGrantRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AuthUserGrantRoleRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -12281,7 +12454,7 @@ func (m *AuthUserGrantRequest) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *AuthUserRevokeRequest) Unmarshal(data []byte) error {
+func (m *AuthUserRevokeRoleRequest) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -12304,12 +12477,70 @@ func (m *AuthUserRevokeRequest) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AuthUserRevokeRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: AuthUserRevokeRoleRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AuthUserRevokeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AuthUserRevokeRoleRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRpc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Role", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRpc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Role = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipRpc(data[iNdEx:])
@@ -12439,6 +12670,35 @@ func (m *AuthRoleGetRequest) Unmarshal(data []byte) error {
 			return fmt.Errorf("proto: AuthRoleGetRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Role", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRpc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Role = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipRpc(data[iNdEx:])
@@ -12489,6 +12749,35 @@ func (m *AuthRoleDeleteRequest) Unmarshal(data []byte) error {
 			return fmt.Errorf("proto: AuthRoleDeleteRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Role", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRpc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Role = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipRpc(data[iNdEx:])
@@ -12510,7 +12799,7 @@ func (m *AuthRoleDeleteRequest) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *AuthRoleGrantRequest) Unmarshal(data []byte) error {
+func (m *AuthRoleGrantPermissionRequest) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -12533,10 +12822,10 @@ func (m *AuthRoleGrantRequest) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AuthRoleGrantRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: AuthRoleGrantPermissionRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AuthRoleGrantRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AuthRoleGrantPermissionRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -12622,7 +12911,7 @@ func (m *AuthRoleGrantRequest) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *AuthRoleRevokeRequest) Unmarshal(data []byte) error {
+func (m *AuthRoleRevokePermissionRequest) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -12645,12 +12934,99 @@ func (m *AuthRoleRevokeRequest) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AuthRoleRevokeRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: AuthRoleRevokePermissionRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AuthRoleRevokeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AuthRoleRevokePermissionRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Role", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRpc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Role = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRpc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Key = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RangeEnd", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRpc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RangeEnd = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipRpc(data[iNdEx:])
@@ -13095,6 +13471,35 @@ func (m *AuthUserGetResponse) Unmarshal(data []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Roles", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRpc
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Roles = append(m.Roles, string(data[iNdEx:postIndex]))
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipRpc(data[iNdEx:])
@@ -13282,7 +13687,7 @@ func (m *AuthUserChangePasswordResponse) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *AuthUserGrantResponse) Unmarshal(data []byte) error {
+func (m *AuthUserGrantRoleResponse) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -13305,10 +13710,10 @@ func (m *AuthUserGrantResponse) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AuthUserGrantResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: AuthUserGrantRoleResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AuthUserGrantResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AuthUserGrantRoleResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -13365,7 +13770,7 @@ func (m *AuthUserGrantResponse) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *AuthUserRevokeResponse) Unmarshal(data []byte) error {
+func (m *AuthUserRevokeRoleResponse) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -13388,10 +13793,10 @@ func (m *AuthUserRevokeResponse) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AuthUserRevokeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: AuthUserRevokeRoleResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AuthUserRevokeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AuthUserRevokeRoleResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -13593,6 +13998,37 @@ func (m *AuthRoleGetResponse) Unmarshal(data []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Perm", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRpc
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthRpc
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Perm = append(m.Perm, &authpb.Permission{})
+			if err := m.Perm[len(m.Perm)-1].Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipRpc(data[iNdEx:])
@@ -13697,7 +14133,7 @@ func (m *AuthRoleDeleteResponse) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *AuthRoleGrantResponse) Unmarshal(data []byte) error {
+func (m *AuthRoleGrantPermissionResponse) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -13720,10 +14156,10 @@ func (m *AuthRoleGrantResponse) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AuthRoleGrantResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: AuthRoleGrantPermissionResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AuthRoleGrantResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AuthRoleGrantPermissionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -13780,7 +14216,7 @@ func (m *AuthRoleGrantResponse) Unmarshal(data []byte) error {
 	}
 	return nil
 }
-func (m *AuthRoleRevokeResponse) Unmarshal(data []byte) error {
+func (m *AuthRoleRevokePermissionResponse) Unmarshal(data []byte) error {
 	l := len(data)
 	iNdEx := 0
 	for iNdEx < l {
@@ -13803,10 +14239,10 @@ func (m *AuthRoleRevokeResponse) Unmarshal(data []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AuthRoleRevokeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: AuthRoleRevokePermissionResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AuthRoleRevokeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AuthRoleRevokePermissionResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -13969,166 +14405,172 @@ var (
 )
 
 var fileDescriptorRpc = []byte{
-	// 2576 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xb4, 0x5a, 0xcd, 0x72, 0x1b, 0xc7,
-	0x11, 0x26, 0x7e, 0x08, 0x10, 0x0d, 0x10, 0xa2, 0x86, 0x94, 0x4c, 0x41, 0xb6, 0x2c, 0xaf, 0x24,
-	0x5b, 0x89, 0x1d, 0x2a, 0x66, 0x9c, 0x43, 0x2a, 0x2e, 0xa5, 0x40, 0x02, 0x96, 0x68, 0x52, 0xa4,
-	0xbc, 0x04, 0xa9, 0xf8, 0xc4, 0x5a, 0x02, 0x23, 0x12, 0x25, 0xfc, 0x79, 0x77, 0x41, 0x89, 0xaa,
-	0xca, 0x25, 0x55, 0x79, 0x02, 0xe7, 0x94, 0xca, 0x0b, 0xe4, 0x01, 0xf2, 0x0e, 0xa9, 0x5c, 0x92,
-	0x27, 0x48, 0x52, 0x39, 0xa5, 0x72, 0xc9, 0x3d, 0xb9, 0xa4, 0xe7, 0x77, 0x67, 0x07, 0xbb, 0x94,
-	0x9c, 0x65, 0x0e, 0x22, 0x77, 0x7a, 0xba, 0xbf, 0xe9, 0xee, 0xe9, 0xe9, 0xe9, 0x1e, 0x0a, 0x2a,
-	0xfe, 0xa4, 0xbb, 0x36, 0xf1, 0xc7, 0xe1, 0x98, 0xd4, 0x68, 0xd8, 0xed, 0x05, 0xd4, 0x3f, 0xa3,
-	0xfe, 0xe4, 0xb8, 0xb1, 0x72, 0x32, 0x3e, 0x19, 0xf3, 0x89, 0x07, 0xec, 0x4b, 0xf0, 0x34, 0x6e,
-	0x30, 0x9e, 0x07, 0xc3, 0xb3, 0x6e, 0x97, 0xff, 0x98, 0x1c, 0x3f, 0x78, 0x71, 0x26, 0xa7, 0x6e,
-	0xf2, 0x29, 0x6f, 0x1a, 0x9e, 0xf2, 0x1f, 0x38, 0xc5, 0x7e, 0x89, 0x49, 0xe7, 0x57, 0x39, 0xa8,
-	0xbb, 0x34, 0x98, 0x8c, 0x47, 0x01, 0x7d, 0x4c, 0xbd, 0x1e, 0xf5, 0xc9, 0x7b, 0x00, 0xdd, 0xc1,
-	0x34, 0x08, 0xa9, 0x7f, 0xd4, 0xef, 0xad, 0xe6, 0x6e, 0xe7, 0xee, 0x17, 0xdd, 0x8a, 0xa4, 0x6c,
-	0xf5, 0xc8, 0x4d, 0xa8, 0x0c, 0xe9, 0xf0, 0x58, 0xcc, 0xe6, 0xf9, 0xec, 0x82, 0x20, 0xe0, 0x64,
-	0x03, 0x16, 0x7c, 0x7a, 0xd6, 0x0f, 0xfa, 0xe3, 0xd1, 0x6a, 0x01, 0xe7, 0x0a, 0xae, 0x1e, 0x33,
-	0x41, 0xdf, 0x7b, 0x1e, 0x1e, 0x21, 0xcc, 0x70, 0xb5, 0x28, 0x04, 0x19, 0xa1, 0x83, 0x63, 0xe7,
-	0xd7, 0x05, 0xa8, 0xb9, 0xde, 0xe8, 0x84, 0xba, 0xf4, 0x9b, 0x29, 0x0d, 0x42, 0xb2, 0x04, 0x85,
-	0x17, 0xf4, 0x9c, 0x2f, 0x5f, 0x73, 0xd9, 0xa7, 0x90, 0x47, 0x8e, 0x23, 0x3a, 0x12, 0x0b, 0xd7,
-	0x98, 0x3c, 0x12, 0xda, 0xa3, 0x1e, 0x59, 0x81, 0xf9, 0x41, 0x7f, 0xd8, 0x0f, 0xe5, 0xaa, 0x62,
-	0x10, 0x53, 0xa7, 0x68, 0xa9, 0xb3, 0x09, 0x10, 0x8c, 0xfd, 0xf0, 0x68, 0xec, 0xa3, 0xd1, 0xab,
-	0xf3, 0x38, 0x5b, 0x5f, 0xbf, 0xbb, 0x66, 0xba, 0x7a, 0xcd, 0x54, 0x68, 0x6d, 0x1f, 0x99, 0xf7,
-	0x18, 0xaf, 0x5b, 0x09, 0xd4, 0x27, 0xf9, 0x02, 0xaa, 0x1c, 0x24, 0xf4, 0xfc, 0x13, 0x1a, 0xae,
-	0x96, 0x38, 0xca, 0xbd, 0x37, 0xa0, 0x74, 0x38, 0xb3, 0xcb, 0x97, 0x17, 0xdf, 0xc4, 0x81, 0x1a,
-	0xf2, 0xf7, 0xbd, 0x41, 0xff, 0xb5, 0x77, 0x3c, 0xa0, 0xab, 0x65, 0x04, 0x5a, 0x70, 0x63, 0x34,
-	0x67, 0x0d, 0x2a, 0x5a, 0x07, 0xb2, 0x00, 0xc5, 0xdd, 0xbd, 0xdd, 0xf6, 0xd2, 0x1c, 0x01, 0x28,
-	0x35, 0xf7, 0x37, 0xdb, 0xbb, 0xad, 0xa5, 0x1c, 0xa9, 0x42, 0xb9, 0xd5, 0x16, 0x83, 0xbc, 0xb3,
-	0x01, 0x10, 0xad, 0x46, 0xca, 0x50, 0xd8, 0x6e, 0x7f, 0x8d, 0xfc, 0xc8, 0x73, 0xd8, 0x76, 0xf7,
-	0xb7, 0xf6, 0x76, 0x51, 0x00, 0x85, 0x37, 0xdd, 0x76, 0xb3, 0xd3, 0x5e, 0xca, 0x33, 0x8e, 0x27,
-	0x7b, 0xad, 0xa5, 0x02, 0xa9, 0xc0, 0xfc, 0x61, 0x73, 0xe7, 0xa0, 0xbd, 0x54, 0x74, 0x7e, 0x01,
-	0x8b, 0x52, 0x7d, 0x11, 0x22, 0xe4, 0x33, 0x28, 0x9d, 0xf2, 0x30, 0xe1, 0x3b, 0x53, 0x5d, 0x7f,
-	0xd7, 0xb2, 0x35, 0x16, 0x4a, 0xae, 0xe4, 0x45, 0xf3, 0x0a, 0x2f, 0xce, 0x02, 0xdc, 0xb4, 0x02,
-	0x8a, 0x2c, 0xad, 0x89, 0x08, 0x5d, 0xdb, 0xa6, 0xe7, 0x87, 0xde, 0x60, 0x4a, 0x5d, 0x36, 0x49,
-	0x08, 0x14, 0x87, 0x63, 0x9f, 0xf2, 0x0d, 0x5c, 0x70, 0xf9, 0xb7, 0xf3, 0x25, 0xc0, 0xd3, 0x69,
-	0x98, 0x1e, 0x12, 0xb8, 0xeb, 0x67, 0x0c, 0x41, 0x86, 0x83, 0x18, 0xf0, 0x58, 0xa0, 0x5e, 0x40,
-	0x75, 0x2c, 0xb0, 0x81, 0xb3, 0x09, 0x55, 0x8e, 0x95, 0xc5, 0x10, 0x04, 0x21, 0x2d, 0x3a, 0xa0,
-	0x21, 0xcd, 0x10, 0xab, 0x0e, 0x85, 0xe5, 0x18, 0x48, 0x26, 0xd7, 0xae, 0x42, 0xb9, 0xc7, 0xc1,
-	0xc4, 0x3a, 0x05, 0x57, 0x0d, 0x9d, 0x7f, 0xe5, 0xf0, 0x48, 0x09, 0x0d, 0x0f, 0x46, 0x2c, 0xe2,
-	0x9b, 0xb0, 0xe8, 0x8b, 0xf1, 0x11, 0xd7, 0x45, 0xae, 0xd3, 0x48, 0x0f, 0xd7, 0xc7, 0x73, 0x6e,
-	0x4d, 0x8a, 0x70, 0x32, 0xf9, 0x29, 0x54, 0x15, 0xc4, 0x64, 0x1a, 0xf2, 0x15, 0xab, 0xeb, 0xab,
-	0x71, 0x80, 0x68, 0xc7, 0x50, 0x1c, 0x24, 0x3b, 0x12, 0x49, 0x07, 0x56, 0x94, 0xb0, 0xd0, 0x51,
-	0xaa, 0x51, 0xe0, 0x28, 0xb7, 0xe3, 0x28, 0xb3, 0x6e, 0x46, 0x34, 0x22, 0xe5, 0x8d, 0xc9, 0x8d,
-	0x0a, 0x94, 0x25, 0xd5, 0xf9, 0x77, 0x0e, 0xc3, 0x55, 0xba, 0x49, 0x98, 0xdc, 0x82, 0xba, 0x2f,
-	0x09, 0x31, 0x9b, 0x6f, 0x26, 0xda, 0x2c, 0x1d, 0x3c, 0xe7, 0x2e, 0x2a, 0x21, 0x61, 0xf5, 0x43,
-	0xa8, 0x69, 0x94, 0xc8, 0xec, 0x1b, 0x09, 0x66, 0x6b, 0x84, 0xaa, 0x12, 0x60, 0x86, 0x3f, 0x83,
-	0x6b, 0x5a, 0x3e, 0xc1, 0xf2, 0x0f, 0x2e, 0xb0, 0x5c, 0x03, 0x2e, 0x2b, 0x04, 0xd3, 0x76, 0x60,
-	0xf9, 0x4d, 0x90, 0x9d, 0xdf, 0x14, 0xa0, 0xbc, 0x39, 0x1e, 0x4e, 0x3c, 0x9f, 0x6d, 0x53, 0x09,
-	0xe9, 0xd3, 0x41, 0xc8, 0xcd, 0xad, 0xaf, 0xdf, 0x89, 0xaf, 0x20, 0xd9, 0xd4, 0x6f, 0x97, 0xb3,
-	0xba, 0x52, 0x84, 0x09, 0xcb, 0x74, 0x96, 0x7f, 0x0b, 0x61, 0x99, 0xcc, 0xa4, 0x88, 0x3a, 0x0a,
-	0x85, 0xe8, 0x28, 0x34, 0xa0, 0x8c, 0x82, 0x51, 0x0a, 0x46, 0x5b, 0x14, 0x81, 0x7c, 0x0f, 0xae,
-	0x74, 0x7d, 0xea, 0x31, 0x7f, 0xa8, 0x34, 0x3d, 0x2f, 0x79, 0xea, 0x62, 0xc2, 0x55, 0xe9, 0xfa,
-	0x0e, 0xd4, 0x86, 0xe3, 0x5e, 0xc4, 0x57, 0x92, 0x7c, 0x55, 0xa4, 0x6a, 0xa6, 0xeb, 0x2a, 0x1f,
-	0xb0, 0xfc, 0x59, 0xc3, 0x59, 0x31, 0x74, 0x3e, 0x85, 0xc5, 0x98, 0xad, 0x2c, 0xc5, 0xb5, 0xbf,
-	0x3a, 0x68, 0xee, 0x88, 0x7c, 0xf8, 0x88, 0xa7, 0x40, 0x17, 0xf3, 0x21, 0xa6, 0xd5, 0x9d, 0xf6,
-	0xfe, 0x3e, 0x66, 0xcf, 0xcf, 0xb5, 0x88, 0x4c, 0xa0, 0x46, 0xde, 0x9c, 0x33, 0xf2, 0x66, 0x4e,
-	0xe5, 0xcd, 0x7c, 0x94, 0x37, 0x0b, 0x1b, 0x75, 0xa8, 0x09, 0x87, 0x1c, 0x4d, 0x59, 0x1c, 0x3a,
-	0xbf, 0xcb, 0x01, 0x74, 0x5e, 0x8d, 0x54, 0xc2, 0x78, 0x00, 0xe5, 0xae, 0x00, 0xc7, 0x0d, 0x62,
-	0x39, 0xf1, 0x5a, 0xa2, 0x8f, 0x5d, 0xc5, 0x85, 0xb9, 0xa1, 0x1c, 0x4c, 0xbb, 0x5d, 0x1a, 0xa8,
-	0x24, 0x6a, 0x1f, 0x5a, 0xe3, 0x9c, 0xbb, 0x8a, 0x95, 0x49, 0x3d, 0xf7, 0xfa, 0x83, 0x29, 0xcf,
-	0xaa, 0x6f, 0x94, 0x92, 0xac, 0xce, 0x6f, 0x73, 0x50, 0xe5, 0xba, 0x66, 0xca, 0x4b, 0xef, 0x42,
-	0x85, 0xab, 0x41, 0x7b, 0x32, 0x33, 0x2d, 0xb8, 0x11, 0x81, 0xfc, 0x04, 0xf3, 0xa3, 0x94, 0x0b,
-	0xa4, 0x6e, 0x37, 0x93, 0x61, 0x85, 0x72, 0x11, 0xb7, 0xb3, 0x0d, 0x57, 0xb9, 0x7b, 0xba, 0x21,
-	0x9b, 0x90, 0x0e, 0x35, 0x2f, 0xfa, 0x9c, 0x75, 0xd1, 0xe3, 0xdc, 0xe4, 0xf4, 0x3c, 0xe8, 0x77,
-	0xbd, 0x81, 0x54, 0x44, 0x8f, 0xf1, 0x82, 0x21, 0x26, 0x58, 0xa6, 0xbb, 0x61, 0x11, 0xaa, 0x8f,
-	0xbd, 0xe0, 0x54, 0xaa, 0xe4, 0xfc, 0x1c, 0x6a, 0x62, 0x98, 0xc9, 0x8d, 0x78, 0x2b, 0x9e, 0x22,
-	0x0a, 0x57, 0x7c, 0xd1, 0xe5, 0xdf, 0xce, 0x55, 0xb8, 0xb2, 0x3f, 0xf2, 0x26, 0xc1, 0xe9, 0x58,
-	0x25, 0x5a, 0x56, 0xc6, 0x2d, 0x45, 0xb4, 0x4c, 0x2b, 0x7e, 0x04, 0x57, 0x7c, 0x3a, 0xf4, 0xfa,
-	0xa3, 0xfe, 0xe8, 0xe4, 0xe8, 0xf8, 0x3c, 0xa4, 0x81, 0xac, 0xf2, 0xea, 0x9a, 0xbc, 0xc1, 0xa8,
-	0x4c, 0xb5, 0xe3, 0xc1, 0xf8, 0x58, 0x9e, 0x75, 0xfe, 0xed, 0xfc, 0x1e, 0xef, 0x9c, 0x67, 0x5e,
-	0xd8, 0x55, 0x5e, 0x20, 0x5b, 0x50, 0xd7, 0x27, 0x9c, 0x53, 0xa4, 0x2e, 0x56, 0xb6, 0xe7, 0x32,
-	0x9b, 0xf2, 0xc4, 0xab, 0x6c, 0xbf, 0xd8, 0x35, 0x09, 0x1c, 0xca, 0x1b, 0x75, 0xe9, 0x40, 0x43,
-	0xe5, 0xd3, 0xa1, 0x38, 0xa3, 0x09, 0x65, 0x12, 0x36, 0xae, 0x44, 0x37, 0xa1, 0x38, 0x9f, 0xdf,
-	0xe6, 0x80, 0xcc, 0xea, 0xf0, 0x5d, 0x8b, 0xd0, 0x7b, 0x50, 0x0f, 0xf0, 0xd8, 0x87, 0x47, 0x56,
-	0x0d, 0xbc, 0xc8, 0xa9, 0x3a, 0x4b, 0xa1, 0x87, 0xb1, 0xf8, 0x3e, 0xc1, 0x90, 0x0e, 0x8e, 0x46,
-	0xe3, 0xb0, 0xff, 0xfc, 0x9c, 0x67, 0xc6, 0x05, 0xb7, 0xae, 0xc8, 0xbb, 0x9c, 0xea, 0x3c, 0x50,
-	0x4a, 0x99, 0xca, 0x93, 0x1b, 0xb0, 0xf0, 0x92, 0x51, 0x55, 0x75, 0x8e, 0x57, 0x3e, 0x1f, 0x6f,
-	0xf5, 0x9c, 0x7f, 0xe0, 0x05, 0x28, 0xdd, 0x9f, 0x29, 0x06, 0xcc, 0x25, 0xf2, 0xb1, 0x25, 0x58,
-	0xbd, 0x21, 0xb6, 0xa5, 0x27, 0x2b, 0x35, 0x35, 0x64, 0xe7, 0x4c, 0x78, 0x19, 0xa7, 0x84, 0x3d,
-	0x7a, 0x8c, 0x89, 0x7e, 0xa9, 0x2b, 0xce, 0x99, 0x95, 0xe9, 0xdd, 0x2b, 0x92, 0xae, 0xbd, 0x73,
-	0x0f, 0x4a, 0xf4, 0x8c, 0x8e, 0xc2, 0x60, 0xb5, 0xca, 0xf3, 0xc2, 0xa2, 0x2a, 0x17, 0xdb, 0x8c,
-	0xea, 0xca, 0x49, 0xe7, 0xc7, 0x70, 0x75, 0x87, 0xd5, 0x75, 0x8f, 0xd0, 0xfb, 0x66, 0x85, 0xd8,
-	0xe9, 0xec, 0x48, 0xaf, 0x14, 0xc2, 0xce, 0x0e, 0xa9, 0x43, 0x7e, 0xab, 0x25, 0x6d, 0xc8, 0xf7,
-	0x5b, 0xce, 0x2f, 0x71, 0xa3, 0x4d, 0xb9, 0x4c, 0x6e, 0xb2, 0xc0, 0xd5, 0xf2, 0x85, 0x68, 0x79,
-	0x2c, 0x45, 0xa9, 0xef, 0x8f, 0x7d, 0xee, 0x90, 0x8a, 0x2b, 0x06, 0xce, 0x5d, 0xa9, 0x03, 0xda,
-	0x3c, 0x7e, 0xa1, 0x83, 0x4d, 0xa0, 0xe5, 0xb4, 0xaa, 0xdb, 0xb0, 0x1c, 0xe3, 0xca, 0x94, 0x9c,
-	0x3e, 0x82, 0x6b, 0x1c, 0x6c, 0x9b, 0xd2, 0x49, 0x73, 0xd0, 0x3f, 0x4b, 0x5d, 0x75, 0x02, 0xd7,
-	0x6d, 0xc6, 0xff, 0xaf, 0x8f, 0x9c, 0x53, 0x28, 0x3d, 0xe1, 0xfd, 0xa3, 0xa1, 0x4b, 0x91, 0xf3,
-	0x62, 0x86, 0x19, 0x79, 0x43, 0x51, 0xdd, 0x57, 0x5c, 0xfe, 0xcd, 0xb3, 0x39, 0xa5, 0xfe, 0x81,
-	0xbb, 0x23, 0x2e, 0x8e, 0x8a, 0xab, 0xc7, 0xe4, 0x16, 0xeb, 0x5c, 0xfb, 0x18, 0x1e, 0x7c, 0xb6,
-	0xc8, 0x67, 0x0d, 0x0a, 0x76, 0x50, 0x4b, 0x62, 0xa5, 0x66, 0xaf, 0x67, 0xdc, 0x1c, 0x1a, 0x2f,
-	0x17, 0xc7, 0x73, 0x5e, 0xc2, 0x55, 0x83, 0x3f, 0x93, 0x1b, 0x3e, 0x81, 0x92, 0x68, 0x92, 0x65,
-	0xd2, 0x5a, 0x89, 0x4b, 0x89, 0x65, 0x5c, 0xc9, 0xe3, 0xdc, 0x83, 0x65, 0x49, 0xa1, 0xc3, 0x71,
-	0xd2, 0x5e, 0x71, 0xff, 0x38, 0x3b, 0xb0, 0x12, 0x67, 0xcb, 0x14, 0x22, 0x4d, 0xb5, 0xe8, 0xc1,
-	0xa4, 0x67, 0xe4, 0x40, 0x7b, 0x53, 0x4c, 0x87, 0xe5, 0x2d, 0x87, 0x69, 0x85, 0x14, 0x44, 0x26,
-	0x85, 0x96, 0x95, 0xfb, 0x77, 0xfa, 0x81, 0xbe, 0xe9, 0x5e, 0x03, 0x31, 0x89, 0x99, 0x36, 0x65,
-	0x0d, 0xca, 0xc2, 0xe1, 0xaa, 0xaa, 0x4a, 0xde, 0x15, 0xc5, 0xc4, 0x14, 0x6a, 0xd1, 0xe7, 0xbe,
-	0x77, 0x32, 0xa4, 0x3a, 0xe7, 0xb0, 0x12, 0xc2, 0x24, 0x66, 0xb2, 0xf8, 0x4f, 0x78, 0x7d, 0x36,
-	0x07, 0x9e, 0x3f, 0x54, 0xce, 0x7f, 0x08, 0x25, 0x51, 0x9b, 0xc8, 0x42, 0xfe, 0xc3, 0x38, 0x8c,
-	0xc9, 0x2b, 0x06, 0x4d, 0x51, 0xc9, 0x48, 0x29, 0xb6, 0x59, 0xf2, 0x6d, 0xa6, 0x65, 0xbd, 0xd5,
-	0xb4, 0xc8, 0x0f, 0x60, 0xde, 0x63, 0x22, 0xfc, 0x2c, 0xd6, 0xd7, 0xdf, 0x49, 0x80, 0xee, 0x9c,
-	0x4f, 0xa8, 0x2b, 0xb8, 0x9c, 0xcf, 0xa0, 0x6a, 0xac, 0xc0, 0xaa, 0xde, 0x47, 0xed, 0x0e, 0x96,
-	0xc2, 0x35, 0x58, 0x68, 0x6e, 0x76, 0xb6, 0x0e, 0x45, 0x31, 0x5c, 0x07, 0x68, 0xb5, 0xf5, 0x38,
-	0x8f, 0x55, 0x90, 0x90, 0x92, 0x27, 0xdc, 0xd4, 0x27, 0x97, 0xa6, 0x4f, 0xfe, 0xad, 0xf4, 0x79,
-	0x05, 0x8b, 0xd2, 0xfc, 0x4c, 0x31, 0xf0, 0x29, 0x7a, 0x98, 0xc1, 0xa8, 0x10, 0xb8, 0x91, 0xb0,
-	0xac, 0x3a, 0x9d, 0x82, 0xd1, 0xc1, 0xea, 0x61, 0x3f, 0xf4, 0xc2, 0x69, 0xa0, 0x42, 0xe0, 0x8f,
-	0x39, 0xa8, 0x2b, 0x4a, 0xd6, 0x66, 0x5e, 0xf5, 0x4a, 0x22, 0xe7, 0xe9, 0x4e, 0xe9, 0x3a, 0x94,
-	0x7a, 0xc7, 0xfb, 0xfd, 0xd7, 0xea, 0x51, 0x43, 0x8e, 0x18, 0x7d, 0x20, 0xd6, 0x11, 0x2f, 0x6a,
-	0x72, 0xc4, 0xca, 0x6f, 0xf6, 0xb6, 0xb6, 0x35, 0xea, 0xd1, 0x57, 0xfc, 0xa6, 0x2d, 0xba, 0x11,
-	0x81, 0x97, 0xcb, 0xf2, 0xe5, 0x8d, 0x37, 0x52, 0xe6, 0x4b, 0x1c, 0x06, 0x79, 0x73, 0x1a, 0x9e,
-	0xb6, 0x47, 0xec, 0xd1, 0x49, 0x59, 0xb8, 0x02, 0x84, 0x11, 0x5b, 0xfd, 0xc0, 0xa4, 0xb6, 0x61,
-	0x99, 0x51, 0x31, 0xee, 0xb1, 0x98, 0x8e, 0x32, 0x86, 0x4a, 0xdb, 0x39, 0x2b, 0x6d, 0x7b, 0x41,
-	0xf0, 0x72, 0xec, 0xf7, 0xa4, 0x69, 0x7a, 0xec, 0xb4, 0x04, 0xf8, 0x41, 0x10, 0x4b, 0xcc, 0xdf,
-	0x15, 0x65, 0x25, 0x42, 0x79, 0x44, 0xf5, 0xe9, 0xfc, 0x18, 0xae, 0x29, 0xaa, 0x6c, 0x9c, 0xd3,
-	0xe1, 0x9d, 0x3d, 0x78, 0x4f, 0x31, 0x6f, 0x9e, 0xb2, 0xa2, 0xee, 0xa9, 0x04, 0xff, 0x5f, 0x75,
-	0x7a, 0x08, 0x2b, 0x5a, 0x27, 0xb3, 0x4e, 0x41, 0x9c, 0x69, 0x20, 0x63, 0x03, 0x71, 0xd8, 0x37,
-	0xa3, 0xf9, 0xe3, 0x81, 0xbe, 0xec, 0xd8, 0xb7, 0xf3, 0x4e, 0xa4, 0x7d, 0xac, 0x56, 0x70, 0xee,
-	0x0b, 0x63, 0x5d, 0x64, 0xba, 0xd8, 0x65, 0xca, 0x2d, 0x8c, 0xd3, 0x70, 0x8b, 0x04, 0x66, 0xd4,
-	0x98, 0x5b, 0x1c, 0x57, 0x68, 0xcc, 0xd9, 0x2d, 0x8d, 0x67, 0x2c, 0xff, 0x10, 0x8a, 0x13, 0x2a,
-	0xcf, 0x6b, 0x75, 0x9d, 0xac, 0x89, 0xd7, 0xe5, 0xb5, 0xa7, 0x48, 0xeb, 0x07, 0x2c, 0x6a, 0x5d,
-	0x3e, 0x6f, 0x2e, 0x16, 0xb7, 0xe2, 0x4b, 0xa1, 0x9b, 0x0a, 0xb5, 0x4c, 0xa9, 0x73, 0x5b, 0xc4,
-	0xa2, 0x8e, 0xd0, 0x4c, 0x60, 0xc7, 0xc2, 0x0b, 0x51, 0x60, 0x67, 0x3a, 0xd5, 0x58, 0x04, 0x86,
-	0x68, 0xb5, 0x3a, 0xd3, 0x62, 0xa0, 0x14, 0xd6, 0x51, 0x7f, 0x19, 0xd6, 0xeb, 0xe0, 0xcf, 0x04,
-	0xb6, 0x0b, 0xd7, 0xed, 0x33, 0x93, 0x09, 0xef, 0x10, 0x6e, 0xa5, 0x1d, 0xab, 0x4c, 0xb8, 0x4f,
-	0xa2, 0xd3, 0x71, 0x09, 0xd5, 0xbc, 0x69, 0xf6, 0xa5, 0x94, 0xdc, 0x72, 0x4f, 0xf4, 0x19, 0xbd,
-	0x2c, 0xb0, 0x4b, 0xdb, 0x60, 0xf3, 0xf4, 0x5f, 0xc6, 0x46, 0x18, 0x49, 0xe3, 0xb2, 0xd4, 0xbb,
-	0x8c, 0x8d, 0xf8, 0xbe, 0x03, 0x15, 0x5d, 0x3d, 0x18, 0x7f, 0x38, 0xa9, 0x42, 0x79, 0x77, 0x6f,
-	0xff, 0x69, 0x73, 0x13, 0xeb, 0x96, 0xf5, 0x7f, 0xe6, 0x21, 0xbf, 0x7d, 0x48, 0x36, 0x60, 0x5e,
-	0x3c, 0xf9, 0x5e, 0xf0, 0x28, 0xde, 0xb8, 0xe8, 0xf1, 0xd8, 0x99, 0x23, 0x9f, 0x43, 0x81, 0x3d,
-	0xfa, 0xa6, 0xbe, 0x8a, 0x37, 0xd2, 0x1f, 0x8e, 0x51, 0xba, 0x03, 0x55, 0xe3, 0x85, 0x97, 0xbc,
-	0xf1, 0x55, 0xbc, 0xf1, 0xe6, 0xd7, 0x63, 0xa1, 0x53, 0xe7, 0xd5, 0xc8, 0xd6, 0x29, 0x7a, 0x91,
-	0xb4, 0x75, 0x32, 0xde, 0xff, 0x50, 0x7a, 0x57, 0xbe, 0x2c, 0x77, 0x43, 0xf2, 0x7e, 0xc2, 0x43,
-	0xa5, 0xf9, 0x12, 0xd7, 0xb8, 0x9d, 0xce, 0xa0, 0xf0, 0xd6, 0xf7, 0x60, 0x9e, 0xbf, 0x52, 0x90,
-	0x2f, 0xd4, 0x47, 0x23, 0xe1, 0x0d, 0x27, 0xc5, 0xdd, 0xb1, 0xf7, 0x0d, 0x67, 0xee, 0x7e, 0xee,
-	0x87, 0xb9, 0xf5, 0x6f, 0xf3, 0x30, 0xcf, 0xbb, 0x56, 0xf2, 0x15, 0x40, 0xd4, 0xde, 0xdb, 0xda,
-	0xce, 0x3c, 0x18, 0xd8, 0xda, 0xce, 0xbe, 0x0c, 0x88, 0x1d, 0x31, 0xfa, 0x70, 0x92, 0x24, 0x12,
-	0xbb, 0xd6, 0xec, 0x1d, 0x49, 0x68, 0xe2, 0x11, 0xd5, 0x83, 0x7a, 0xbc, 0xcf, 0x26, 0x77, 0x12,
-	0xc4, 0xec, 0x76, 0xbd, 0x71, 0xf7, 0x62, 0xa6, 0x98, 0x57, 0xfe, 0x92, 0xc7, 0x7d, 0x13, 0x7f,
-	0xb7, 0xc5, 0x2d, 0xac, 0xe8, 0x56, 0x96, 0xdc, 0x4a, 0x6a, 0x73, 0xa2, 0x3a, 0xa2, 0xf1, 0x7e,
-	0xea, 0xbc, 0x56, 0xff, 0x19, 0xd4, 0xcc, 0xd6, 0x93, 0x7c, 0x90, 0xd8, 0x39, 0x99, 0xdd, 0x6b,
-	0xc3, 0xb9, 0x88, 0x65, 0x16, 0x58, 0xb4, 0x90, 0xc9, 0xc0, 0xb1, 0x0e, 0x35, 0x19, 0x38, 0xde,
-	0x81, 0x22, 0x30, 0x46, 0x46, 0xd4, 0x38, 0x92, 0x44, 0x13, 0x8d, 0x3e, 0xd3, 0x8e, 0x8c, 0xd9,
-	0x9e, 0x13, 0xe3, 0xf8, 0x3f, 0x79, 0xa8, 0x3e, 0xf1, 0xfa, 0xa3, 0x90, 0x8e, 0xd8, 0x43, 0x17,
-	0xcb, 0x1e, 0x3c, 0xd1, 0xd8, 0xe1, 0x6c, 0xb6, 0x69, 0x76, 0x38, 0xc7, 0x7a, 0x18, 0x54, 0xb3,
-	0x0d, 0x25, 0xd1, 0x4a, 0x10, 0x8b, 0x31, 0xd6, 0x72, 0x34, 0xde, 0x4d, 0x9e, 0x34, 0xad, 0x8d,
-	0xba, 0x52, 0xdb, 0xda, 0x99, 0x26, 0xb6, 0x71, 0x3b, 0x9d, 0x41, 0x43, 0xfe, 0x0c, 0x8a, 0xec,
-	0x41, 0x9b, 0x58, 0xa9, 0xc2, 0x78, 0xf3, 0x6e, 0x34, 0x92, 0xa6, 0x34, 0xc0, 0x13, 0x58, 0x50,
-	0x6f, 0xd4, 0xe4, 0x3d, 0x4b, 0xff, 0xf8, 0x7b, 0x76, 0xe3, 0x56, 0xda, 0xb4, 0x02, 0xc3, 0xf0,
-	0xfe, 0x6b, 0x05, 0x8a, 0xec, 0x9e, 0x60, 0xb6, 0x46, 0x65, 0xa4, 0x6d, 0xeb, 0x4c, 0x2f, 0x63,
-	0xdb, 0x3a, 0x5b, 0x81, 0x8a, 0x33, 0x6f, 0x54, 0x93, 0x24, 0x41, 0x24, 0xde, 0x0a, 0xd9, 0x67,
-	0x3e, 0xa1, 0x14, 0x15, 0xb1, 0x6d, 0x96, 0x95, 0x24, 0x41, 0xc8, 0xea, 0xa5, 0xec, 0xd8, 0x4e,
-	0xaa, 0x4a, 0x11, 0xf8, 0x29, 0x94, 0x65, 0x1d, 0x99, 0xa4, 0x6a, 0xbc, 0xb1, 0x4a, 0x52, 0xd5,
-	0x2a, 0x42, 0x23, 0x44, 0xac, 0x35, 0xd2, 0x10, 0xa3, 0x6e, 0x22, 0x0d, 0xd1, 0x28, 0x54, 0x10,
-	0xf1, 0x6b, 0x80, 0xa8, 0xa2, 0xb4, 0x93, 0x5d, 0x62, 0x8f, 0x66, 0x27, 0xbb, 0xe4, 0xa2, 0x14,
-	0xa1, 0xbf, 0x01, 0x32, 0x5b, 0x5c, 0x92, 0x8f, 0x93, 0xa5, 0x13, 0x3b, 0xbb, 0xc6, 0x27, 0x6f,
-	0xc7, 0xac, 0x97, 0x3c, 0x84, 0x8a, 0xae, 0x3b, 0x89, 0x93, 0x62, 0xbf, 0x79, 0xd3, 0xdc, 0xb9,
-	0x90, 0xc7, 0xf6, 0x92, 0xbc, 0x6b, 0x52, 0x84, 0xe2, 0xd7, 0xcd, 0xdd, 0x8b, 0x99, 0xcc, 0x2d,
-	0x95, 0xb5, 0x68, 0xd2, 0x96, 0xc6, 0x5b, 0xc9, 0xa4, 0x2d, 0xb5, 0x0a, 0xd9, 0x08, 0x31, 0x25,
-	0x48, 0xe2, 0x2d, 0x67, 0x1a, 0xe2, 0x4c, 0x90, 0x44, 0x55, 0x69, 0x92, 0xf9, 0x33, 0x1d, 0x6b,
-	0x92, 0xf9, 0xb3, 0x85, 0xad, 0xd8, 0x31, 0x5d, 0xa0, 0x26, 0xed, 0x98, 0xdd, 0xf2, 0x36, 0xee,
-	0x5c, 0xc8, 0x63, 0xab, 0x9c, 0xbe, 0x63, 0x33, 0x7d, 0x6f, 0x9a, 0xca, 0xf6, 0x8e, 0x6d, 0xd4,
-	0xfe, 0xf0, 0xf7, 0x5b, 0xb9, 0x3f, 0xe3, 0xbf, 0xbf, 0xe1, 0xbf, 0xe3, 0x12, 0xff, 0x1f, 0x5b,
-	0x3f, 0xfa, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xf4, 0xad, 0xd4, 0x1a, 0x26, 0x00, 0x00,
+	// 2657 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xb4, 0x5a, 0x4b, 0x6f, 0x1b, 0xc9,
+	0xf1, 0xd7, 0x90, 0x14, 0x29, 0x16, 0x1f, 0x96, 0x5b, 0xb2, 0xff, 0xf4, 0xec, 0xfa, 0xb1, 0xe3,
+	0xe7, 0x3f, 0xeb, 0xa5, 0x63, 0x65, 0x93, 0x4b, 0x16, 0x1b, 0x50, 0x22, 0xd7, 0xd6, 0x4a, 0x96,
+	0xec, 0x11, 0x2d, 0xef, 0x02, 0x01, 0x84, 0x21, 0xd9, 0x96, 0x08, 0xf3, 0xb5, 0x33, 0x43, 0xd9,
+	0x32, 0x90, 0x4b, 0x80, 0x7c, 0x82, 0xcd, 0x25, 0xb9, 0xe6, 0x23, 0x04, 0xf9, 0x0e, 0x41, 0x2e,
+	0xc9, 0x27, 0x08, 0x82, 0x9c, 0x82, 0x20, 0xf7, 0x1c, 0x72, 0x49, 0xf5, 0x6b, 0xa6, 0x67, 0x38,
+	0x23, 0x7b, 0x33, 0xc9, 0xc1, 0xf6, 0x74, 0x75, 0xd5, 0xaf, 0xab, 0xab, 0xab, 0xab, 0xab, 0x8a,
+	0x86, 0xb2, 0x3b, 0xeb, 0x37, 0x67, 0xee, 0xd4, 0x9f, 0x92, 0x2a, 0xf5, 0xfb, 0x03, 0x8f, 0xba,
+	0xa7, 0xd4, 0x9d, 0xf5, 0xcc, 0xf5, 0xe3, 0xe9, 0xf1, 0x94, 0x4f, 0x3c, 0x60, 0x5f, 0x82, 0xc7,
+	0xbc, 0xc2, 0x78, 0x1e, 0x8c, 0x4f, 0xfb, 0x7d, 0xfe, 0xd7, 0xac, 0xf7, 0xe0, 0xd5, 0xa9, 0x9c,
+	0xfa, 0x80, 0x4f, 0x39, 0x73, 0xff, 0x84, 0xff, 0x85, 0x53, 0xec, 0x1f, 0x31, 0x69, 0xfd, 0xc2,
+	0x80, 0xba, 0x4d, 0xbd, 0xd9, 0x74, 0xe2, 0xd1, 0xc7, 0xd4, 0x19, 0x50, 0x97, 0x5c, 0x05, 0xe8,
+	0x8f, 0xe6, 0x9e, 0x4f, 0xdd, 0xa3, 0xe1, 0xa0, 0x61, 0xdc, 0x30, 0xee, 0x15, 0xec, 0xb2, 0xa4,
+	0x6c, 0x0f, 0xc8, 0x07, 0x50, 0x1e, 0xd3, 0x71, 0x4f, 0xcc, 0xe6, 0xf8, 0xec, 0x8a, 0x20, 0xe0,
+	0xa4, 0x09, 0x2b, 0x2e, 0x3d, 0x1d, 0x7a, 0xc3, 0xe9, 0xa4, 0x91, 0xc7, 0xb9, 0xbc, 0x1d, 0x8c,
+	0x99, 0xa0, 0xeb, 0xbc, 0xf4, 0x8f, 0x10, 0x66, 0xdc, 0x28, 0x08, 0x41, 0x46, 0xe8, 0xe2, 0xd8,
+	0xfa, 0x65, 0x1e, 0xaa, 0xb6, 0x33, 0x39, 0xa6, 0x36, 0xfd, 0x66, 0x4e, 0x3d, 0x9f, 0xac, 0x42,
+	0xfe, 0x15, 0x3d, 0xe3, 0xcb, 0x57, 0x6d, 0xf6, 0x29, 0xe4, 0x91, 0xe3, 0x88, 0x4e, 0xc4, 0xc2,
+	0x55, 0x26, 0x8f, 0x84, 0xce, 0x64, 0x40, 0xd6, 0x61, 0x79, 0x34, 0x1c, 0x0f, 0x7d, 0xb9, 0xaa,
+	0x18, 0x44, 0xd4, 0x29, 0xc4, 0xd4, 0xd9, 0x02, 0xf0, 0xa6, 0xae, 0x7f, 0x34, 0x75, 0x71, 0xd3,
+	0x8d, 0x65, 0x9c, 0xad, 0x6f, 0xdc, 0x6a, 0xea, 0xa6, 0x6e, 0xea, 0x0a, 0x35, 0x0f, 0x90, 0x79,
+	0x9f, 0xf1, 0xda, 0x65, 0x4f, 0x7d, 0x92, 0x2f, 0xa0, 0xc2, 0x41, 0x7c, 0xc7, 0x3d, 0xa6, 0x7e,
+	0xa3, 0xc8, 0x51, 0x6e, 0xbf, 0x03, 0xa5, 0xcb, 0x99, 0x6d, 0xbe, 0xbc, 0xf8, 0x26, 0x16, 0x54,
+	0x91, 0x7f, 0xe8, 0x8c, 0x86, 0x6f, 0x9d, 0xde, 0x88, 0x36, 0x4a, 0x08, 0xb4, 0x62, 0x47, 0x68,
+	0x56, 0x13, 0xca, 0x81, 0x0e, 0x64, 0x05, 0x0a, 0x7b, 0xfb, 0x7b, 0x9d, 0xd5, 0x25, 0x02, 0x50,
+	0x6c, 0x1d, 0x6c, 0x75, 0xf6, 0xda, 0xab, 0x06, 0xa9, 0x40, 0xa9, 0xdd, 0x11, 0x83, 0x9c, 0xb5,
+	0x09, 0x10, 0xae, 0x46, 0x4a, 0x90, 0xdf, 0xe9, 0x7c, 0x8d, 0xfc, 0xc8, 0x73, 0xd8, 0xb1, 0x0f,
+	0xb6, 0xf7, 0xf7, 0x50, 0x00, 0x85, 0xb7, 0xec, 0x4e, 0xab, 0xdb, 0x59, 0xcd, 0x31, 0x8e, 0x27,
+	0xfb, 0xed, 0xd5, 0x3c, 0x29, 0xc3, 0xf2, 0x61, 0x6b, 0xf7, 0x79, 0x67, 0xb5, 0x60, 0xfd, 0x0c,
+	0x6a, 0x52, 0x7d, 0xe1, 0x22, 0xe4, 0x53, 0x28, 0x9e, 0x70, 0x37, 0xe1, 0x27, 0x53, 0xd9, 0xf8,
+	0x30, 0xb6, 0xd7, 0x88, 0x2b, 0xd9, 0x92, 0x17, 0xb7, 0x97, 0x7f, 0x75, 0xea, 0xe1, 0xa1, 0xe5,
+	0x51, 0x64, 0xb5, 0x29, 0x3c, 0xb4, 0xb9, 0x43, 0xcf, 0x0e, 0x9d, 0xd1, 0x9c, 0xda, 0x6c, 0x92,
+	0x10, 0x28, 0x8c, 0xa7, 0x2e, 0xe5, 0x07, 0xb8, 0x62, 0xf3, 0x6f, 0xeb, 0x4b, 0x80, 0xa7, 0x73,
+	0x3f, 0xdd, 0x25, 0xf0, 0xd4, 0x4f, 0x19, 0x82, 0x74, 0x07, 0x31, 0xe0, 0xbe, 0x40, 0x1d, 0x8f,
+	0x06, 0xbe, 0xc0, 0x06, 0xd6, 0x16, 0x54, 0x38, 0x56, 0x96, 0x8d, 0x20, 0x08, 0x69, 0xd3, 0x11,
+	0xf5, 0x69, 0x06, 0x5f, 0xb5, 0x28, 0xac, 0x45, 0x40, 0x32, 0x99, 0xb6, 0x01, 0xa5, 0x01, 0x07,
+	0x13, 0xeb, 0xe4, 0x6d, 0x35, 0xb4, 0xfe, 0x61, 0x40, 0x59, 0x6a, 0xb8, 0x3f, 0x23, 0x2d, 0xa8,
+	0xb9, 0x62, 0x70, 0xc4, 0x15, 0x91, 0x8b, 0x98, 0xe9, 0xbe, 0xfa, 0x78, 0xc9, 0xae, 0x4a, 0x11,
+	0x4e, 0x26, 0x3f, 0x86, 0x8a, 0x82, 0x98, 0xcd, 0x7d, 0xbe, 0x5c, 0x65, 0xa3, 0x11, 0x05, 0x08,
+	0x8f, 0x0b, 0xc5, 0x41, 0xb2, 0x23, 0x91, 0x74, 0x61, 0x5d, 0x09, 0x0b, 0x05, 0xa5, 0x1a, 0x79,
+	0x8e, 0x72, 0x23, 0x8a, 0xb2, 0x68, 0x63, 0x44, 0x23, 0x52, 0x5e, 0x9b, 0xdc, 0x2c, 0x43, 0x49,
+	0x52, 0xad, 0x7f, 0x1a, 0x00, 0xca, 0x46, 0xb8, 0xdf, 0x36, 0xd4, 0x5d, 0x39, 0x8a, 0x6c, 0xf8,
+	0x83, 0xc4, 0x0d, 0x4b, 0xd3, 0x2e, 0xd9, 0x35, 0x25, 0x24, 0xb6, 0xfc, 0x39, 0x54, 0x03, 0x94,
+	0x70, 0xcf, 0x57, 0x12, 0xf6, 0x1c, 0x20, 0x54, 0x94, 0x00, 0xdb, 0xf5, 0x0b, 0xb8, 0x14, 0xc8,
+	0x27, 0x6c, 0xfb, 0xa3, 0x73, 0xb6, 0x1d, 0x00, 0xae, 0x29, 0x04, 0x7d, 0xe3, 0xc0, 0x22, 0x9b,
+	0x20, 0x5b, 0xbf, 0xce, 0x43, 0x69, 0x6b, 0x3a, 0x9e, 0x39, 0x2e, 0x3b, 0xa3, 0x22, 0xd2, 0xe7,
+	0x23, 0x9f, 0x6f, 0xb7, 0xbe, 0x71, 0x33, 0xba, 0x82, 0x64, 0x53, 0xff, 0xda, 0x9c, 0xd5, 0x96,
+	0x22, 0x4c, 0x58, 0x06, 0xb2, 0xdc, 0x7b, 0x08, 0xcb, 0x30, 0x26, 0x45, 0xd4, 0x25, 0xc8, 0x87,
+	0x97, 0xc0, 0x84, 0x12, 0x0a, 0x86, 0xc1, 0x17, 0xf7, 0xa2, 0x08, 0xe4, 0xff, 0xe1, 0x42, 0xdf,
+	0xa5, 0x0e, 0xb3, 0x87, 0x0a, 0xd0, 0xcb, 0x92, 0xa7, 0x2e, 0x26, 0x6c, 0x15, 0xa8, 0x6f, 0x42,
+	0x75, 0x3c, 0x1d, 0x84, 0x7c, 0x45, 0xc9, 0x57, 0x41, 0x6a, 0xc0, 0x74, 0x59, 0x45, 0x02, 0x16,
+	0x39, 0xab, 0x38, 0x2b, 0x86, 0xd6, 0x43, 0xa8, 0x45, 0xf6, 0xca, 0x82, 0x5b, 0xe7, 0xd9, 0xf3,
+	0xd6, 0xae, 0x88, 0x84, 0x8f, 0x78, 0xf0, 0xb3, 0x31, 0x12, 0x62, 0x40, 0xdd, 0xed, 0x1c, 0x1c,
+	0x60, 0xdc, 0xfc, 0x2c, 0x10, 0x91, 0xa1, 0x53, 0x8b, 0x98, 0x4b, 0x5a, 0xc4, 0x34, 0x54, 0xc4,
+	0xcc, 0x85, 0x11, 0x33, 0xbf, 0x59, 0x87, 0xaa, 0x30, 0xc8, 0xd1, 0x7c, 0x82, 0x8a, 0x59, 0xbf,
+	0x41, 0xb7, 0xec, 0xbe, 0x99, 0xa8, 0x50, 0xf1, 0x00, 0x4a, 0x7d, 0x01, 0x8e, 0x07, 0xc4, 0xa2,
+	0xe1, 0xa5, 0x44, 0x1b, 0xdb, 0x8a, 0x8b, 0x3c, 0x84, 0x92, 0x37, 0xef, 0xf7, 0xa9, 0xa7, 0xc2,
+	0xe7, 0xff, 0xc5, 0xc3, 0x82, 0xbc, 0xe1, 0xb6, 0xe2, 0x63, 0x22, 0x2f, 0x9d, 0xe1, 0x68, 0xce,
+	0x83, 0xe9, 0xf9, 0x22, 0x92, 0xcf, 0xfa, 0x95, 0x01, 0x15, 0xae, 0x65, 0xa6, 0x58, 0xf4, 0x21,
+	0x94, 0xb9, 0x0e, 0x74, 0x20, 0xa3, 0xd1, 0x8a, 0x1d, 0x12, 0xc8, 0x8f, 0x30, 0x26, 0x4a, 0x39,
+	0x4f, 0x2a, 0xd6, 0x48, 0x86, 0x45, 0xcd, 0x42, 0x56, 0x6b, 0x07, 0x2e, 0x72, 0xab, 0xf4, 0x7d,
+	0xb4, 0xa7, 0xb2, 0xa3, 0xfe, 0xb2, 0x1b, 0xb1, 0x97, 0x1d, 0xe7, 0x66, 0x27, 0x67, 0xde, 0xb0,
+	0xef, 0x8c, 0xa4, 0x16, 0xc1, 0x18, 0x5f, 0x14, 0xa2, 0x83, 0x65, 0x7a, 0x0c, 0x6a, 0x50, 0x79,
+	0xec, 0x78, 0x27, 0x52, 0x25, 0xeb, 0x2b, 0xa8, 0x8a, 0x61, 0x26, 0x1b, 0xe2, 0x33, 0x78, 0x82,
+	0x28, 0x5c, 0xf1, 0x9a, 0xcd, 0xbf, 0xad, 0x8b, 0x70, 0xe1, 0x60, 0xe2, 0xcc, 0xbc, 0x93, 0xa9,
+	0x0a, 0xae, 0x2c, 0x6f, 0x5b, 0x0d, 0x69, 0x99, 0x56, 0xbc, 0x0b, 0x17, 0x5c, 0x3a, 0x76, 0x86,
+	0x93, 0xe1, 0xe4, 0xf8, 0xa8, 0x77, 0xe6, 0x53, 0x4f, 0xa6, 0x75, 0xf5, 0x80, 0xbc, 0xc9, 0xa8,
+	0x4c, 0xb5, 0xde, 0x68, 0xda, 0x93, 0x57, 0x9c, 0x7f, 0x5b, 0xbf, 0x33, 0xa0, 0xfa, 0xc2, 0xf1,
+	0xfb, 0xca, 0x0a, 0x64, 0x1b, 0xea, 0xc1, 0xc5, 0xe6, 0x14, 0xa9, 0x4b, 0x2c, 0xc2, 0x73, 0x99,
+	0x2d, 0x79, 0xd1, 0x55, 0x84, 0xaf, 0xf5, 0x75, 0x02, 0x87, 0x72, 0x26, 0x7d, 0x3a, 0x0a, 0xa0,
+	0x72, 0xe9, 0x50, 0x9c, 0x51, 0x87, 0xd2, 0x09, 0x9b, 0x17, 0xc2, 0xd7, 0x4f, 0x5c, 0xcb, 0x6f,
+	0x0d, 0x20, 0x8b, 0x3a, 0x7c, 0xd7, 0xac, 0xf3, 0x36, 0xd4, 0x3d, 0xbc, 0xed, 0xfe, 0x51, 0x2c,
+	0xe9, 0xad, 0x71, 0x6a, 0x10, 0x9c, 0xd0, 0xc2, 0x98, 0x6d, 0x1f, 0xa3, 0x4b, 0x7b, 0x47, 0x93,
+	0xa9, 0x3f, 0x7c, 0x79, 0xc6, 0x03, 0xe2, 0x8a, 0x5d, 0x57, 0xe4, 0x3d, 0x4e, 0xb5, 0x1e, 0x28,
+	0xa5, 0x74, 0xe5, 0xc9, 0x15, 0x58, 0x79, 0xcd, 0xa8, 0x2a, 0x1d, 0xc7, 0x37, 0x9e, 0x8f, 0xb7,
+	0x07, 0xd6, 0xdf, 0x0c, 0xa8, 0x49, 0xf3, 0x67, 0xf2, 0x01, 0x7d, 0x89, 0x5c, 0x64, 0x09, 0x96,
+	0x60, 0x88, 0x63, 0x19, 0xc8, 0xd4, 0x4c, 0x0d, 0xd9, 0x3d, 0x13, 0x56, 0xc6, 0x29, 0xb1, 0x9f,
+	0x60, 0x8c, 0xf1, 0x7d, 0xb5, 0x2f, 0xee, 0x59, 0x2c, 0xc0, 0xdb, 0x17, 0x24, 0x3d, 0xb0, 0xce,
+	0x6d, 0x28, 0xd2, 0x53, 0x3a, 0xf1, 0xbd, 0x46, 0x85, 0x07, 0x85, 0x9a, 0xca, 0x0f, 0x3b, 0x8c,
+	0x6a, 0xcb, 0x49, 0xeb, 0x87, 0x70, 0x71, 0x97, 0x25, 0x72, 0x8f, 0xd0, 0xfa, 0x7a, 0x4a, 0xd8,
+	0xed, 0xee, 0x4a, 0xab, 0xe4, 0xfd, 0xee, 0x2e, 0xa9, 0x43, 0x6e, 0xbb, 0x2d, 0xf7, 0x90, 0x1b,
+	0xb6, 0xad, 0x9f, 0xe3, 0x41, 0xeb, 0x72, 0x99, 0xcc, 0x14, 0x03, 0x57, 0xcb, 0xe7, 0xc3, 0xe5,
+	0x31, 0xf7, 0xa4, 0xae, 0x3b, 0x75, 0xb9, 0x41, 0xca, 0xb6, 0x18, 0x58, 0xb7, 0xa4, 0x0e, 0xb8,
+	0xe7, 0xe9, 0xab, 0xc0, 0xd9, 0x04, 0x9a, 0x11, 0xa8, 0xba, 0x03, 0x6b, 0x11, 0xae, 0x4c, 0xc1,
+	0xe9, 0x2e, 0x5c, 0xe2, 0x60, 0x3b, 0x94, 0xce, 0x5a, 0xa3, 0xe1, 0x69, 0xea, 0xaa, 0x33, 0xb8,
+	0x1c, 0x67, 0xfc, 0xdf, 0xda, 0xc8, 0x3a, 0x81, 0xe2, 0x13, 0x5e, 0x30, 0x6a, 0xba, 0x14, 0x38,
+	0x2f, 0x46, 0x98, 0x89, 0x33, 0x16, 0xe9, 0x7c, 0xd9, 0xe6, 0xdf, 0x3c, 0x9a, 0x53, 0xea, 0x3e,
+	0xb7, 0x77, 0xc5, 0xab, 0x51, 0xb6, 0x83, 0x31, 0xb9, 0xc6, 0x4a, 0xd5, 0x21, 0xba, 0x07, 0x9f,
+	0x2d, 0xf0, 0x59, 0x8d, 0x82, 0x25, 0xd3, 0xaa, 0x58, 0xa9, 0x35, 0x18, 0x68, 0x2f, 0x47, 0x80,
+	0x67, 0x44, 0xf1, 0xac, 0xd7, 0x70, 0x51, 0xe3, 0xcf, 0x64, 0x86, 0xfb, 0x50, 0x14, 0x55, 0xb1,
+	0x0c, 0x5a, 0xeb, 0x51, 0x29, 0xb1, 0x8c, 0x2d, 0x79, 0xac, 0xdb, 0xb0, 0x26, 0x29, 0x74, 0x3c,
+	0x4d, 0x3a, 0x2b, 0x6e, 0x1f, 0x6b, 0x17, 0xd6, 0xa3, 0x6c, 0x99, 0x5c, 0xa4, 0xa5, 0x16, 0x7d,
+	0x3e, 0x1b, 0x68, 0x31, 0x30, 0x7e, 0x28, 0xba, 0xc1, 0x72, 0x31, 0x83, 0x05, 0x0a, 0x29, 0x88,
+	0x4c, 0x0a, 0xad, 0x29, 0xf3, 0xef, 0x0e, 0xbd, 0xe0, 0xa5, 0x7b, 0x0b, 0x44, 0x27, 0x66, 0x3a,
+	0x94, 0x26, 0x94, 0x84, 0xc1, 0x55, 0x32, 0x95, 0x7c, 0x2a, 0x8a, 0x89, 0x29, 0xd4, 0xa6, 0x2f,
+	0x5d, 0xe7, 0x78, 0x4c, 0x83, 0x98, 0xc3, 0x52, 0x08, 0x9d, 0x98, 0x69, 0xc7, 0x7f, 0xc4, 0xe7,
+	0xb3, 0x35, 0x72, 0xdc, 0xb1, 0x32, 0xfe, 0xe7, 0x50, 0x14, 0xb9, 0x89, 0xcc, 0xdf, 0xef, 0x44,
+	0x61, 0x74, 0x5e, 0x31, 0x68, 0x89, 0x4c, 0x46, 0x4a, 0xb1, 0xc3, 0x92, 0xcd, 0x98, 0x76, 0xac,
+	0x39, 0xd3, 0x26, 0x9f, 0xc0, 0xb2, 0xc3, 0x44, 0xf8, 0x5d, 0xac, 0xc7, 0xb3, 0x42, 0x8e, 0xd6,
+	0x3d, 0x9b, 0x51, 0x5b, 0x70, 0x59, 0x9f, 0x42, 0x45, 0x5b, 0x81, 0x25, 0xbb, 0x8f, 0x3a, 0x5d,
+	0xcc, 0x80, 0xab, 0xb0, 0xd2, 0xda, 0xea, 0x6e, 0x1f, 0x8a, 0x1c, 0xb8, 0x0e, 0xd0, 0xee, 0x04,
+	0xe3, 0x1c, 0x66, 0x41, 0x42, 0x4a, 0xde, 0x70, 0x5d, 0x1f, 0x23, 0x4d, 0x9f, 0xdc, 0x7b, 0xe9,
+	0xf3, 0x06, 0x6a, 0x72, 0xfb, 0x99, 0x7c, 0xe0, 0x21, 0x5a, 0x98, 0xc1, 0x28, 0x17, 0xb8, 0x92,
+	0xb0, 0xac, 0xba, 0x9d, 0x82, 0xd1, 0xc2, 0xec, 0xe1, 0xc0, 0x77, 0xfc, 0xb9, 0xa7, 0x5c, 0xe0,
+	0x0f, 0x06, 0xd4, 0x15, 0x25, 0x6b, 0xf5, 0xae, 0x4a, 0x24, 0x11, 0xf3, 0x82, 0x02, 0xe9, 0x32,
+	0x14, 0x07, 0xbd, 0x83, 0xe1, 0x5b, 0xd5, 0xc5, 0x90, 0x23, 0x46, 0x1f, 0x89, 0x75, 0x44, 0x0b,
+	0x4d, 0x8e, 0x58, 0xee, 0xcd, 0x9a, 0x69, 0xdb, 0x93, 0x01, 0x7d, 0xc3, 0x5f, 0xda, 0x82, 0x1d,
+	0x12, 0x78, 0xba, 0x2c, 0x5b, 0x6d, 0xbc, 0x7e, 0xd2, 0x5b, 0x6f, 0xe8, 0xe4, 0xad, 0xb9, 0x7f,
+	0xd2, 0x99, 0xb0, 0x2e, 0x93, 0xda, 0xe1, 0x3a, 0x10, 0x46, 0x6c, 0x0f, 0x3d, 0x9d, 0xda, 0x81,
+	0x35, 0x46, 0x45, 0xbf, 0xc7, 0x64, 0x3a, 0x8c, 0x18, 0x2a, 0x6c, 0x1b, 0xb1, 0xb0, 0xed, 0x78,
+	0xde, 0xeb, 0xa9, 0x3b, 0x90, 0x5b, 0x0b, 0xc6, 0x56, 0x5b, 0x80, 0x3f, 0xf7, 0x22, 0x81, 0xf9,
+	0xbb, 0xa2, 0xdc, 0x0b, 0x51, 0x1e, 0x51, 0xff, 0x1c, 0x14, 0xeb, 0x63, 0xb8, 0xa4, 0x38, 0x65,
+	0x0d, 0x7d, 0x0e, 0xf3, 0x3e, 0x5c, 0x55, 0xcc, 0x5b, 0x27, 0x2c, 0xd1, 0x7b, 0x2a, 0x17, 0xfc,
+	0x4f, 0xf5, 0xdc, 0x84, 0x46, 0xa0, 0x27, 0xcf, 0x41, 0xa6, 0x23, 0x5d, 0x81, 0xb9, 0x27, 0x7d,
+	0x06, 0xb1, 0xd8, 0x37, 0xa3, 0xb9, 0xc8, 0xa2, 0x1e, 0x41, 0xf6, 0x6d, 0x6d, 0xc1, 0x15, 0x85,
+	0x21, 0xb3, 0x83, 0x28, 0xc8, 0x82, 0x42, 0x49, 0x20, 0xd2, 0x60, 0x4c, 0xf4, 0x7c, 0xb3, 0xeb,
+	0x9c, 0x51, 0xd3, 0x72, 0x4c, 0x43, 0xc3, 0x94, 0xa6, 0x65, 0x9c, 0x0b, 0xa6, 0x5d, 0x60, 0xfe,
+	0x29, 0x5c, 0x0b, 0x60, 0x99, 0x25, 0x9e, 0xa2, 0xfb, 0x0d, 0x3d, 0x4f, 0x2b, 0xeb, 0x92, 0xb6,
+	0x72, 0x07, 0x0a, 0x33, 0x2a, 0xa3, 0x44, 0x65, 0x83, 0x34, 0x45, 0x13, 0xbb, 0xa9, 0x09, 0xf3,
+	0x79, 0x6b, 0x00, 0xd7, 0x15, 0xba, 0xb0, 0x51, 0x22, 0x7c, 0x5c, 0x29, 0x95, 0xf2, 0x0b, 0x43,
+	0x2d, 0xa6, 0xfc, 0x79, 0x71, 0x9a, 0x41, 0xf3, 0xee, 0x4b, 0x61, 0x1a, 0x75, 0x5b, 0x32, 0x45,
+	0xff, 0x1d, 0x71, 0x9d, 0x82, 0x4b, 0x96, 0x09, 0xac, 0x07, 0xeb, 0xd1, 0xbb, 0x99, 0x29, 0x30,
+	0x61, 0x1e, 0xeb, 0xa3, 0x09, 0x55, 0x58, 0x12, 0x03, 0xa5, 0x70, 0x70, 0x71, 0x33, 0x29, 0xec,
+	0x84, 0x60, 0xdc, 0xc9, 0xb2, 0xea, 0xcb, 0x4e, 0x53, 0x65, 0x28, 0x62, 0x60, 0xed, 0xc1, 0xe5,
+	0xf8, 0xc5, 0xcf, 0xa4, 0xf2, 0xa1, 0x70, 0xe0, 0xa4, 0xd8, 0x90, 0x09, 0xf7, 0x59, 0x78, 0xbd,
+	0xb5, 0x10, 0x91, 0x09, 0xd2, 0x06, 0x33, 0x29, 0x62, 0xfc, 0x37, 0xfc, 0x35, 0x08, 0x20, 0x99,
+	0xc0, 0xbc, 0x10, 0x2c, 0xfb, 0xf1, 0x87, 0x31, 0x22, 0x7f, 0x6e, 0x8c, 0x90, 0x0e, 0xa1, 0x87,
+	0xab, 0x4c, 0x9b, 0x78, 0x11, 0xc6, 0x9c, 0x85, 0x88, 0x96, 0x09, 0xf8, 0x2b, 0xb8, 0x91, 0x1e,
+	0xcc, 0xb2, 0x20, 0x7f, 0xcf, 0x82, 0x72, 0x90, 0x5a, 0x69, 0x3f, 0x23, 0x55, 0xa0, 0xb4, 0xb7,
+	0x7f, 0xf0, 0xb4, 0xb5, 0x85, 0x49, 0xdd, 0xc6, 0xdf, 0x73, 0x90, 0xdb, 0x39, 0x24, 0x9b, 0xb0,
+	0x2c, 0xda, 0xe0, 0xe7, 0xfc, 0x4a, 0x60, 0x9e, 0xd7, 0x50, 0xb7, 0x96, 0xc8, 0x67, 0x90, 0x67,
+	0x8d, 0xf0, 0xd4, 0x9f, 0x09, 0xcc, 0xf4, 0x66, 0x3a, 0x4a, 0x77, 0xa1, 0xa2, 0x75, 0xbd, 0xc9,
+	0x3b, 0x7f, 0x26, 0x30, 0xdf, 0xdd, 0x51, 0x17, 0x3a, 0x75, 0xdf, 0x4c, 0xe2, 0x3a, 0x85, 0x5d,
+	0xda, 0xb8, 0x4e, 0x5a, 0x67, 0x14, 0xa5, 0xf7, 0x64, 0xb7, 0xbd, 0xef, 0x93, 0xeb, 0x09, 0xcd,
+	0x5b, 0xbd, 0x4d, 0x69, 0xde, 0x48, 0x67, 0x50, 0x78, 0x1b, 0xfb, 0xb0, 0xcc, 0x5b, 0x38, 0xe4,
+	0x0b, 0xf5, 0x61, 0x26, 0x34, 0xb8, 0x52, 0xcc, 0x1d, 0x69, 0xfe, 0x58, 0x4b, 0xf7, 0x8c, 0xef,
+	0x1b, 0x1b, 0xdf, 0xe6, 0x60, 0x99, 0x97, 0xf4, 0xe4, 0x19, 0x40, 0xd8, 0xfb, 0x88, 0x6b, 0xbb,
+	0xd0, 0x4d, 0x89, 0x6b, 0xbb, 0xd8, 0x36, 0x11, 0x27, 0xa2, 0x35, 0x29, 0x48, 0x92, 0x48, 0xa4,
+	0xcb, 0x11, 0x3f, 0x91, 0x84, 0x0e, 0x07, 0xa2, 0x3a, 0x50, 0x8f, 0x36, 0x21, 0xc8, 0xcd, 0x04,
+	0xb1, 0x78, 0x2f, 0xc3, 0xbc, 0x75, 0x3e, 0x53, 0xc4, 0x2a, 0x7f, 0xce, 0xe1, 0xb9, 0x89, 0x5f,
+	0xb1, 0xf1, 0x08, 0xcb, 0x41, 0x9d, 0x4f, 0xae, 0x25, 0xd5, 0x80, 0x61, 0x82, 0x64, 0x5e, 0x4f,
+	0x9d, 0x0f, 0xd4, 0x7f, 0x01, 0x55, 0xbd, 0x2e, 0x27, 0x1f, 0x25, 0x96, 0x95, 0x7a, 0x69, 0x6f,
+	0x5a, 0xe7, 0xb1, 0x2c, 0x02, 0x8b, 0xfa, 0x3a, 0x19, 0x38, 0x52, 0xbe, 0x27, 0x03, 0x47, 0xcb,
+	0x73, 0x04, 0x46, 0xcf, 0x08, 0xab, 0x6a, 0x92, 0xb8, 0x45, 0xad, 0x08, 0x8f, 0x7b, 0xc6, 0x62,
+	0x41, 0x8e, 0x7e, 0xfc, 0xaf, 0x1c, 0x54, 0x9e, 0x38, 0xc3, 0x89, 0x4f, 0x27, 0xac, 0x0b, 0xc8,
+	0xa2, 0x07, 0x0f, 0x34, 0x71, 0x77, 0xd6, 0x6b, 0xd8, 0xb8, 0x3b, 0x47, 0x0a, 0x3c, 0x54, 0xb3,
+	0x03, 0x45, 0x51, 0x67, 0x91, 0x18, 0x63, 0xa4, 0x1e, 0x33, 0x3f, 0x4c, 0x9e, 0xd4, 0x77, 0x1b,
+	0x96, 0xec, 0xf1, 0xdd, 0x2e, 0x54, 0xf8, 0xe6, 0x8d, 0x74, 0x86, 0x00, 0xf2, 0x27, 0x50, 0x60,
+	0xdd, 0x7e, 0x12, 0x0b, 0x15, 0xda, 0x0f, 0x02, 0xa6, 0x99, 0x34, 0x15, 0x00, 0x3c, 0x81, 0x15,
+	0xd5, 0xc0, 0x27, 0x57, 0x63, 0xfa, 0x47, 0x9b, 0xfd, 0xe6, 0xb5, 0xb4, 0x69, 0x05, 0x86, 0xee,
+	0xfd, 0x5b, 0x80, 0x02, 0x7b, 0x31, 0xd8, 0x5e, 0xc3, 0x04, 0x35, 0xbe, 0xd7, 0x85, 0x42, 0x2f,
+	0xbe, 0xd7, 0xc5, 0xdc, 0x56, 0xdc, 0x79, 0x2d, 0x4f, 0x25, 0x09, 0x22, 0xd1, 0x3a, 0x31, 0x7e,
+	0xe7, 0x13, 0x92, 0x5c, 0xe1, 0xdb, 0x7a, 0xc2, 0x4a, 0x12, 0x84, 0x62, 0x85, 0x66, 0xdc, 0xb7,
+	0x93, 0xf2, 0x5d, 0x04, 0x7e, 0x0a, 0x25, 0x99, 0xa1, 0x26, 0xa9, 0x1a, 0xad, 0x3a, 0x93, 0x54,
+	0x8d, 0xa5, 0xb7, 0x21, 0x22, 0xe6, 0x29, 0x69, 0x88, 0x61, 0x99, 0x94, 0x86, 0xa8, 0x25, 0x39,
+	0x88, 0xf8, 0x35, 0x40, 0x98, 0x95, 0xc6, 0x83, 0x5d, 0x62, 0xb1, 0x1a, 0x0f, 0x76, 0xc9, 0x89,
+	0x2d, 0x42, 0x7f, 0x03, 0x64, 0x31, 0x41, 0x25, 0x1f, 0x27, 0x4b, 0x27, 0x96, 0xb8, 0xe6, 0xfd,
+	0xf7, 0x63, 0x0e, 0x96, 0xec, 0x41, 0x2d, 0x92, 0xbb, 0x92, 0x3b, 0x29, 0x36, 0x88, 0xd5, 0xbf,
+	0xe6, 0xdd, 0x77, 0xf2, 0x05, 0x6b, 0x50, 0xa8, 0x47, 0x93, 0x59, 0x92, 0x22, 0xbc, 0x50, 0x20,
+	0x9b, 0xf7, 0xde, 0xcd, 0xa8, 0x1f, 0xb5, 0xcc, 0x6f, 0x93, 0x8e, 0x3a, 0x5a, 0x3b, 0x27, 0x1d,
+	0x75, 0x2c, 0x39, 0x0e, 0x11, 0x53, 0x9c, 0x27, 0x5a, 0x63, 0xa7, 0x21, 0x2e, 0x38, 0x4f, 0x98,
+	0xc1, 0x26, 0x39, 0xcf, 0x42, 0x39, 0x9e, 0xe4, 0x3c, 0x8b, 0x49, 0x30, 0x42, 0xfb, 0xb0, 0x96,
+	0x90, 0xcc, 0x92, 0xfb, 0x29, 0x6a, 0x25, 0x56, 0xf1, 0xe6, 0x27, 0xef, 0xc9, 0x1d, 0xac, 0xfa,
+	0x1a, 0xd6, 0x93, 0x32, 0x5d, 0x92, 0x02, 0x94, 0x52, 0xde, 0x9b, 0xcd, 0xf7, 0x65, 0x57, 0x0b,
+	0x6f, 0x56, 0x7f, 0xff, 0xd7, 0x6b, 0xc6, 0x9f, 0xf0, 0xcf, 0x5f, 0xf0, 0x4f, 0xaf, 0xc8, 0xff,
+	0x4f, 0xdc, 0x0f, 0xfe, 0x1d, 0x00, 0x00, 0xff, 0xff, 0xf4, 0x4d, 0x3d, 0xa0, 0x7c, 0x27, 0x00,
+	0x00,
 }

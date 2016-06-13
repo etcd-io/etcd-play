@@ -120,6 +120,9 @@ type Command struct {
 	DisableSuggestions bool
 	// If displaying suggestions, allows to set the minimum levenshtein distance to display, must be > 0
 	SuggestionsMinimumDistance int
+
+	// Disable the flag parsing. If this is true all flags will be passed to the command as arguments.
+	DisableFlagParsing bool
 }
 
 // os.Args[1:] by default, if desired, can be overridden
@@ -536,7 +539,11 @@ func (c *Command) execute(a []string) (err error) {
 	}
 
 	c.preRun()
+
 	argWoFlags := c.Flags().Args()
+	if c.DisableFlagParsing {
+		argWoFlags = a
+	}
 
 	for p := c; p != nil; p = p.Parent() {
 		if p.PersistentPreRunE != nil {
@@ -1025,6 +1032,19 @@ func (c *Command) Flags() *flag.FlagSet {
 	return c.flags
 }
 
+// LocalNonPersistentFlags are flags specific to this command which will NOT persist to subcommands
+func (c *Command) LocalNonPersistentFlags() *flag.FlagSet {
+	persistentFlags := c.PersistentFlags()
+
+	out := flag.NewFlagSet(c.Name(), flag.ContinueOnError)
+	c.LocalFlags().VisitAll(func(f *flag.Flag) {
+		if persistentFlags.Lookup(f.Name) == nil {
+			out.AddFlag(f)
+		}
+	})
+	return out
+}
+
 // Get the local FlagSet specifically set in the current command
 func (c *Command) LocalFlags() *flag.FlagSet {
 	c.mergePersistentFlags()
@@ -1167,6 +1187,9 @@ func (c *Command) persistentFlag(name string) (flag *flag.Flag) {
 
 // ParseFlags parses persistent flag tree & local flags
 func (c *Command) ParseFlags(args []string) (err error) {
+	if c.DisableFlagParsing {
+		return nil
+	}
 	c.mergePersistentFlags()
 	err = c.Flags().Parse(args)
 	return

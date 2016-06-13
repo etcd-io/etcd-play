@@ -116,10 +116,10 @@ service Auth {
   rpc UserChangePassword(AuthUserChangePasswordRequest) returns (AuthUserChangePasswordResponse) {}
 
   // UserGrant grants a role to a specified user.
-  rpc UserGrant(AuthUserGrantRequest) returns (AuthUserGrantResponse) {}
+  rpc UserGrantRole(AuthUserGrantRoleRequest) returns (AuthUserGrantRoleResponse) {}
 
-  // UserRevoke revokes a role of specified user.
-  rpc UserRevoke(AuthUserRevokeRequest) returns (AuthUserRevokeResponse) {}
+  // UserRevokeRole revokes a role of specified user.
+  rpc UserRevokeRole(AuthUserRevokeRoleRequest) returns (AuthUserRevokeRoleResponse) {}
 
   // RoleAdd adds a new role.
   rpc RoleAdd(AuthRoleAddRequest) returns (AuthRoleAddResponse) {}
@@ -130,11 +130,11 @@ service Auth {
   // RoleDelete deletes a specified role.
   rpc RoleDelete(AuthRoleDeleteRequest) returns (AuthRoleDeleteResponse) {}
 
-  // RoleGrant grants a permission of a specified key or range to a specified role.
-  rpc RoleGrant(AuthRoleGrantRequest) returns (AuthRoleGrantResponse) {}
+  // RoleGrantPermission grants a permission of a specified key or range to a specified role.
+  rpc RoleGrantPermission(AuthRoleGrantPermissionRequest) returns (AuthRoleGrantPermissionResponse) {}
 
-  // RoleRevoke revokes a key or range permission of a specified role.
-  rpc RoleRevoke(AuthRoleRevokeRequest) returns (AuthRoleRevokeResponse) {}
+  // RoleRevokePermission revokes a key or range permission of a specified role.
+  rpc RoleRevokePermission(AuthRoleRevokePermissionRequest) returns (AuthRoleRevokePermissionResponse) {}
 }
 
 message ResponseHeader {
@@ -174,7 +174,7 @@ message RangeRequest {
   int64 limit = 3;
   // revision is the point-in-time of the key-value store to use for the range.
   // If revision is less or equal to zero, the range is over the newest key-value store.
-  // If the revision has been compacted, ErrCompaction is returned as a response.
+  // If the revision has been compacted, ErrCompacted is returned as a response.
   int64 revision = 4;
 
   // sort_order is the order for returned sorted results.
@@ -229,7 +229,7 @@ message DeleteRangeResponse {
   int64 deleted = 2;
 }
 
-message RequestUnion {
+message RequestOp {
   // request is a union of request types accepted by a transaction.
   oneof request {
     RangeRequest request_range = 1;
@@ -238,7 +238,7 @@ message RequestUnion {
   }
 }
 
-message ResponseUnion {
+message ResponseOp {
   // response is a union of response types returned by a transaction.
   oneof response {
     RangeResponse response_range = 1;
@@ -300,9 +300,9 @@ message TxnRequest {
   // and the response will contain their respective responses in order.
   repeated Compare compare = 1;
   // success is a list of requests which will be applied when compare evaluates to true.
-  repeated RequestUnion success = 2;
+  repeated RequestOp success = 2;
   // failure is a list of requests which will be applied when compare evaluates to false.
-  repeated RequestUnion failure = 3;
+  repeated RequestOp failure = 3;
 }
 
 message TxnResponse {
@@ -311,7 +311,7 @@ message TxnResponse {
   bool succeeded = 2;
   // responses is a list of responses corresponding to the results from applying
   // success if succeeded is true or failure if succeeded is false.
-  repeated ResponseUnion responses = 3;
+  repeated ResponseOp responses = 3;
 }
 
 // CompactionRequest compacts the key-value store up to a given revision. All superseded keys
@@ -572,6 +572,7 @@ message AuthUserAddRequest {
 }
 
 message AuthUserGetRequest {
+  string name = 1;
 }
 
 message AuthUserDeleteRequest {
@@ -586,14 +587,16 @@ message AuthUserChangePasswordRequest {
   string password = 2;
 }
 
-message AuthUserGrantRequest {
+message AuthUserGrantRoleRequest {
   // user is the name of the user which should be granted a given role.
   string user = 1;
   // role is the name of the role to grant to the user.
   string role = 2;
 }
 
-message AuthUserRevokeRequest {
+message AuthUserRevokeRoleRequest {
+  string name = 1;
+  string role = 2;
 }
 
 message AuthRoleAddRequest {
@@ -602,19 +605,24 @@ message AuthRoleAddRequest {
 }
 
 message AuthRoleGetRequest {
+  string role = 1;
 }
 
 message AuthRoleDeleteRequest {
+  string role = 1;
 }
 
-message AuthRoleGrantRequest {
+message AuthRoleGrantPermissionRequest {
   // name is the name of the role which will be granted the permission.
   string name = 1;
   // perm is the permission to grant to the role.
   authpb.Permission perm = 2;
 }
 
-message AuthRoleRevokeRequest {
+message AuthRoleRevokePermissionRequest {
+  string role = 1;
+  string key = 2;
+  string range_end = 3;
 }
 
 message AuthEnableResponse {
@@ -637,6 +645,8 @@ message AuthUserAddResponse {
 
 message AuthUserGetResponse {
   ResponseHeader header = 1;
+
+  repeated string roles = 2;
 }
 
 message AuthUserDeleteResponse {
@@ -647,11 +657,11 @@ message AuthUserChangePasswordResponse {
   ResponseHeader header = 1;
 }
 
-message AuthUserGrantResponse {
+message AuthUserGrantRoleResponse {
   ResponseHeader header = 1;
 }
 
-message AuthUserRevokeResponse {
+message AuthUserRevokeRoleResponse {
   ResponseHeader header = 1;
 }
 
@@ -661,16 +671,18 @@ message AuthRoleAddResponse {
 
 message AuthRoleGetResponse {
   ResponseHeader header = 1;
+
+  repeated authpb.Permission perm = 2;
 }
 
 message AuthRoleDeleteResponse {
   ResponseHeader header = 1;
 }
 
-message AuthRoleGrantResponse {
+message AuthRoleGrantPermissionResponse {
   ResponseHeader header = 1;
 }
 
-message AuthRoleRevokeResponse {
+message AuthRoleRevokePermissionResponse {
   ResponseHeader header = 1;
 }

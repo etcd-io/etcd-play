@@ -1,10 +1,10 @@
-hash: 3efb9a8b5d8ea599ab1ed3ad6f48dd6557d3e4c004b1d21e720312e57a6f7928
-updated: 2016-05-29T12:27:42.007065226-07:00
+hash: 0bd4b1f9cb64ea3ff8a82c20f58c1232f48c505cf26113f3db2c2c1ad4c8c244
+updated: 2016-06-13T12:41:16.679691342-07:00
 imports:
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
 - name: github.com/coreos/etcd
-  version: 84e7fa149e37272899e495a357c580fc5feddec9
+  version: 70a2add2b06c5ff0ca3da702d21fade5aa607631
   subpackages:
   - clientv3
   - etcdserver/etcdserverpb
@@ -13,32 +13,38 @@ imports:
   - auth/authpb
   - etcdserver/api/v3rpc/rpctypes
   - mvcc/mvccpb
+- name: github.com/coreos/go-systemd
+  version: 6dc8b843c670f2027cc26b164935635840a40526
+  subpackages:
+  - journal
+- name: github.com/coreos/pkg
+  version: 938dc0af5bf1b9907f3be6fefe4d2592a5658030
+  subpackages:
+  - capnslog
 - name: github.com/dustin/go-humanize
-  version: 9436b7a0ebd4b3a35fb30aa244f8f85244088bfa
+  version: 499693e27ee0d14ffab67c31ad065fdb3d34ea75
 - name: github.com/ghodss/yaml
-  version: e8e0db9016175449df0e9c4b6e6995a9433a395c
+  version: aa0c862057666179de291b67d9f093d12b5a8473
 - name: github.com/gogo/protobuf
-  version: c18eea6ad611eecf94a9ba38471f59706199409e
+  version: 318371cbef6bab80e8d1c69b470fffa79eebfb54
   subpackages:
   - proto
 - name: github.com/golang/protobuf
-  version: 9e6977f30c91c78396e719e164e57f9287fff42c
+  version: 8616e8ee5e20a1704615e6c8d7afcdac06087a67
   subpackages:
   - proto
 - name: github.com/gorilla/websocket
-  version: afffb151969cb38ce452b0e1b8d20cd91fe7cd45
+  version: a68708917c6a4f06314ab4e52493cc61359c9d42
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/satori/go.uuid
-  version: f9ab0dce87d815821e221626b772e3475a0d2749
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/spf13/cobra
-  version: f368244301305f414206f889b1735a54cfc8bde8
+  version: 1238ba19d24b0b9ceee2094e1cb31947d45c3e86
 - name: github.com/spf13/pflag
-  version: cb88ea77998c3f024757528e3305022ab50b43be
-- name: github.com/uber-go/zap
-  version: 1392e24b604fdb23ef846186bcf4ae349482c558
+  version: 367864438f1b1a3c7db4da06a2f55b144e6784e0
 - name: golang.org/x/net
-  version: 30db96677b74e24b967e23f911eb3364fc61a011
+  version: 3f122ce3dbbe488b7e6a8bdb26f41edec852a40b
   subpackages:
   - context
   - http2
@@ -46,12 +52,8 @@ imports:
   - http2/hpack
   - lex/httplex
   - internal/timeseries
-- name: golang.org/x/time
-  version: a4bde12657593d5e90d0533a3e4fd95e635124cb
-  subpackages:
-  - rate
 - name: google.golang.org/grpc
-  version: 8213ee577a465c1f314d85748fb29e4eeed59baf
+  version: 88aeffff979aa77aa502cb011423d0a08fa12c5a
   subpackages:
   - credentials
   - grpclog

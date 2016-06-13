@@ -27,7 +27,6 @@ import (
 	"github.com/coreos/etcd-play/proc"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
-	"github.com/uber-go/zap"
 	"golang.org/x/net/context"
 )
 
@@ -77,11 +76,7 @@ type ContextAdapter struct {
 
 func (ca *ContextAdapter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if err := ca.handler.ServeHTTPContext(ca.ctx, w, req); err != nil {
-		logger.Error("ServeHTTP",
-			zap.String("method", req.Method),
-			zap.String("path", req.URL.Path),
-			zap.Err(err),
-		)
+		logger.Errorf("ServeHTTP (%v) [method: %q | path: %q]", err, req.Method, req.URL.Path)
 	}
 }
 
@@ -113,19 +108,14 @@ func init() {
 func CommandFunc(cmd *cobra.Command, args []string) {
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Error("etcd-play error",
-				zap.Object("error", err),
-			)
+			logger.Errorf("etcd-play error (%v)", err)
 			os.Exit(0)
 		}
 	}()
 
 	if globalFlags.IsRemote {
 		if globalFlags.ClusterSize != len(globalFlags.AgentEndpoints) {
-			logger.Error("etcd-play cluster-size and agent-endpoints must be the same size",
-				zap.Int("cluster_size", globalFlags.ClusterSize),
-				zap.Object("agent_endpoints", len(globalFlags.AgentEndpoints)),
-			)
+			logger.Errorf("etcd-play cluster-size and agent-endpoints must be the same size [cluster_size: %d | agent_endpoints: %q]", globalFlags.ClusterSize, globalFlags.AgentEndpoints)
 			os.Exit(0)
 		}
 	}
@@ -212,11 +202,9 @@ func CommandFunc(cmd *cobra.Command, args []string) {
 		handler: withCache(ContextHandlerFunc(restartHandler)),
 	})
 
-	logger.Info("started serving", zap.String("address", fmt.Sprintf("http://localhost%s", globalFlags.PlayWebPort)))
+	logger.Infof("started serving %q", fmt.Sprintf("http://localhost%s", globalFlags.PlayWebPort))
 	if err := http.ListenAndServe(globalFlags.PlayWebPort, mainRouter); err != nil {
-		logger.Error("etcd-play error",
-			zap.Object("error", err),
-		)
+		logger.Errorf("etcd-play error (%v)", err)
 		os.Exit(0)
 	}
 }

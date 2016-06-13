@@ -45,31 +45,36 @@ func watchTest(cx ctlCtx) {
 
 		wkv []kv
 	}{
-		{
+		{ // watch 1 key
 			[]kv{{"sample", "value"}},
 			[]string{"sample", "--rev", "1"},
 			[]kv{{"sample", "value"}},
 		},
-		{
+		{ // watch 3 keys by prefix
 			[]kv{{"key1", "val1"}, {"key2", "val2"}, {"key3", "val3"}},
 			[]string{"key", "--rev", "1", "--prefix"},
 			[]kv{{"key1", "val1"}, {"key2", "val2"}, {"key3", "val3"}},
 		},
-		{
+		{ // watch by revision
 			[]kv{{"etcd", "revision_1"}, {"etcd", "revision_2"}, {"etcd", "revision_3"}},
 			[]string{"etcd", "--rev", "2"},
 			[]kv{{"etcd", "revision_2"}, {"etcd", "revision_3"}},
 		},
+		{ // watch 3 keys by range
+			[]kv{{"key1", "val1"}, {"key2", "val2"}, {"key3", "val3"}},
+			[]string{"key", "key3", "--rev", "1"},
+			[]kv{{"key1", "val1"}, {"key2", "val2"}},
+		},
 	}
 
 	for i, tt := range tests {
-		go func() {
-			for j := range tt.puts {
-				if err := ctlV3Put(cx, tt.puts[j].key, tt.puts[j].val, ""); err != nil {
+		go func(i int, puts []kv) {
+			for j := range puts {
+				if err := ctlV3Put(cx, puts[j].key, puts[j].val, ""); err != nil {
 					cx.t.Fatalf("watchTest #%d-%d: ctlV3Put error (%v)", i, j, err)
 				}
 			}
-		}()
+		}(i, tt.puts)
 		if err := ctlV3Watch(cx, tt.args, tt.wkv...); err != nil {
 			if cx.dialTimeout > 0 && !isGRPCTimedout(err) {
 				cx.t.Errorf("watchTest #%d: ctlV3Watch error (%v)", i, err)

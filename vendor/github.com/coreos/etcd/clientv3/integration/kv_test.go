@@ -27,6 +27,7 @@ import (
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/coreos/etcd/pkg/testutil"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
 
 func TestKVPutError(t *testing.T) {
@@ -131,6 +132,13 @@ func TestKVPutWithRequireLeader(t *testing.T) {
 	if err != rpctypes.ErrNoLeader {
 		t.Fatal(err)
 	}
+
+	// clients may give timeout errors since the members are stopped; take
+	// the clients so that terminating the cluster won't complain
+	clus.Client(1).Close()
+	clus.Client(2).Close()
+	clus.TakeClient(1)
+	clus.TakeClient(2)
 }
 
 func TestKVRange(t *testing.T) {
@@ -276,6 +284,63 @@ func TestKVRange(t *testing.T) {
 		if !reflect.DeepEqual(tt.wantSet, resp.Kvs) {
 			t.Fatalf("#%d: resp.Kvs expected %+v, got %+v", i, tt.wantSet, resp.Kvs)
 		}
+	}
+}
+
+func TestKVGetErrConnClosed(t *testing.T) {
+	defer testutil.AfterTest(t)
+
+	clus := integration.NewClusterV3(t, &integration.ClusterConfig{Size: 1})
+	defer clus.Terminate(t)
+
+	cli := clus.Client(0)
+	kv := clientv3.NewKV(cli)
+
+	donec := make(chan struct{})
+	go func() {
+		defer close(donec)
+		_, err := kv.Get(context.TODO(), "foo")
+		if err != nil && err != grpc.ErrClientConnClosing {
+			t.Fatalf("expected %v, got %v", grpc.ErrClientConnClosing, err)
+		}
+	}()
+
+	if err := cli.Close(); err != nil {
+		t.Fatal(err)
+	}
+	clus.TakeClient(0)
+
+	select {
+	case <-time.After(3 * time.Second):
+		t.Fatal("kv.Get took too long")
+	case <-donec:
+	}
+}
+
+func TestKVNewAfterClose(t *testing.T) {
+	defer testutil.AfterTest(t)
+
+	clus := integration.NewClusterV3(t, &integration.ClusterConfig{Size: 1})
+	defer clus.Terminate(t)
+
+	cli := clus.Client(0)
+	clus.TakeClient(0)
+	if err := cli.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	donec := make(chan struct{})
+	go func() {
+		kv := clientv3.NewKV(cli)
+		if _, err := kv.Get(context.TODO(), "foo"); err != grpc.ErrClientConnClosing {
+			t.Fatalf("expected %v, got %v", grpc.ErrClientConnClosing, err)
+		}
+		close(donec)
+	}()
+	select {
+	case <-time.After(3 * time.Second):
+		t.Fatal("kv.Get took too long")
+	case <-donec:
 	}
 }
 
@@ -462,18 +527,22 @@ func TestKVCompact(t *testing.T) {
 func TestKVGetRetry(t *testing.T) {
 	defer testutil.AfterTest(t)
 
-	clus := integration.NewClusterV3(t, &integration.ClusterConfig{Size: 3})
+	clusterSize := 3
+	clus := integration.NewClusterV3(t, &integration.ClusterConfig{Size: clusterSize})
 	defer clus.Terminate(t)
 
-	kv := clientv3.NewKV(clus.Client(0))
+	// because killing leader and following election
+	// could give no other endpoints for client reconnection
+	fIdx := (clus.WaitLeader(t) + 1) % clusterSize
+
+	kv := clientv3.NewKV(clus.Client(fIdx))
 	ctx := context.TODO()
 
 	if _, err := kv.Put(ctx, "foo", "bar"); err != nil {
 		t.Fatal(err)
 	}
 
-	clus.Members[0].Stop(t)
-	<-clus.Members[0].StopNotify()
+	clus.Members[fIdx].Stop(t)
 
 	donec := make(chan struct{})
 	go func() {
@@ -498,7 +567,7 @@ func TestKVGetRetry(t *testing.T) {
 	}()
 
 	time.Sleep(100 * time.Millisecond)
-	clus.Members[0].Restart(t)
+	clus.Members[fIdx].Restart(t)
 
 	select {
 	case <-time.After(5 * time.Second):
@@ -515,11 +584,10 @@ func TestKVPutFailGetRetry(t *testing.T) {
 	defer clus.Terminate(t)
 
 	kv := clientv3.NewKV(clus.Client(0))
-	ctx := context.TODO()
-
 	clus.Members[0].Stop(t)
-	<-clus.Members[0].StopNotify()
 
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+	defer cancel()
 	_, err := kv.Put(ctx, "foo", "bar")
 	if err == nil {
 		t.Fatalf("got success on disconnected put, wanted error")
@@ -528,7 +596,7 @@ func TestKVPutFailGetRetry(t *testing.T) {
 	donec := make(chan struct{})
 	go func() {
 		// Get will fail, but reconnect will trigger
-		gresp, gerr := kv.Get(ctx, "foo")
+		gresp, gerr := kv.Get(context.TODO(), "foo")
 		if gerr != nil {
 			t.Fatal(gerr)
 		}
@@ -576,13 +644,13 @@ func TestKVPutStoppedServerAndClose(t *testing.T) {
 	defer testutil.AfterTest(t)
 	clus := integration.NewClusterV3(t, &integration.ClusterConfig{Size: 1})
 	defer clus.Terminate(t)
+	cli := clus.Client(0)
 	clus.Members[0].Stop(t)
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
 	// this Put fails and triggers an asynchronous connection retry
-	_, err := clus.Client(0).Put(context.TODO(), "abc", "123")
-	if err == nil ||
-		(!strings.Contains(err.Error(), "connection is closing") &&
-			!strings.Contains(err.Error(), "transport is closing")) {
+	_, err := cli.Put(ctx, "abc", "123")
+	cancel()
+	if !strings.Contains(err.Error(), "context deadline") {
 		t.Fatal(err)
 	}
-	// cluster will terminate and close the client with the retry in-flight
 }
