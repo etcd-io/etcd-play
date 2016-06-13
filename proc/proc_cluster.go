@@ -30,7 +30,6 @@ import (
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	"github.com/coreos/etcd/tools/functional-tester/etcd-agent/client"
 	"github.com/dustin/go-humanize"
-	"github.com/uber-go/zap"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -408,7 +407,7 @@ func (c *defaultCluster) Bootstrap() error {
 	done, errC := make(chan struct{}), make(chan error)
 	for name, nd := range c.nameToNode {
 		go func(name string, nd Node) {
-			logger.Info("starting node", zap.String("name", name))
+			logger.Infof("starting node %q", name)
 			err := nd.Start()
 			if err != nil {
 				errC <- fmt.Errorf("%s (%v)", name, err)
@@ -431,7 +430,7 @@ func (c *defaultCluster) Bootstrap() error {
 	sc := make(chan os.Signal, 10)
 	signal.Notify(sc, os.Interrupt, os.Kill)
 	s := <-sc
-	logger.Info("shutting down cluster", zap.String("signal", s.String()))
+	logger.Infof("shutting down cluster with signal %q", s.String())
 	return c.Shutdown()
 }
 
@@ -445,10 +444,10 @@ func (c *defaultCluster) Shutdown() error {
 		go func(name string, nd Node) {
 			defer wg.Done()
 			if err := nd.Terminate(); err != nil {
-				logger.Error("terminate error", zap.String("name", name), zap.Err(err))
+				logger.Errorf("terminate %q error (%v)", name, err)
 			}
 			if err := nd.Clean(); err != nil {
-				logger.Error("clean error", zap.String("name", name), zap.Err(err))
+				logger.Errorf("clean %q error (%v)", name, err)
 			}
 		}(name, nd)
 	}

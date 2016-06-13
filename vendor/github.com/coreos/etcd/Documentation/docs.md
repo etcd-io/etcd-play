@@ -19,10 +19,12 @@ The easiest way to get started using etcd as a distributed key-value store for y
 Administrators who need to create reliable and scalable key-value stores for the developers they support should begin with a [cluster on multiple machines][clustering].
 
  - [Setting up clusters][clustering]
+ - [Run etcd clusters inside containers][container]
  - [Configuration][conf]
  - [Security][security]
  - Monitoring
  - [Maintenance][maintenance]
+ - [Understand failures][failures]
  - [Disaster recovery][recovery]
  - [Performance][performance]
 
@@ -46,6 +48,7 @@ To learn more about the concepts and internals behind etcd, read the following p
 [conf]: op-guide/configuration.md
 [demo]: demo.md
 [download_build]: dl_build.md
+[failures]: op-guide/failures.md
 [glossary]: learning/glossary.md
 [interacting]: dev-guide/interacting_v3.md
 [local_cluster]: dev-guide/local_cluster.md
@@ -54,3 +57,4 @@ To learn more about the concepts and internals behind etcd, read the following p
 [maintenance]: op-guide/maintenance.md
 [security]: op-guide/security.md
 [v2_migration]: op-guide/v2-migration.md
+[container]: op-guide/container.md

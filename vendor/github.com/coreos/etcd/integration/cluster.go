@@ -27,6 +27,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -430,6 +431,7 @@ type member struct {
 
 	grpcServer *grpc.Server
 	grpcAddr   string
+	grpcBridge *bridge
 }
 
 func (m *member) GRPCAddr() string { return m.grpcAddr }
@@ -505,10 +507,17 @@ func (m *member) listenGRPC() error {
 	if err != nil {
 		return fmt.Errorf("listen failed on grpc socket %s (%v)", m.grpcAddr, err)
 	}
-	m.grpcAddr = "unix://" + m.grpcAddr
+	m.grpcBridge, err = newBridge(m.grpcAddr)
+	if err != nil {
+		l.Close()
+		return err
+	}
+	m.grpcAddr = m.grpcBridge.URL()
 	m.grpcListener = l
 	return nil
 }
+
+func (m *member) DropConnections() { m.grpcBridge.Reset() }
 
 // NewClientV3 creates a new grpc client connection to the member
 func NewClientV3(m *member) (*clientv3.Client, error) {
@@ -658,6 +667,10 @@ func (m *member) Resume() {
 
 // Close stops the member's etcdserver and closes its connections
 func (m *member) Close() {
+	if m.grpcBridge != nil {
+		m.grpcBridge.Close()
+		m.grpcBridge = nil
+	}
 	if m.grpcServer != nil {
 		m.grpcServer.Stop()
 		m.grpcServer = nil
@@ -749,6 +762,8 @@ func (p SortableMemberSliceByPeerURLs) Swap(i, j int) { p[i], p[j] = p[j], p[i] 
 
 type ClusterV3 struct {
 	*cluster
+
+	mu      sync.Mutex
 	clients []*clientv3.Client
 }
 
@@ -756,7 +771,9 @@ type ClusterV3 struct {
 // for each cluster member.
 func NewClusterV3(t *testing.T, cfg *ClusterConfig) *ClusterV3 {
 	cfg.UseGRPC = true
-	clus := &ClusterV3{cluster: NewClusterByConfig(t, cfg)}
+	clus := &ClusterV3{
+		cluster: NewClusterByConfig(t, cfg),
+	}
 	for _, m := range clus.Members {
 		client, err := NewClientV3(m)
 		if err != nil {
@@ -769,12 +786,23 @@ func NewClusterV3(t *testing.T, cfg *ClusterConfig) *ClusterV3 {
 	return clus
 }
 
+func (c *ClusterV3) TakeClient(idx int) {
+	c.mu.Lock()
+	c.clients[idx] = nil
+	c.mu.Unlock()
+}
+
 func (c *ClusterV3) Terminate(t *testing.T) {
+	c.mu.Lock()
 	for _, client := range c.clients {
+		if client == nil {
+			continue
+		}
 		if err := client.Close(); err != nil {
 			t.Error(err)
 		}
 	}
+	c.mu.Unlock()
 	c.cluster.Terminate(t)
 }
 

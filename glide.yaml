@@ -6,11 +6,13 @@ import:
   - etcdserver/etcdserverpb
   - pkg/tlsutil
   - tools/functional-tester/etcd-agent/client
+- package: github.com/coreos/pkg
+  subpackages:
+  - capnslog
 - package: github.com/dustin/go-humanize
 - package: github.com/gorilla/websocket
 - package: github.com/satori/go.uuid
 - package: github.com/spf13/cobra
-- package: github.com/uber-go/zap
 - package: golang.org/x/net
   subpackages:
   - context

@@ -16,6 +16,7 @@ package integration
 
 import (
 	"fmt"
+	"math/rand"
 	"reflect"
 	"sort"
 	"testing"
@@ -28,16 +29,19 @@ import (
 	mvccpb "github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/coreos/etcd/pkg/testutil"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
 
 type watcherTest func(*testing.T, *watchctx)
 
 type watchctx struct {
-	clus    *integration.ClusterV3
-	w       clientv3.Watcher
-	wclient *clientv3.Client
-	kv      clientv3.KV
-	ch      clientv3.WatchChan
+	clus          *integration.ClusterV3
+	w             clientv3.Watcher
+	wclient       *clientv3.Client
+	kv            clientv3.KV
+	wclientMember int
+	kvMember      int
+	ch            clientv3.WatchChan
 }
 
 func runWatchTest(t *testing.T, f watcherTest) {
@@ -46,18 +50,20 @@ func runWatchTest(t *testing.T, f watcherTest) {
 	clus := integration.NewClusterV3(t, &integration.ClusterConfig{Size: 3})
 	defer clus.Terminate(t)
 
-	wclient := clus.RandClient()
+	wclientMember := rand.Intn(3)
+	wclient := clus.Client(wclientMember)
 	w := clientv3.NewWatcher(wclient)
 	defer w.Close()
 	// select a different client from wclient so puts succeed if
 	// a test knocks out the watcher client
-	kvclient := clus.RandClient()
-	for kvclient == wclient {
-		kvclient = clus.RandClient()
+	kvMember := rand.Intn(3)
+	for kvMember == wclientMember {
+		kvMember = rand.Intn(3)
 	}
+	kvclient := clus.Client(kvMember)
 	kv := clientv3.NewKV(kvclient)
 
-	wctx := &watchctx{clus, w, wclient, kv, nil}
+	wctx := &watchctx{clus, w, wclient, kv, wclientMember, kvMember, nil}
 	f(t, wctx)
 }
 
@@ -185,7 +191,7 @@ func testWatchReconnRequest(t *testing.T, wctx *watchctx) {
 		defer close(donec)
 		// take down watcher connection
 		for {
-			wctx.wclient.ActiveConnection().Close()
+			wctx.clus.Members[wctx.wclientMember].DropConnections()
 			select {
 			case <-timer:
 				// spinning on close may live lock reconnection
@@ -219,8 +225,7 @@ func testWatchReconnInit(t *testing.T, wctx *watchctx) {
 	if wctx.ch = wctx.w.Watch(context.TODO(), "a"); wctx.ch == nil {
 		t.Fatalf("expected non-nil channel")
 	}
-	// take down watcher connection
-	wctx.wclient.ActiveConnection().Close()
+	wctx.clus.Members[wctx.wclientMember].DropConnections()
 	// watcher should recover
 	putAndWatch(t, wctx, "a", "a")
 }
@@ -237,7 +242,7 @@ func testWatchReconnRunning(t *testing.T, wctx *watchctx) {
 	}
 	putAndWatch(t, wctx, "a", "a")
 	// take down watcher connection
-	wctx.wclient.ActiveConnection().Close()
+	wctx.clus.Members[wctx.wclientMember].DropConnections()
 	// watcher should recover
 	putAndWatch(t, wctx, "a", "b")
 }
@@ -556,5 +561,63 @@ func TestWatchEventType(t *testing.T) {
 		if tt.isModify && !ev.IsModify() {
 			t.Errorf("#%d: event should be ModifyEvent", i)
 		}
+	}
+}
+
+func TestWatchErrConnClosed(t *testing.T) {
+	defer testutil.AfterTest(t)
+
+	clus := integration.NewClusterV3(t, &integration.ClusterConfig{Size: 1})
+	defer clus.Terminate(t)
+
+	cli := clus.Client(0)
+	wc := clientv3.NewWatcher(cli)
+
+	donec := make(chan struct{})
+	go func() {
+		defer close(donec)
+		wc.Watch(context.TODO(), "foo")
+		if err := wc.Close(); err != nil && err != grpc.ErrClientConnClosing {
+			t.Fatalf("expected %v, got %v", grpc.ErrClientConnClosing, err)
+		}
+	}()
+
+	if err := cli.Close(); err != nil {
+		t.Fatal(err)
+	}
+	clus.TakeClient(0)
+
+	select {
+	case <-time.After(3 * time.Second):
+		t.Fatal("wc.Watch took too long")
+	case <-donec:
+	}
+}
+
+func TestWatchAfterClose(t *testing.T) {
+	defer testutil.AfterTest(t)
+
+	clus := integration.NewClusterV3(t, &integration.ClusterConfig{Size: 1})
+	defer clus.Terminate(t)
+
+	cli := clus.Client(0)
+	clus.TakeClient(0)
+	if err := cli.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	donec := make(chan struct{})
+	go func() {
+		wc := clientv3.NewWatcher(cli)
+		wc.Watch(context.TODO(), "foo")
+		if err := wc.Close(); err != nil && err != grpc.ErrClientConnClosing {
+			t.Fatalf("expected %v, got %v", grpc.ErrClientConnClosing, err)
+		}
+		close(donec)
+	}()
+	select {
+	case <-time.After(3 * time.Second):
+		t.Fatal("wc.Watch took too long")
+	case <-donec:
 	}
 }

@@ -214,6 +214,8 @@ type EtcdServer struct {
 	// wg is used to wait for the go routines that depends on the server state
 	// to exit when stopping the server.
 	wg sync.WaitGroup
+
+	appliedIndex uint64
 }
 
 // NewServer creates a new EtcdServer from the supplied configuration. The
@@ -277,7 +279,7 @@ func NewServer(cfg *ServerConfig) (srv *EtcdServer, err error) {
 			return nil, fmt.Errorf("error validating peerURLs %s: %v", existingCluster, err)
 		}
 		if !isCompatibleWithCluster(cl, cl.MemberByName(cfg.Name).ID, prt) {
-			return nil, fmt.Errorf("incomptible with current running cluster")
+			return nil, fmt.Errorf("incompatible with current running cluster")
 		}
 
 		remotes = existingCluster.Members()
@@ -594,7 +596,14 @@ func (s *EtcdServer) run() {
 
 func (s *EtcdServer) applyAll(ep *etcdProgress, apply *apply) {
 	s.applySnapshot(ep, apply)
+	st := time.Now()
 	s.applyEntries(ep, apply)
+	d := time.Since(st)
+	entriesNum := len(apply.entries)
+	if entriesNum != 0 && d > time.Duration(entriesNum)*warnApplyDuration {
+		plog.Warningf("apply entries took too long [%v for %d entries]", d, len(apply.entries))
+		plog.Warningf("avoid queries with large range/delete range!")
+	}
 	// wait for the raft routine to finish the disk writes before triggering a
 	// snapshot. or applied index might be greater than the last index in raft
 	// storage, since the raft routine might be slower than apply routine.
@@ -614,6 +623,9 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 		return
 	}
 
+	plog.Infof("applying snapshot at index %d...", ep.snapi)
+	defer plog.Infof("finished applying incoming snapshot at index %d", ep.snapi)
+
 	if apply.snapshot.Metadata.Index <= ep.appliedi {
 		plog.Panicf("snapshot index [%d] should > appliedi[%d] + 1",
 			apply.snapshot.Metadata.Index, ep.appliedi)
@@ -630,10 +642,15 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 	}
 
 	newbe := backend.NewDefaultBackend(fn)
+
+	plog.Info("restoring mvcc store...")
+
 	if err := s.kv.Restore(newbe); err != nil {
 		plog.Panicf("restore KV error: %v", err)
 	}
 	s.consistIndex.setConsistentIndex(s.kv.ConsistentIndex())
+
+	plog.Info("finished restoring mvcc store")
 
 	// Closing old backend might block until all the txns
 	// on the backend are finished.
@@ -641,6 +658,9 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 	s.bemu.Lock()
 	oldbe := s.be
 	go func() {
+		plog.Info("closing old backend...")
+		defer plog.Info("finished closing old backend")
+
 		if err := oldbe.Close(); err != nil {
 			plog.Panicf("close backend error: %v", err)
 		}
@@ -650,36 +670,51 @@ func (s *EtcdServer) applySnapshot(ep *etcdProgress, apply *apply) {
 	s.bemu.Unlock()
 
 	if s.lessor != nil {
+		plog.Info("recovering lessor...")
 		s.lessor.Recover(newbe, s.kv)
+		plog.Info("finished recovering lessor")
 	}
 
+	plog.Info("recovering alarms...")
 	if err := s.restoreAlarms(); err != nil {
 		plog.Panicf("restore alarms error: %v", err)
 	}
+	plog.Info("finished recovering alarms")
 
 	if s.authStore != nil {
+		plog.Info("recovering auth store...")
 		s.authStore.Recover(newbe)
+		plog.Info("finished recovering auth store")
 	}
 
+	plog.Info("recovering store v2...")
 	if err := s.store.Recovery(apply.snapshot.Data); err != nil {
 		plog.Panicf("recovery store error: %v", err)
 	}
-	s.cluster.SetBackend(s.be)
-	s.cluster.Recover()
+	plog.Info("finished recovering store v2")
 
+	s.cluster.SetBackend(s.be)
+	plog.Info("recovering cluster configuration...")
+	s.cluster.Recover()
+	plog.Info("finished recovering cluster configuration")
+
+	plog.Info("removing old peers from network...")
 	// recover raft transport
 	s.r.transport.RemoveAllPeers()
+	plog.Info("finished removing old peers from network")
+
+	plog.Info("adding peers from new cluster configuration into network...")
 	for _, m := range s.cluster.Members() {
 		if m.ID == s.ID() {
 			continue
 		}
 		s.r.transport.AddPeer(m.ID, m.PeerURLs)
 	}
+	plog.Info("finished adding peers from new cluster configuration into network...")
 
 	ep.appliedi = apply.snapshot.Metadata.Index
 	ep.snapi = ep.appliedi
 	ep.confState = apply.snapshot.Metadata.ConfState
-	plog.Infof("recovered from incoming snapshot at index %d", ep.snapi)
 }
 
 func (s *EtcdServer) applyEntries(ep *etcdProgress, apply *apply) {
@@ -1038,6 +1073,7 @@ func (s *EtcdServer) applyEntryNormal(e *raftpb.Entry) {
 	// set the consistent index of current executing entry
 	s.consistIndex.setConsistentIndex(e.Index)
 	ar := s.applyV3Request(&raftReq)
+	s.setAppliedIndex(e.Index)
 	if ar.err != ErrNoSpace || len(s.alarmStore.Get(pb.AlarmType_NOSPACE)) > 0 {
 		s.w.Trigger(id, ar)
 		return
@@ -1075,21 +1111,16 @@ func (s *EtcdServer) applyConfChange(cc raftpb.ConfChange, confState *raftpb.Con
 			plog.Panicf("nodeID should always be equal to member ID")
 		}
 		s.cluster.AddMember(m)
-		if m.ID == s.id {
-			plog.Noticef("added local member %s %v to cluster %s", m.ID, m.PeerURLs, s.cluster.ID())
-		} else {
+		if m.ID != s.id {
 			s.r.transport.AddPeer(m.ID, m.PeerURLs)
-			plog.Noticef("added member %s %v to cluster %s", m.ID, m.PeerURLs, s.cluster.ID())
 		}
 	case raftpb.ConfChangeRemoveNode:
 		id := types.ID(cc.NodeID)
 		s.cluster.RemoveMember(id)
 		if id == s.id {
 			return true, nil
-		} else {
-			s.r.transport.RemovePeer(id)
-			plog.Noticef("removed member %s from cluster %s", id, s.cluster.ID())
 		}
+		s.r.transport.RemovePeer(id)
 	case raftpb.ConfChangeUpdateNode:
 		m := new(membership.Member)
 		if err := json.Unmarshal(cc.Context, m); err != nil {
@@ -1099,11 +1130,8 @@ func (s *EtcdServer) applyConfChange(cc raftpb.ConfChange, confState *raftpb.Con
 			plog.Panicf("nodeID should always be equal to member ID")
 		}
 		s.cluster.UpdateRaftAttributes(m.ID, m.RaftAttributes)
-		if m.ID == s.id {
-			plog.Noticef("update local member %s %v in cluster %s", m.ID, m.PeerURLs, s.cluster.ID())
-		} else {
+		if m.ID != s.id {
 			s.r.transport.UpdatePeer(m.ID, m.PeerURLs)
-			plog.Noticef("update member %s %v in cluster %s", m.ID, m.PeerURLs, s.cluster.ID())
 		}
 	}
 	return false, nil
@@ -1294,4 +1322,12 @@ func (s *EtcdServer) restoreAlarms() error {
 		s.applyV3 = newApplierV3Capped(s.applyV3)
 	}
 	return nil
+}
+
+func (s *EtcdServer) getAppliedIndex() uint64 {
+	return atomic.LoadUint64(&s.appliedIndex)
+}
+
+func (s *EtcdServer) setAppliedIndex(v uint64) {
+	atomic.StoreUint64(&s.appliedIndex, v)
 }
