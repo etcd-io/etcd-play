@@ -1,10 +1,10 @@
 hash: 0bd4b1f9cb64ea3ff8a82c20f58c1232f48c505cf26113f3db2c2c1ad4c8c244
-updated: 2016-06-13T12:41:16.679691342-07:00
+updated: 2016-06-13T16:51:45.409734593-07:00
 imports:
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
 - name: github.com/coreos/etcd
-  version: 70a2add2b06c5ff0ca3da702d21fade5aa607631
+  version: 2a018240e760c2bd522adc390d3890b355d1dd6e
   subpackages:
   - clientv3
   - etcdserver/etcdserverpb
