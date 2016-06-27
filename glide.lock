@@ -1,10 +1,10 @@
 hash: 0bd4b1f9cb64ea3ff8a82c20f58c1232f48c505cf26113f3db2c2c1ad4c8c244
-updated: 2016-06-17T16:36:55.450496861-07:00
+updated: 2016-06-26T10:34:14.967717365-07:00
 imports:
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
 - name: github.com/coreos/etcd
-  version: b03c832bed4cd0c7856ffb5b4ec52df5073be3f2
+  version: aab905f7ccd12733b16931953677bef7e8ce5400
   subpackages:
   - clientv3
   - etcdserver/etcdserverpb
@@ -14,15 +14,15 @@ imports:
   - etcdserver/api/v3rpc/rpctypes
   - mvcc/mvccpb
 - name: github.com/coreos/go-systemd
-  version: a52323565816dee4d2f8dc5fdf1299f48757b848
+  version: b32b8467dbea18858bfebf65c1a6a761090f2c31
   subpackages:
   - journal
 - name: github.com/coreos/pkg
-  version: 62adab7e2fbd7e45230489364764b5193f32f45a
+  version: a48e304ff9331be6d5df352b6b47bd1395ab5dd7
   subpackages:
   - capnslog
 - name: github.com/dustin/go-humanize
-  version: 499693e27ee0d14ffab67c31ad065fdb3d34ea75
+  version: fef948f2d241bd1fd0631108ecc2c9553bae60bf
 - name: github.com/gengo/grpc-gateway
   version: 04d03d2c0176f9060cc3da4945a71abc759648bc
   subpackages:
@@ -47,11 +47,11 @@ imports:
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/spf13/cobra
-  version: bc81c21bd0d8be5ba2d6630a505d79d4467566e7
+  version: 6a8bd97bdb1fc0d08a83459940498ea49d3e8c93
 - name: github.com/spf13/pflag
   version: 367864438f1b1a3c7db4da06a2f55b144e6784e0
 - name: golang.org/x/net
-  version: d7bf3545bb0dacf009c535b3d3fbf53ac0a339ab
+  version: e445b19913b9d40fdbdfe19ac5e3d314aafd6f63
   subpackages:
   - context
   - http2
@@ -60,7 +60,7 @@ imports:
   - lex/httplex
   - internal/timeseries
 - name: google.golang.org/grpc
-  version: e78224b060cf3215247b7be455f80ea22e469b66
+  version: 0eb7c5dcd059d77bde1eb5bc7d953940170d0d18
   subpackages:
   - credentials
   - grpclog
@@ -70,4 +70,4 @@ imports:
   - naming
   - transport
   - peer
-devImports: []
+testImports: []
