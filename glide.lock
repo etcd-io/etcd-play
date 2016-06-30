@@ -1,10 +1,10 @@
 hash: 0bd4b1f9cb64ea3ff8a82c20f58c1232f48c505cf26113f3db2c2c1ad4c8c244
-updated: 2016-06-26T10:34:14.967717365-07:00
+updated: 2016-06-30T14:46:16.506879219-07:00
 imports:
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
 - name: github.com/coreos/etcd
-  version: aab905f7ccd12733b16931953677bef7e8ce5400
+  version: 581f847e06a97dade895301d18714c50e70165cf
   subpackages:
   - clientv3
   - etcdserver/etcdserverpb
@@ -36,12 +36,12 @@ imports:
   subpackages:
   - proto
 - name: github.com/golang/protobuf
-  version: 0c1f6d65b5a189c2250d10e71a5506f06f9fa0a0
+  version: 3852dcfda249c2097355a6aabb199a28d97b30df
   subpackages:
   - proto
   - jsonpb
 - name: github.com/gorilla/websocket
-  version: a68708917c6a4f06314ab4e52493cc61359c9d42
+  version: a87eae1d6ff562bf944755f4a6f527b6ef6fb888
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/satori/go.uuid
@@ -51,7 +51,7 @@ imports:
 - name: github.com/spf13/pflag
   version: 367864438f1b1a3c7db4da06a2f55b144e6784e0
 - name: golang.org/x/net
-  version: e445b19913b9d40fdbdfe19ac5e3d314aafd6f63
+  version: 8e573f4005aa312856df2ea97c32b9beac70dd89
   subpackages:
   - context
   - http2
@@ -60,7 +60,7 @@ imports:
   - lex/httplex
   - internal/timeseries
 - name: google.golang.org/grpc
-  version: 0eb7c5dcd059d77bde1eb5bc7d953940170d0d18
+  version: f38b9a99069f13fc580342a9709f38d47d460b98
   subpackages:
   - credentials
   - grpclog
