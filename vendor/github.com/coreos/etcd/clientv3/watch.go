@@ -23,6 +23,7 @@ import (
 	pb "github.com/coreos/etcd/etcdserver/etcdserverpb"
 	mvccpb "github.com/coreos/etcd/mvcc/mvccpb"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -137,8 +138,10 @@ type watchRequest struct {
 	key string
 	end string
 	rev int64
-	// progressNotify is for progress updates.
+	// progressNotify is for progress updates
 	progressNotify bool
+	// get the previous key-value pair before the event happens
+	prevKV bool
 	// retc receives a chan WatchResponse once the watcher is established
 	retc chan chan WatchResponse
 }
@@ -209,6 +212,7 @@ func (w *watcher) Watch(ctx context.Context, key string, opts ...OpOption) Watch
 		end:            string(ow.end),
 		rev:            ow.rev,
 		progressNotify: ow.progressNotify,
+		prevKV:         ow.prevKV,
 		retc:           retc,
 	}
 
@@ -623,7 +627,7 @@ func (w *watchGrpcStream) openWatchClient() (ws pb.Watch_WatchClient, err error)
 			return nil, err
 		default:
 		}
-		if ws, err = w.remote.Watch(w.ctx); ws != nil && err == nil {
+		if ws, err = w.remote.Watch(w.ctx, grpc.FailFast(false)); ws != nil && err == nil {
 			break
 		}
 		if isHaltErr(w.ctx, err) {
@@ -682,6 +686,7 @@ func (wr *watchRequest) toPB() *pb.WatchRequest {
 		Key:            []byte(wr.key),
 		RangeEnd:       []byte(wr.end),
 		ProgressNotify: wr.progressNotify,
+		PrevKv:         wr.prevKV,
 	}
 	cr := &pb.WatchRequest_CreateRequest{CreateRequest: req}
 	return &pb.WatchRequest{RequestUnion: cr}

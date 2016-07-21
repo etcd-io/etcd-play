@@ -43,6 +43,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -158,7 +159,7 @@ const (
 	streamActive    streamState = iota
 	streamWriteDone             // EndStream sent
 	streamReadDone              // EndStream received
-	streamDone                  // sendDone and recvDone or RSTStreamFrame is sent or received.
+	streamDone                  // the entire stream is finished.
 )
 
 // Stream represents an RPC in the transport layer.
@@ -169,6 +170,8 @@ type Stream struct {
 	// ctx is the associated context of the stream.
 	ctx    context.Context
 	cancel context.CancelFunc
+	// done is closed when the final status arrives.
+	done chan struct{}
 	// method records the associated RPC method of the stream.
 	method       string
 	recvCompress string
@@ -212,6 +215,10 @@ func (s *Stream) RecvCompress() string {
 // SetSendCompress sets the compression algorithm to the stream.
 func (s *Stream) SetSendCompress(str string) {
 	s.sendCompress = str
+}
+
+func (s *Stream) Done() <-chan struct{} {
+	return s.done
 }
 
 // Header acquires the key-value pairs of header metadata once it
@@ -501,15 +508,96 @@ func ContextErr(err error) StreamError {
 
 // wait blocks until it can receive from ctx.Done, closing, or proceed.
 // If it receives from ctx.Done, it returns 0, the StreamError for ctx.Err.
+// If it receives from done, it returns 0, io.EOF if ctx is not done; otherwise
+// it return the StreamError for ctx.Err.
 // If it receives from closing, it returns 0, ErrConnClosing.
 // If it receives from proceed, it returns the received integer, nil.
-func wait(ctx context.Context, closing <-chan struct{}, proceed <-chan int) (int, error) {
+func wait(ctx context.Context, done, closing <-chan struct{}, proceed <-chan int) (int, error) {
 	select {
 	case <-ctx.Done():
 		return 0, ContextErr(ctx.Err())
+	case <-done:
+		// User cancellation has precedence.
+		select {
+		case <-ctx.Done():
+			return 0, ContextErr(ctx.Err())
+		default:
+		}
+		return 0, io.EOF
 	case <-closing:
 		return 0, ErrConnClosing
 	case i := <-proceed:
 		return i, nil
 	}
+}
+
+const (
+	spaceByte   = ' '
+	tildaByte   = '~'
+	percentByte = '%'
+)
+
+// grpcMessageEncode encodes the grpc-message field in the same
+// manner as https://github.com/grpc/grpc-java/pull/1517.
+func grpcMessageEncode(msg string) string {
+	if msg == "" {
+		return ""
+	}
+	lenMsg := len(msg)
+	for i := 0; i < lenMsg; i++ {
+		c := msg[i]
+		if !(c >= spaceByte && c < tildaByte && c != percentByte) {
+			return grpcMessageEncodeUnchecked(msg)
+		}
+	}
+	return msg
+}
+
+func grpcMessageEncodeUnchecked(msg string) string {
+	var buf bytes.Buffer
+	lenMsg := len(msg)
+	for i := 0; i < lenMsg; i++ {
+		c := msg[i]
+		if c >= spaceByte && c < tildaByte && c != percentByte {
+			_ = buf.WriteByte(c)
+		} else {
+			_, _ = buf.WriteString(fmt.Sprintf("%%%02X", c))
+		}
+	}
+	return buf.String()
+}
+
+// grpcMessageDecode decodes the grpc-message field in the same
+// manner as https://github.com/grpc/grpc-java/pull/1517.
+func grpcMessageDecode(msg string) string {
+	if msg == "" {
+		return ""
+	}
+	lenMsg := len(msg)
+	for i := 0; i < lenMsg; i++ {
+		if msg[i] == percentByte && i+2 < lenMsg {
+			return grpcMessageDecodeUnchecked(msg)
+		}
+	}
+	return msg
+}
+
+func grpcMessageDecodeUnchecked(msg string) string {
+	var buf bytes.Buffer
+	lenMsg := len(msg)
+	for i := 0; i < lenMsg; i++ {
+		c := msg[i]
+		if c == percentByte && i+2 < lenMsg {
+			parsed, err := strconv.ParseInt(msg[i+1:i+3], 16, 8)
+			if err != nil {
+				_ = buf.WriteByte(c)
+			} else {
+				_ = buf.WriteByte(byte(parsed))
+				i += 2
+			}
+		} else {
+			_ = buf.WriteByte(c)
+		}
+	}
+	return buf.String()
 }

@@ -45,8 +45,8 @@ type Op struct {
 	// for range, watch
 	rev int64
 
-	// for delete
-	preserveKVs bool
+	// for watch, put, delete
+	prevKV bool
 
 	// progressNotify is for progress updates.
 	progressNotify bool
@@ -74,10 +74,10 @@ func (op Op) toRequestOp() *pb.RequestOp {
 		}
 		return &pb.RequestOp{Request: &pb.RequestOp_RequestRange{RequestRange: r}}
 	case tPut:
-		r := &pb.PutRequest{Key: op.key, Value: op.val, Lease: int64(op.leaseID)}
+		r := &pb.PutRequest{Key: op.key, Value: op.val, Lease: int64(op.leaseID), PrevKv: op.prevKV}
 		return &pb.RequestOp{Request: &pb.RequestOp_RequestPut{RequestPut: r}}
 	case tDeleteRange:
-		r := &pb.DeleteRangeRequest{Key: op.key, RangeEnd: op.end, PreserveKVs: op.preserveKVs}
+		r := &pb.DeleteRangeRequest{Key: op.key, RangeEnd: op.end, PrevKv: op.prevKV}
 
 		return &pb.RequestOp{Request: &pb.RequestOp_RequestDeleteRange{RequestDeleteRange: r}}
 	default:
@@ -131,8 +131,6 @@ func OpPut(key, val string, opts ...OpOption) Op {
 		panic("unexpected serializable in put")
 	case ret.countOnly:
 		panic("unexpected countOnly in put")
-	case ret.preserveKVs:
-		panic("unexpected preserveKVs in put")
 	}
 	return ret
 }
@@ -151,8 +149,6 @@ func opWatch(key string, opts ...OpOption) Op {
 		panic("unexpected serializable in watch")
 	case ret.countOnly:
 		panic("unexpected countOnly in watch")
-	case ret.preserveKVs:
-		panic("unexpected preserveKVs in watch")
 	}
 	return ret
 }
@@ -186,6 +182,12 @@ func WithSort(target SortTarget, order SortOrder) OpOption {
 	return func(op *Op) {
 		op.sort = &SortOption{target, order}
 	}
+}
+
+// GetPrefixRangeEnd gets the range end of the prefix.
+// 'Get(foo, WithPrefix())' is equal to 'Get(foo, WithRange(GetPrefixRangeEnd(foo))'.
+func GetPrefixRangeEnd(prefix string) string {
+	return string(getPrefix([]byte(prefix)))
 }
 
 func getPrefix(key []byte) []byte {
@@ -264,15 +266,18 @@ func withTop(target SortTarget, order SortOrder) []OpOption {
 	return []OpOption{WithPrefix(), WithSort(target, order), WithLimit(1)}
 }
 
-// WithPreserveKVs preserves the deleted KVs for attaching in responses.
-func WithPreserveKVs() OpOption {
-	return func(op *Op) { op.preserveKVs = true }
-}
-
 // WithProgressNotify makes watch server send periodic progress updates.
 // Progress updates have zero events in WatchResponse.
 func WithProgressNotify() OpOption {
 	return func(op *Op) {
 		op.progressNotify = true
+	}
+}
+
+// WithPrevKV gets the previous key-value pair before the event happens. If the previous KV is already compacted,
+// nothing will be returned.
+func WithPrevKV() OpOption {
+	return func(op *Op) {
+		op.prevKV = true
 	}
 }

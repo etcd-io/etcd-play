@@ -90,7 +90,10 @@ func sendRequest(ctx context.Context, codec Codec, compressor Compressor, callHd
 		return nil, transport.StreamErrorf(codes.Internal, "grpc: %v", err)
 	}
 	err = t.Write(stream, outBuf, opts)
-	if err != nil {
+	// t.NewStream(...) could lead to an early rejection of the RPC (e.g., the service/method
+	// does not exist.) so that t.Write could get io.EOF from wait(...). Leave the following
+	// recvResponse to get the final status.
+	if err != nil && err != io.EOF {
 		return nil, err
 	}
 	// Sent successfully.
@@ -101,7 +104,7 @@ func sendRequest(ctx context.Context, codec Codec, compressor Compressor, callHd
 // Invoke is called by generated code. Also users can call Invoke directly when it
 // is really needed in their use cases.
 func Invoke(ctx context.Context, method string, args, reply interface{}, cc *ClientConn, opts ...CallOption) (err error) {
-	var c callInfo
+	c := defaultCallInfo
 	for _, o := range opts {
 		if err := o.before(&c); err != nil {
 			return toRPCErr(err)
@@ -155,19 +158,17 @@ func Invoke(ctx context.Context, method string, args, reply interface{}, cc *Cli
 		t, put, err = cc.getTransport(ctx, gopts)
 		if err != nil {
 			// TODO(zhaoq): Probably revisit the error handling.
-			if err == ErrClientConnClosing {
-				return Errorf(codes.FailedPrecondition, "%v", err)
+			if _, ok := err.(*rpcError); ok {
+				return err
 			}
-			if _, ok := err.(transport.StreamError); ok {
-				return toRPCErr(err)
-			}
-			if _, ok := err.(transport.ConnectionError); ok {
+			if err == errConnClosing {
 				if c.failFast {
-					return toRPCErr(err)
+					return Errorf(codes.Unavailable, "%v", errConnClosing)
 				}
+				continue
 			}
-			// All the remaining cases are treated as retryable.
-			continue
+			// All the other errors are treated as Internal errors.
+			return Errorf(codes.Internal, "%v", err)
 		}
 		if c.traceInfo.tr != nil {
 			c.traceInfo.tr.LazyLog(&payload{sent: true, msg: args}, true)

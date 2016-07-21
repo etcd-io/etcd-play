@@ -84,12 +84,9 @@ type ClientStream interface {
 	// Header returns the header metadata received from the server if there
 	// is any. It blocks if the metadata is not ready to read.
 	Header() (metadata.MD, error)
-	// Trailer returns the trailer metadata from the server. It must be called
-	// after stream.Recv() returns non-nil error (including io.EOF) for
-	// bi-directional streaming and server streaming or stream.CloseAndRecv()
-	// returns for client streaming in order to receive trailer metadata if
-	// present. Otherwise, it could returns an empty MD even though trailer
-	// is present.
+	// Trailer returns the trailer metadata from the server, if there is any.
+	// It must only be called after stream.CloseAndRecv has returned, or
+	// stream.Recv has returned a non-nil error (including io.EOF).
 	Trailer() metadata.MD
 	// CloseSend closes the send direction of the stream. It closes the stream
 	// when non-nil error is met.
@@ -102,16 +99,15 @@ type ClientStream interface {
 func NewClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, method string, opts ...CallOption) (ClientStream, error) {
 	var (
 		t   transport.ClientTransport
+		s   *transport.Stream
 		err error
 		put func()
 	)
-	// TODO(zhaoq): CallOption is omitted. Add support when it is needed.
-	gopts := BalancerGetOptions{
-		BlockingWait: false,
-	}
-	t, put, err = cc.getTransport(ctx, gopts)
-	if err != nil {
-		return nil, toRPCErr(err)
+	c := defaultCallInfo
+	for _, o := range opts {
+		if err := o.before(&c); err != nil {
+			return nil, toRPCErr(err)
+		}
 	}
 	callHdr := &transport.CallHdr{
 		Host:   cc.authority,
@@ -122,8 +118,9 @@ func NewClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, meth
 		callHdr.SendCompress = cc.dopts.cp.Type()
 	}
 	cs := &clientStream{
+		opts:    opts,
+		c:       c,
 		desc:    desc,
-		put:     put,
 		codec:   cc.dopts.codec,
 		cp:      cc.dopts.cp,
 		dc:      cc.dopts.dc,
@@ -142,20 +139,62 @@ func NewClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, meth
 		cs.trInfo.tr.LazyLog(&cs.trInfo.firstLine, false)
 		ctx = trace.NewContext(ctx, cs.trInfo.tr)
 	}
-	s, err := t.NewStream(ctx, callHdr)
-	if err != nil {
-		cs.finish(err)
-		return nil, toRPCErr(err)
+	gopts := BalancerGetOptions{
+		BlockingWait: !c.failFast,
 	}
+	for {
+		t, put, err = cc.getTransport(ctx, gopts)
+		if err != nil {
+			// TODO(zhaoq): Probably revisit the error handling.
+			if _, ok := err.(*rpcError); ok {
+				return nil, err
+			}
+			if err == errConnClosing {
+				if c.failFast {
+					return nil, Errorf(codes.Unavailable, "%v", errConnClosing)
+				}
+				continue
+			}
+			// All the other errors are treated as Internal errors.
+			return nil, Errorf(codes.Internal, "%v", err)
+		}
+
+		s, err = t.NewStream(ctx, callHdr)
+		if err != nil {
+			if put != nil {
+				put()
+				put = nil
+			}
+			if _, ok := err.(transport.ConnectionError); ok {
+				if c.failFast {
+					cs.finish(err)
+					return nil, toRPCErr(err)
+				}
+				continue
+			}
+			return nil, toRPCErr(err)
+		}
+		break
+	}
+	cs.put = put
 	cs.t = t
 	cs.s = s
 	cs.p = &parser{r: s}
-	// Listen on ctx.Done() to detect cancellation when there is no pending
-	// I/O operations on this stream.
+	// Listen on ctx.Done() to detect cancellation and s.Done() to detect normal termination
+	// when there is no pending I/O operations on this stream.
 	go func() {
 		select {
 		case <-t.Error():
 			// Incur transport error, simply exit.
+		case <-s.Done():
+			// TODO: The trace of the RPC is terminated here when there is no pending
+			// I/O, which is probably not the optimal solution.
+			if s.StatusCode() == codes.OK {
+				cs.finish(nil)
+			} else {
+				cs.finish(Errorf(s.StatusCode(), "%s", s.StatusDesc()))
+			}
+			cs.closeTransportStream(nil)
 		case <-s.Context().Done():
 			err := s.Context().Err()
 			cs.finish(err)
@@ -167,6 +206,8 @@ func NewClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, meth
 
 // clientStream implements a client side Stream.
 type clientStream struct {
+	opts  []CallOption
+	c     callInfo
 	t     transport.ClientTransport
 	s     *transport.Stream
 	p     *parser
@@ -216,7 +257,17 @@ func (cs *clientStream) SendMsg(m interface{}) (err error) {
 		if err != nil {
 			cs.finish(err)
 		}
-		if err == nil || err == io.EOF {
+		if err == nil {
+			return
+		}
+		if err == io.EOF {
+			// Specialize the process for server streaming. SendMesg is only called
+			// once when creating the stream object. io.EOF needs to be skipped when
+			// the rpc is early finished (before the stream object is created.).
+			// TODO: It is probably better to move this into the generated code.
+			if !cs.desc.ClientStreams && cs.desc.ServerStreams {
+				err = nil
+			}
 			return
 		}
 		if _, ok := err.(transport.ConnectionError); !ok {
@@ -291,7 +342,7 @@ func (cs *clientStream) CloseSend() (err error) {
 		}
 	}()
 	if err == nil || err == io.EOF {
-		return
+		return nil
 	}
 	if _, ok := err.(transport.ConnectionError); !ok {
 		cs.closeTransportStream(err)
@@ -312,14 +363,17 @@ func (cs *clientStream) closeTransportStream(err error) {
 }
 
 func (cs *clientStream) finish(err error) {
-	if !cs.tracing {
-		return
-	}
 	cs.mu.Lock()
 	defer cs.mu.Unlock()
+	for _, o := range cs.opts {
+		o.after(&cs.c)
+	}
 	if cs.put != nil {
 		cs.put()
 		cs.put = nil
+	}
+	if !cs.tracing {
+		return
 	}
 	if cs.trInfo.tr != nil {
 		if err == nil || err == io.EOF {
