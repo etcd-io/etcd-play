@@ -1,10 +1,10 @@
 hash: 0bd4b1f9cb64ea3ff8a82c20f58c1232f48c505cf26113f3db2c2c1ad4c8c244
-updated: 2016-07-02T11:51:33.539116558-07:00
+updated: 2016-07-21T11:46:10.454728131-07:00
 imports:
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
 - name: github.com/coreos/etcd
-  version: 7cc4596ebd796f82843c2b43cc9777ab52c80604
+  version: 2bf55e3a1591ff5cd29b66befbc9f5585f8f27b4
   subpackages:
   - clientv3
   - etcdserver/etcdserverpb
@@ -14,7 +14,7 @@ imports:
   - etcdserver/api/v3rpc/rpctypes
   - mvcc/mvccpb
 - name: github.com/coreos/go-systemd
-  version: b32b8467dbea18858bfebf65c1a6a761090f2c31
+  version: d6c05a1dcbb5ac02b7653da4d99e5db340c20778
   subpackages:
   - journal
 - name: github.com/coreos/pkg
@@ -22,36 +22,32 @@ imports:
   subpackages:
   - capnslog
 - name: github.com/dustin/go-humanize
-  version: fef948f2d241bd1fd0631108ecc2c9553bae60bf
-- name: github.com/gengo/grpc-gateway
-  version: 04d03d2c0176f9060cc3da4945a71abc759648bc
-  subpackages:
-  - runtime
-  - utilities
-  - runtime/internal
+  version: 2fcb5204cdc65b4bec9fd0a87606bb0d0e3c54e8
 - name: github.com/ghodss/yaml
   version: aa0c862057666179de291b67d9f093d12b5a8473
-- name: github.com/gogo/protobuf
-  version: 2752d97bbd91927dd1c43296dbf8700e50e2708c
-  subpackages:
-  - proto
 - name: github.com/golang/protobuf
-  version: 3852dcfda249c2097355a6aabb199a28d97b30df
+  version: 874264fbbb43f4d91e999fecb4b40143ed611400
   subpackages:
   - proto
   - jsonpb
 - name: github.com/gorilla/websocket
-  version: 54f9decdbfb3fe254c5df3d5aa234480989f4af0
+  version: 5e2e56d5dfd46884df1036f828777ee6273f2cff
+- name: github.com/grpc-ecosystem/grpc-gateway
+  version: f52d055dc48aec25854ed7d31862f78913cf17d1
+  subpackages:
+  - runtime
+  - utilities
+  - runtime/internal
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/satori/go.uuid
-  version: 879c5887cd475cd7864858769793b2ceb0d44feb
+  version: 0aa62d5ddceb50dbcb909d790b5345affd3669b6
 - name: github.com/spf13/cobra
-  version: 6a8bd97bdb1fc0d08a83459940498ea49d3e8c93
+  version: dbb7c2d02e284aa24423e3e6e105969dffe6e4d6
 - name: github.com/spf13/pflag
-  version: 367864438f1b1a3c7db4da06a2f55b144e6784e0
+  version: 1560c1005499d61b80f865c04d39ca7505bf7f0b
 - name: golang.org/x/net
-  version: b400c2eff1badec7022a8c8f5bea058b6315eed7
+  version: 4d38db76854b199960801a1734443fd02870d7e1
   subpackages:
   - context
   - http2
@@ -60,7 +56,7 @@ imports:
   - lex/httplex
   - internal/timeseries
 - name: google.golang.org/grpc
-  version: a0ff1e78a98cd140c2d18a0210ab0a2a183a2b4c
+  version: 2350c4144c883f304d3b35a8735316c00cafdea8
   subpackages:
   - credentials
   - grpclog
