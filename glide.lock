@@ -1,24 +1,24 @@
-hash: 0bd4b1f9cb64ea3ff8a82c20f58c1232f48c505cf26113f3db2c2c1ad4c8c244
-updated: 2016-07-21T11:46:10.454728131-07:00
+hash: 503d395ddb8f3e74116389c441a63062fe80614c4d947e69b01cde92172fceab
+updated: 2016-08-24T09:05:31.179235563-07:00
 imports:
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
 - name: github.com/coreos/etcd
-  version: 2bf55e3a1591ff5cd29b66befbc9f5585f8f27b4
+  version: 1c989edb476457369d936ed180d1995f55e77e8e
   subpackages:
+  - auth/authpb
   - clientv3
+  - etcdserver/api/v3rpc/rpctypes
   - etcdserver/etcdserverpb
+  - mvcc/mvccpb
   - pkg/tlsutil
   - tools/functional-tester/etcd-agent/client
-  - auth/authpb
-  - etcdserver/api/v3rpc/rpctypes
-  - mvcc/mvccpb
 - name: github.com/coreos/go-systemd
-  version: d6c05a1dcbb5ac02b7653da4d99e5db340c20778
+  version: 5c49e4850c879a0ddc061e8f4adcf307de8a8bc2
   subpackages:
   - journal
 - name: github.com/coreos/pkg
-  version: a48e304ff9331be6d5df352b6b47bd1395ab5dd7
+  version: 3ac0863d7acf3bc44daf49afef8919af12f704ef
   subpackages:
   - capnslog
 - name: github.com/dustin/go-humanize
@@ -26,44 +26,44 @@ imports:
 - name: github.com/ghodss/yaml
   version: aa0c862057666179de291b67d9f093d12b5a8473
 - name: github.com/golang/protobuf
-  version: 874264fbbb43f4d91e999fecb4b40143ed611400
+  version: f592bd283e9ef86337a432eb50e592278c3d534d
   subpackages:
-  - proto
   - jsonpb
+  - proto
 - name: github.com/gorilla/websocket
-  version: 5e2e56d5dfd46884df1036f828777ee6273f2cff
+  version: a69d25be2fe2923a97c2af6849b2f52426f68fc0
 - name: github.com/grpc-ecosystem/grpc-gateway
-  version: f52d055dc48aec25854ed7d31862f78913cf17d1
+  version: 5e0e028ba0a015710eaebf6e47af18812c9f2767
   subpackages:
   - runtime
-  - utilities
   - runtime/internal
+  - utilities
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/satori/go.uuid
   version: 0aa62d5ddceb50dbcb909d790b5345affd3669b6
 - name: github.com/spf13/cobra
-  version: dbb7c2d02e284aa24423e3e6e105969dffe6e4d6
+  version: 1f4717172e07e12150feb061b2ab847c3054f53f
 - name: github.com/spf13/pflag
-  version: 1560c1005499d61b80f865c04d39ca7505bf7f0b
+  version: 103ce5cd2042f2fe629c1957abb64ab3e7f50235
 - name: golang.org/x/net
-  version: 4d38db76854b199960801a1734443fd02870d7e1
+  version: 7394c112eae4dba7e96bfcfe738e6373d61772b4
   subpackages:
   - context
   - http2
-  - trace
   - http2/hpack
-  - lex/httplex
   - internal/timeseries
+  - lex/httplex
+  - trace
 - name: google.golang.org/grpc
-  version: 2350c4144c883f304d3b35a8735316c00cafdea8
+  version: 0032a855ba5c8a3c8e0d71c2deef354b70af1584
   subpackages:
+  - codes
   - credentials
   - grpclog
-  - metadata
-  - codes
   - internal
+  - metadata
   - naming
-  - transport
   - peer
+  - transport
 testImports: []
