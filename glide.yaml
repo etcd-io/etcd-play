@@ -1,0 +1,67 @@
+package: github.com/coreos/etcd-play
+import:
+- package: github.com/cloudfoundry-incubator/candiedyaml
+  version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
+- package: github.com/coreos/etcd
+  version: e53b99588a05d1f4ef172c178d4ed8e8106b8be4
+  subpackages:
+  - auth/authpb
+  - clientv3
+  - etcdserver/api/v3rpc/rpctypes
+  - etcdserver/etcdserverpb
+  - mvcc/mvccpb
+  - pkg/tlsutil
+  - tools/functional-tester/etcd-agent/client
+- package: github.com/coreos/go-systemd
+  version: 5c49e4850c879a0ddc061e8f4adcf307de8a8bc2
+  subpackages:
+  - journal
+- package: github.com/coreos/pkg
+  version: 3ac0863d7acf3bc44daf49afef8919af12f704ef
+  subpackages:
+  - capnslog
+- package: github.com/dustin/go-humanize
+  version: 2fcb5204cdc65b4bec9fd0a87606bb0d0e3c54e8
+- package: github.com/ghodss/yaml
+  version: aa0c862057666179de291b67d9f093d12b5a8473
+- package: github.com/golang/protobuf
+  version: f592bd283e9ef86337a432eb50e592278c3d534d
+  subpackages:
+  - jsonpb
+  - proto
+- package: github.com/gorilla/websocket
+  version: a69d25be2fe2923a97c2af6849b2f52426f68fc0
+- package: github.com/grpc-ecosystem/grpc-gateway
+  version: 5e0e028ba0a015710eaebf6e47af18812c9f2767
+  subpackages:
+  - runtime
+  - runtime/internal
+  - utilities
+- package: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- package: github.com/satori/go.uuid
+  version: 0aa62d5ddceb50dbcb909d790b5345affd3669b6
+- package: github.com/spf13/cobra
+  version: 1f4717172e07e12150feb061b2ab847c3054f53f
+- package: github.com/spf13/pflag
+  version: 103ce5cd2042f2fe629c1957abb64ab3e7f50235
+- package: golang.org/x/net
+  version: 7394c112eae4dba7e96bfcfe738e6373d61772b4
+  subpackages:
+  - context
+  - http2
+  - http2/hpack
+  - internal/timeseries
+  - lex/httplex
+  - trace
+- package: google.golang.org/grpc
+  version: 0032a855ba5c8a3c8e0d71c2deef354b70af1584
+  subpackages:
+  - codes
+  - credentials
+  - grpclog
+  - internal
+  - metadata
+  - naming
+  - peer
+  - transport
