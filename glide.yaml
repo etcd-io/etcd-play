@@ -3,7 +3,7 @@ import:
 - package: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
 - package: github.com/coreos/etcd
-  version: e53b99588a05d1f4ef172c178d4ed8e8106b8be4
+  version: 02912fe8c43da66d263baffdd88d18400c1b3ef8
   subpackages:
   - auth/authpb
   - clientv3
@@ -55,7 +55,7 @@ import:
   - lex/httplex
   - trace
 - package: google.golang.org/grpc
-  version: 0032a855ba5c8a3c8e0d71c2deef354b70af1584
+  version: 231b4cfea0e79843053a33f5fe90bd4d84b23cd3
   subpackages:
   - codes
   - credentials

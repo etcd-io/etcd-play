@@ -92,7 +92,7 @@ func (wr *WatchResponse) Err() error {
 
 // IsProgressNotify returns true if the WatchResponse is progress notification.
 func (wr *WatchResponse) IsProgressNotify() bool {
-	return len(wr.Events) == 0 && !wr.Canceled && !wr.Created
+	return len(wr.Events) == 0 && !wr.Canceled && !wr.Created && wr.CompactRevision == 0 && wr.Header.Revision != 0
 }
 
 // watcher implements the Watcher interface
@@ -131,6 +131,8 @@ type watchGrpcStream struct {
 	donec chan struct{}
 	// errc transmits errors from grpc Recv to the watch stream reconn logic
 	errc chan error
+	// closingc gets the watcherStream of closing watchers
+	closingc chan *watcherStream
 
 	// the error that closed the watch stream
 	closeErr error
@@ -203,11 +205,12 @@ func (w *watcher) newWatcherGrpcStream(inctx context.Context) *watchGrpcStream {
 		cancel:  cancel,
 		streams: make(map[int64]*watcherStream),
 
-		respc: make(chan *pb.WatchResponse),
-		reqc:  make(chan *watchRequest),
-		stopc: make(chan struct{}),
-		donec: make(chan struct{}),
-		errc:  make(chan error, 1),
+		respc:    make(chan *pb.WatchResponse),
+		reqc:     make(chan *watchRequest),
+		stopc:    make(chan struct{}),
+		donec:    make(chan struct{}),
+		errc:     make(chan error, 1),
+		closingc: make(chan *watcherStream),
 	}
 	go wgs.run()
 	return wgs
@@ -268,7 +271,6 @@ func (w *watcher) Watch(ctx context.Context, key string, opts ...OpOption) Watch
 	case reqc <- wr:
 		ok = true
 	case <-wr.ctx.Done():
-		wgs.stopIfEmpty()
 	case <-donec:
 		if wgs.closeErr != nil {
 			closeCh <- WatchResponse{closeErr: wgs.closeErr}
@@ -378,15 +380,19 @@ func (w *watchGrpcStream) addStream(resp *pb.WatchResponse, pendingReq *watchReq
 	go w.serveStream(ws)
 }
 
-// closeStream closes the watcher resources and removes it
-func (w *watchGrpcStream) closeStream(ws *watcherStream) {
+func (w *watchGrpcStream) closeStream(ws *watcherStream) bool {
 	w.mu.Lock()
 	// cancels request stream; subscriber receives nil channel
 	close(ws.initReq.retc)
 	// close subscriber's channel
 	close(ws.outc)
 	delete(w.streams, ws.id)
+	empty := len(w.streams) == 0
+	if empty && w.stopc != nil {
+		w.stopc = nil
+	}
 	w.mu.Unlock()
+	return empty
 }
 
 // run is the root of the goroutines for managing a watcher client
@@ -477,7 +483,7 @@ func (w *watchGrpcStream) run() {
 		// watch client failed to recv; spawn another if possible
 		// TODO report watch client errors from errc?
 		case err := <-w.errc:
-			if toErr(w.ctx, err) == v3rpc.ErrNoLeader {
+			if isHaltErr(w.ctx, err) || toErr(w.ctx, err) == v3rpc.ErrNoLeader {
 				closeErr = err
 				return
 			}
@@ -491,6 +497,10 @@ func (w *watchGrpcStream) run() {
 			cancelSet = make(map[int64]struct{})
 		case <-stopc:
 			return
+		case ws := <-w.closingc:
+			if w.closeStream(ws) {
+				return
+			}
 		}
 
 		// send failed; queue for retry
@@ -553,6 +563,15 @@ func (w *watchGrpcStream) serveWatchClient(wc pb.Watch_WatchClient) {
 
 // serveStream forwards watch responses from run() to the subscriber
 func (w *watchGrpcStream) serveStream(ws *watcherStream) {
+	defer func() {
+		// signal that this watcherStream is finished
+		select {
+		case w.closingc <- ws:
+		case <-w.donec:
+			w.closeStream(ws)
+		}
+	}()
+
 	var closeErr error
 	emptyWr := &WatchResponse{}
 	wrs := []*WatchResponse{}
@@ -641,18 +660,7 @@ func (w *watchGrpcStream) serveStream(ws *watcherStream) {
 		}
 	}
 
-	w.closeStream(ws)
-	w.stopIfEmpty()
 	// lazily send cancel message if events on missing id
-}
-
-func (wgs *watchGrpcStream) stopIfEmpty() {
-	wgs.mu.Lock()
-	if len(wgs.streams) == 0 && wgs.stopc != nil {
-		close(wgs.stopc)
-		wgs.stopc = nil
-	}
-	wgs.mu.Unlock()
 }
 
 func (w *watchGrpcStream) newWatchClient() (pb.Watch_WatchClient, error) {
@@ -708,6 +716,10 @@ func (w *watchGrpcStream) resumeWatchers(wc pb.Watch_WatchClient) error {
 	w.mu.RUnlock()
 
 	for _, ws := range streams {
+		// drain recvc so no old WatchResponses (e.g., Created messages)
+		// are processed while resuming
+		ws.drain()
+
 		// pause serveStream
 		ws.resumec <- -1
 
@@ -738,6 +750,17 @@ func (w *watchGrpcStream) resumeWatchers(wc pb.Watch_WatchClient) error {
 		ws.resumec <- ws.lastRev
 	}
 	return nil
+}
+
+// drain removes all buffered WatchResponses from the stream's receive channel.
+func (ws *watcherStream) drain() {
+	for {
+		select {
+		case <-ws.recvc:
+		default:
+			return
+		}
+	}
 }
 
 // toPB converts an internal watch request structure to its protobuf messagefunc (wr *watchRequest)

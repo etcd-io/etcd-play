@@ -1,10 +1,10 @@
-hash: 1f762b0702bb9ca2dc949915103b5488d86e0dea3b767e76268851638b643102
-updated: 2016-08-29T03:00:34.748081842-07:00
+hash: 101bb65ef31df0b4f0f50f4f1b7a665632bbf780974782d5455904c357177d6d
+updated: 2016-10-03T09:25:00.744454213-07:00
 imports:
 - name: github.com/cloudfoundry-incubator/candiedyaml
   version: 99c3df83b51532e3615f851d8c2dbb638f5313bf
 - name: github.com/coreos/etcd
-  version: e53b99588a05d1f4ef172c178d4ed8e8106b8be4
+  version: 02912fe8c43da66d263baffdd88d18400c1b3ef8
   subpackages:
   - auth/authpb
   - clientv3
@@ -56,7 +56,7 @@ imports:
   - lex/httplex
   - trace
 - name: google.golang.org/grpc
-  version: 0032a855ba5c8a3c8e0d71c2deef354b70af1584
+  version: 231b4cfea0e79843053a33f5fe90bd4d84b23cd3
   subpackages:
   - codes
   - credentials
