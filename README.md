@@ -1,4 +1,4 @@
-This is an experimental project. Project/code is subject to change anytime.
+REPLACED WITH https://github.com/coreos/etcdlabs
 
 # etcd-play
 
