@@ -1,4 +1,4 @@
-REPLACED WITH https://github.com/coreos/etcdlabs
+**Note: This project is replaced with https://github.com/coreos/etcdlabs**
 
 # etcd-play
 
